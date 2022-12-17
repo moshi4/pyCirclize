@@ -1,0 +1,42 @@
+name: CI
+on:
+  push:
+    branches: [main, develop]
+    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
+  pull_request:
+    branches: [main, develop]
+    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
+  workflow_dispatch:
+
+jobs:
+  CI_black-flake8-pytest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.8, 3.9, "3.10"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python ${{ matrix.python-version}}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Dependencies
+        run: poetry install -n
+
+      - name: Run black format check
+        run: poetry run black src tests --check --diff --verbose
+
+      - name: Run flake8 lint check
+        run: poetry run flake8 src tests --max-line-length=88 --ignore=E203,W503,W504
+
+      - name: Run pytest
+        run: poetry run pytest tests --tb=line --cov=src --cov-report=xml --cov-report=term

@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+import pytest
+
+from pycirclize import Circos
+
+
+def test_circos_init():
+    """Test circos initialization"""
+    circos = Circos({"A": 10, "B": 20, "C": 15})
+    assert [s.name for s in circos.sectors] == ["A", "B", "C"]
+
+
+@pytest.mark.parametrize(
+    "start, end",
+    [
+        (-10, 360),  # End - Start > 360
+        (0, -90),  # Start > End
+        (-400, -200),  # Start < -360
+        (200, 400),  # End > 360
+    ],
+)
+def test_circos_init_range_error(start: float, end: float):
+    """Test circos initialization range error"""
+    with pytest.raises(ValueError):
+        Circos({s: 10 for s in "ABC"}, start=start, end=end)
+
+
+@pytest.mark.parametrize(
+    "space, endspace, success",
+    [
+        # If `sector num = 3` and `endspace = True`
+        # List of space length must be 3
+        ([5], True, False),
+        ([5, 10], True, False),
+        ([5, 10, 15], True, True),
+        ([5, 10, 15, 20], True, False),
+        # If `sector num = 3` and `endspace = False`
+        # List of space length must be 2
+        ([5], False, False),
+        ([5, 10], False, True),
+        ([5, 10, 15], False, False),
+    ],
+)
+def test_circos_init_space_list(space: list[float], endspace: bool, success: bool):
+    """Test circos initialization space list length error"""
+    sectors = {s: 10 for s in "ABC"}
+    if success:
+        Circos(sectors, space=space, endspace=endspace)
+    else:
+        with pytest.raises(ValueError):
+            Circos({s: 10 for s in "ABC"}, space=space, endspace=endspace)
+
+
+def test_get_sector():
+    """Test `get_sector()`"""
+    sectors = {"A": 10, "B": 20, "C": 15}
+    circos = Circos(sectors)
+    # Case1: Successfully get sector
+    for sector_name in sectors.keys():
+        circos.get_sector(sector_name)
+    # Case2: Failed to get sector
+    with pytest.raises(ValueError):
+        circos.get_sector("error")

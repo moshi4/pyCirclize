@@ -1,0 +1,184 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+#!genome-build ViralProj14480
+#!genome-build-accession NCBI_Assembly:GCF_000844925.1
+##sequence-region NC_000902.1 1 60942
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=97081
+NC_000902.1	RefSeq	region	1	60942	.	+	.	ID=NC_000902.1:1..60942;Dbxref=taxon:97081;gbkey=Src;genome=proviral;mol_type=genomic DNA;nat-host=Escherichia coli O157:H7;synonym=Bacteriophage VT2-Sa
+NC_000902.1	RefSeq	gene	29	1363	.	-	.	ID=gene-VT2-Sap01;Dbxref=GeneID:1262246;Name=int;gbkey=Gene;gene=int;gene_biotype=protein_coding;locus_tag=VT2-Sap01
+NC_000902.1	RefSeq	CDS	29	1363	.	-	0	ID=cds-NP_050500.1;Parent=gene-VT2-Sap01;Dbxref=Genbank:NP_050500.1,GeneID:1262246;Name=NP_050500.1;gbkey=CDS;gene=int;locus_tag=VT2-Sap01;product=site-specific integrase;protein_id=NP_050500.1;transl_table=11
+NC_000902.1	RefSeq	gene	1392	1691	.	-	.	ID=gene-VT2-Sap02;Dbxref=GeneID:1262252;Name=xis;gbkey=Gene;gene=xis;gene_biotype=protein_coding;locus_tag=VT2-Sap02
+NC_000902.1	RefSeq	CDS	1392	1691	.	-	0	ID=cds-NP_050501.1;Parent=gene-VT2-Sap02;Dbxref=Genbank:NP_050501.1,GeneID:1262252;Name=NP_050501.1;gbkey=CDS;gene=xis;locus_tag=VT2-Sap02;product=excisionase family protein;protein_id=NP_050501.1;transl_table=11
+NC_000902.1	RefSeq	gene	1762	2073	.	-	.	ID=gene-VT2-Sap03;Dbxref=GeneID:1262256;Name=VT2-Sap03;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap03
+NC_000902.1	RefSeq	CDS	1762	2073	.	-	0	ID=cds-NP_050502.1;Parent=gene-VT2-Sap03;Dbxref=Genbank:NP_050502.1,GeneID:1262256;Name=NP_050502.1;Note=orf3;gbkey=CDS;locus_tag=VT2-Sap03;product=hypothetical protein;protein_id=NP_050502.1;transl_table=11
+NC_000902.1	RefSeq	gene	2133	3032	.	-	.	ID=gene-VT2-Sap04;Dbxref=GeneID:1262257;Name=VT2-Sap04;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap04
+NC_000902.1	RefSeq	CDS	2133	3032	.	-	0	ID=cds-NP_050503.1;Parent=gene-VT2-Sap04;Dbxref=Genbank:NP_050503.1,GeneID:1262257;Name=NP_050503.1;Note=orf4;gbkey=CDS;locus_tag=VT2-Sap04;product=hypothetical protein;protein_id=NP_050503.1;transl_table=11
+NC_000902.1	RefSeq	gene	3036	3323	.	-	.	ID=gene-VT2-Sap05;Dbxref=GeneID:1262258;Name=VT2-Sap05;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap05
+NC_000902.1	RefSeq	CDS	3036	3323	.	-	0	ID=cds-NP_050504.1;Parent=gene-VT2-Sap05;Dbxref=Genbank:NP_050504.1,GeneID:1262258;Name=NP_050504.1;Note=orf5;gbkey=CDS;locus_tag=VT2-Sap05;product=hypothetical protein;protein_id=NP_050504.1;transl_table=11
+NC_000902.1	RefSeq	gene	3325	3543	.	-	.	ID=gene-VT2-Sap06;Dbxref=GeneID:1262260;Name=VT2-Sap06;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap06
+NC_000902.1	RefSeq	CDS	3325	3543	.	-	0	ID=cds-NP_050505.1;Parent=gene-VT2-Sap06;Dbxref=Genbank:NP_050505.1,GeneID:1262260;Name=NP_050505.1;Note=orf6;gbkey=CDS;locus_tag=VT2-Sap06;product=DUF4014 family protein;protein_id=NP_050505.1;transl_table=11
+NC_000902.1	RefSeq	gene	3545	3832	.	-	.	ID=gene-VT2-Sap07;Dbxref=GeneID:1262261;Name=VT2-Sap07;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap07
+NC_000902.1	RefSeq	CDS	3545	3832	.	-	0	ID=cds-NP_050506.1;Parent=gene-VT2-Sap07;Dbxref=Genbank:NP_050506.1,GeneID:1262261;Name=NP_050506.1;Note=orf7;gbkey=CDS;locus_tag=VT2-Sap07;product=hypothetical protein;protein_id=NP_050506.1;transl_table=11
+NC_000902.1	RefSeq	gene	3762	4229	.	-	.	ID=gene-VT2-Sap08;Dbxref=GeneID:1262273;Name=VT2-Sap08;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap08
+NC_000902.1	RefSeq	CDS	3762	4229	.	-	0	ID=cds-NP_050507.1;Parent=gene-VT2-Sap08;Dbxref=Genbank:NP_050507.1,GeneID:1262273;Name=NP_050507.1;Note=orf8;gbkey=CDS;locus_tag=VT2-Sap08;product=hypothetical protein;protein_id=NP_050507.1;transl_table=11
+NC_000902.1	RefSeq	gene	4102	4875	.	-	.	ID=gene-VT2-Sap09;Dbxref=GeneID:1262262;Name=VT2-Sap09;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap09
+NC_000902.1	RefSeq	CDS	4102	4875	.	-	0	ID=cds-NP_050508.1;Parent=gene-VT2-Sap09;Dbxref=Genbank:NP_050508.1,GeneID:1262262;Name=NP_050508.1;Note=orf9~similar to ea22 protein of bacteriophage lambda;gbkey=CDS;locus_tag=VT2-Sap09;product=ead/Ea22-like family protein;protein_id=NP_050508.1;transl_table=11
+NC_000902.1	RefSeq	gene	4872	5093	.	-	.	ID=gene-VT2-Sap9a;Dbxref=GeneID:3074559;Name=VT2-Sap9a;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap9a
+NC_000902.1	RefSeq	CDS	4872	5093	.	-	0	ID=cds-YP_089649.1;Parent=gene-VT2-Sap9a;Dbxref=Genbank:YP_089649.1,GeneID:3074559;Name=YP_089649.1;Note=putative C4-type zinc finger domain;gbkey=CDS;locus_tag=VT2-Sap9a;product=TraR/DksA family transcriptional regulator;protein_id=YP_089649.1;transl_table=11
+NC_000902.1	RefSeq	gene	5192	5473	.	-	.	ID=gene-VT2-Sap10;Dbxref=GeneID:1262263;Name=VT2-Sap10;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap10
+NC_000902.1	RefSeq	CDS	5192	5473	.	-	0	ID=cds-NP_050509.1;Parent=gene-VT2-Sap10;Dbxref=Genbank:NP_050509.1,GeneID:1262263;Name=NP_050509.1;Note=orf10~similar to orf61 protein of bacteriophage lambda;gbkey=CDS;locus_tag=VT2-Sap10;product=cell division protein ZapA;protein_id=NP_050509.1;transl_table=11
+NC_000902.1	RefSeq	gene	5484	5675	.	-	.	ID=gene-VT2-Sap11;Dbxref=GeneID:1262264;Name=VT2-Sap11;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap11
+NC_000902.1	RefSeq	CDS	5484	5675	.	-	0	ID=cds-NP_050510.1;Parent=gene-VT2-Sap11;Dbxref=Genbank:NP_050510.1,GeneID:1262264;Name=NP_050510.1;Note=orf11~similar to orf63 protein of bacteriophage lambda;gbkey=CDS;locus_tag=VT2-Sap11;product=DUF1382 family protein;protein_id=NP_050510.1;transl_table=11
+NC_000902.1	RefSeq	gene	5648	5836	.	-	.	ID=gene-VT2-Sap12;Dbxref=GeneID:1262283;Name=VT2-Sap12;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap12
+NC_000902.1	RefSeq	CDS	5648	5836	.	-	0	ID=cds-NP_050511.1;Parent=gene-VT2-Sap12;Dbxref=Genbank:NP_050511.1,GeneID:1262283;Name=NP_050511.1;Note=orf12~similar to orf60a protein of bacteriophage lambda;gbkey=CDS;locus_tag=VT2-Sap12;product=DUF1317 domain-containing protein;protein_id=NP_050511.1;transl_table=11
+NC_000902.1	RefSeq	gene	5827	6507	.	-	.	ID=gene-VT2-Sap13;Dbxref=GeneID:1262253;Name=exo;gbkey=Gene;gene=exo;gene_biotype=protein_coding;locus_tag=VT2-Sap13
+NC_000902.1	RefSeq	CDS	5827	6507	.	-	0	ID=cds-NP_050512.1;Parent=gene-VT2-Sap13;Dbxref=Genbank:NP_050512.1,GeneID:1262253;Name=NP_050512.1;gbkey=CDS;gene=exo;locus_tag=VT2-Sap13;product=YqaJ viral recombinase family protein;protein_id=NP_050512.1;transl_table=11
+NC_000902.1	RefSeq	gene	6504	7289	.	-	.	ID=gene-VT2-Sap14;Dbxref=GeneID:1262231;Name=bet;gbkey=Gene;gene=bet;gene_biotype=protein_coding;locus_tag=VT2-Sap14
+NC_000902.1	RefSeq	CDS	6504	7289	.	-	0	ID=cds-NP_050513.1;Parent=gene-VT2-Sap14;Dbxref=Genbank:NP_050513.1,GeneID:1262231;Name=NP_050513.1;gbkey=CDS;gene=bet;locus_tag=VT2-Sap14;product=recombination protein Bet;protein_id=NP_050513.1;transl_table=11
+NC_000902.1	RefSeq	gene	7295	7711	.	-	.	ID=gene-VT2-Sap15;Dbxref=GeneID:1262243;Name=gam;gbkey=Gene;gene=gam;gene_biotype=protein_coding;locus_tag=VT2-Sap15
+NC_000902.1	RefSeq	CDS	7295	7711	.	-	0	ID=cds-NP_050514.1;Parent=gene-VT2-Sap15;Dbxref=Genbank:NP_050514.1,GeneID:1262243;Name=NP_050514.1;gbkey=CDS;gene=gam;locus_tag=VT2-Sap15;product=gam;protein_id=NP_050514.1;transl_table=11
+NC_000902.1	RefSeq	gene	7666	7935	.	-	.	ID=gene-VT2-Sap16;Dbxref=GeneID:1262224;Name=kil;gbkey=Gene;gene=kil;gene_biotype=protein_coding;locus_tag=VT2-Sap16
+NC_000902.1	RefSeq	CDS	7666	7935	.	-	0	ID=cds-NP_050515.1;Parent=gene-VT2-Sap16;Dbxref=Genbank:NP_050515.1,GeneID:1262224;Name=NP_050515.1;gbkey=CDS;gene=kil;locus_tag=VT2-Sap16;product=host cell division inhibitory peptide Kil;protein_id=NP_050515.1;transl_table=11
+NC_000902.1	RefSeq	gene	7778	7942	.	-	.	ID=gene-VT2-Sap17;Dbxref=GeneID:1262234;Name=cIII;gbkey=Gene;gene=cIII;gene_biotype=protein_coding;locus_tag=VT2-Sap17
+NC_000902.1	RefSeq	CDS	7778	7942	.	-	0	ID=cds-NP_050516.1;Parent=gene-VT2-Sap17;Dbxref=Genbank:NP_050516.1,GeneID:1262234;Name=NP_050516.1;gbkey=CDS;gene=cIII;locus_tag=VT2-Sap17;product=protease FtsH-inhibitory lysogeny factor CIII;protein_id=NP_050516.1;transl_table=11
+NC_000902.1	RefSeq	gene	8015	8383	.	-	.	ID=gene-VT2-Sap18;Dbxref=GeneID:1262221;Name=ea10;gbkey=Gene;gene=ea10;gene_biotype=protein_coding;locus_tag=VT2-Sap18
+NC_000902.1	RefSeq	CDS	8015	8383	.	-	0	ID=cds-NP_050517.1;Parent=gene-VT2-Sap18;Dbxref=Genbank:NP_050517.1,GeneID:1262221;Name=NP_050517.1;gbkey=CDS;gene=ea10;locus_tag=VT2-Sap18;product=DUF2528 family protein;protein_id=NP_050517.1;transl_table=11
+NC_000902.1	RefSeq	gene	8469	8624	.	-	.	ID=gene-VT2-Sap19;Dbxref=GeneID:1262271;Name=VT2-Sap19;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap19
+NC_000902.1	RefSeq	CDS	8469	8624	.	-	0	ID=cds-NP_050518.1;Parent=gene-VT2-Sap19;Dbxref=Genbank:NP_050518.1,GeneID:1262271;Name=NP_050518.1;Note=orf19;gbkey=CDS;locus_tag=VT2-Sap19;product=hypothetical protein;protein_id=NP_050518.1;transl_table=11
+NC_000902.1	RefSeq	gene	8566	8817	.	-	.	ID=gene-VT2-Sap20;Dbxref=GeneID:1262265;Name=VT2-Sap20;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap20
+NC_000902.1	RefSeq	CDS	8566	8817	.	-	0	ID=cds-NP_050519.1;Parent=gene-VT2-Sap20;Dbxref=Genbank:NP_050519.1,GeneID:1262265;Name=NP_050519.1;Note=orf20;gbkey=CDS;locus_tag=VT2-Sap20;product=hypothetical protein;protein_id=NP_050519.1;transl_table=11
+NC_000902.1	RefSeq	gene	8876	9220	.	-	.	ID=gene-VT2-Sap21;Dbxref=GeneID:1262218;Name=N;gbkey=Gene;gene=N;gene_biotype=protein_coding;locus_tag=VT2-Sap21
+NC_000902.1	RefSeq	CDS	8876	9220	.	-	0	ID=cds-NP_050520.1;Parent=gene-VT2-Sap21;Dbxref=Genbank:NP_050520.1,GeneID:1262218;Name=NP_050520.1;gbkey=CDS;gene=N;locus_tag=VT2-Sap21;product=antitermination protein;protein_id=NP_050520.1;transl_table=11
+NC_000902.1	RefSeq	gene	9605	9766	.	+	.	ID=gene-VT2-Sap22;Dbxref=GeneID:1262292;Name=VT2-Sap22;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap22
+NC_000902.1	RefSeq	CDS	9605	9766	.	+	0	ID=cds-NP_597694.1;Parent=gene-VT2-Sap22;Dbxref=Genbank:NP_597694.1,GeneID:1262292;Name=NP_597694.1;gbkey=CDS;locus_tag=VT2-Sap22;product=hypothetical protein;protein_id=NP_597694.1;transl_table=11
+NC_000902.1	RefSeq	gene	9877	10398	.	-	.	ID=gene-VT2-Sap23;Dbxref=GeneID:1262267;Name=VT2-Sap23;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap23
+NC_000902.1	RefSeq	CDS	9877	10398	.	-	0	ID=cds-NP_050521.1;Parent=gene-VT2-Sap23;Dbxref=Genbank:NP_050521.1,GeneID:1262267;Name=NP_050521.1;Note=orf22;gbkey=CDS;locus_tag=VT2-Sap23;product=hypothetical protein;protein_id=NP_050521.1;transl_table=11
+NC_000902.1	RefSeq	gene	10900	11409	.	-	.	ID=gene-VT2-Sap24;Dbxref=GeneID:1262232;Name=cI;gbkey=Gene;gene=cI;gene_biotype=protein_coding;locus_tag=VT2-Sap24
+NC_000902.1	RefSeq	CDS	10900	11409	.	-	0	ID=cds-NP_050522.1;Parent=gene-VT2-Sap24;Dbxref=Genbank:NP_050522.1,GeneID:1262232;Name=NP_050522.1;gbkey=CDS;gene=cI;locus_tag=VT2-Sap24;product=LexA family transcriptional regulator;protein_id=NP_050522.1;transl_table=11
+NC_000902.1	RefSeq	gene	11467	11595	.	-	.	ID=gene-VT2-Sap25;Dbxref=GeneID:1262255;Name=VT2-Sap25;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap25
+NC_000902.1	RefSeq	CDS	11467	11595	.	-	0	ID=cds-NP_597695.1;Parent=gene-VT2-Sap25;Dbxref=Genbank:NP_597695.1,GeneID:1262255;Name=NP_597695.1;gbkey=CDS;locus_tag=VT2-Sap25;product=c1 repressor protein fragment;protein_id=NP_597695.1;transl_table=11
+NC_000902.1	RefSeq	gene	11671	11886	.	+	.	ID=gene-VT2-Sap26;Dbxref=GeneID:1262242;Name=cro;gbkey=Gene;gene=cro;gene_biotype=protein_coding;locus_tag=VT2-Sap26
+NC_000902.1	RefSeq	CDS	11671	11886	.	+	0	ID=cds-NP_050523.1;Parent=gene-VT2-Sap26;Dbxref=Genbank:NP_050523.1,GeneID:1262242;Name=NP_050523.1;gbkey=CDS;gene=cro;locus_tag=VT2-Sap26;product=helix-turn-helix transcriptional regulator;protein_id=NP_050523.1;transl_table=11
+NC_000902.1	RefSeq	gene	12028	12324	.	+	.	ID=gene-VT2-Sap27;Dbxref=GeneID:1262233;Name=cII;gbkey=Gene;gene=cII;gene_biotype=protein_coding;locus_tag=VT2-Sap27
+NC_000902.1	RefSeq	CDS	12028	12324	.	+	0	ID=cds-NP_050524.1;Parent=gene-VT2-Sap27;Dbxref=Genbank:NP_050524.1,GeneID:1262233;Name=NP_050524.1;gbkey=CDS;gene=cII;locus_tag=VT2-Sap27;product=cII;protein_id=NP_050524.1;transl_table=11
+NC_000902.1	RefSeq	gene	12496	13395	.	+	.	ID=gene-VT2-Sap28;Dbxref=GeneID:1262219;Name=O;gbkey=Gene;gene=O;gene_biotype=protein_coding;locus_tag=VT2-Sap28
+NC_000902.1	RefSeq	CDS	12496	13395	.	+	0	ID=cds-NP_050525.1;Parent=gene-VT2-Sap28;Dbxref=Genbank:NP_050525.1,GeneID:1262219;Name=NP_050525.1;gbkey=CDS;gene=O;locus_tag=VT2-Sap28;product=similar to O protein of bacteriophage HK022;protein_id=NP_050525.1;transl_table=11
+NC_000902.1	RefSeq	gene	13370	14821	.	+	.	ID=gene-VT2-Sap29;Dbxref=GeneID:1262222;Name=P;gbkey=Gene;gene=P;gene_biotype=protein_coding;locus_tag=VT2-Sap29
+NC_000902.1	RefSeq	CDS	13370	14821	.	+	0	ID=cds-NP_050526.1;Parent=gene-VT2-Sap29;Dbxref=Genbank:NP_050526.1,GeneID:1262222;Name=NP_050526.1;gbkey=CDS;gene=P;locus_tag=VT2-Sap29;product=AAA family ATPase;protein_id=NP_050526.1;transl_table=11
+NC_000902.1	RefSeq	gene	14821	15090	.	+	.	ID=gene-VT2-Sap30;Dbxref=GeneID:1262241;Name=VT2-Sap30;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap30
+NC_000902.1	RefSeq	CDS	14821	15090	.	+	0	ID=cds-NP_050527.1;Parent=gene-VT2-Sap30;Dbxref=Genbank:NP_050527.1,GeneID:1262241;Name=NP_050527.1;Note=orf28;gbkey=CDS;locus_tag=VT2-Sap30;product=hypothetical protein;protein_id=NP_050527.1;transl_table=11
+NC_000902.1	RefSeq	gene	15161	15439	.	+	.	ID=gene-VT2-Sap31;Dbxref=GeneID:1262268;Name=VT2-Sap31;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap31
+NC_000902.1	RefSeq	CDS	15161	15439	.	+	0	ID=cds-NP_050528.1;Parent=gene-VT2-Sap31;Dbxref=Genbank:NP_050528.1,GeneID:1262268;Name=NP_050528.1;Note=orf29;gbkey=CDS;locus_tag=VT2-Sap31;product=hypothetical protein;protein_id=NP_050528.1;transl_table=11
+NC_000902.1	RefSeq	gene	15792	16034	.	+	.	ID=gene-VT2-Sap32;Dbxref=GeneID:1262212;Name=VT2-Sap32;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap32
+NC_000902.1	RefSeq	CDS	15792	16034	.	+	0	ID=cds-NP_050529.1;Parent=gene-VT2-Sap32;Dbxref=Genbank:NP_050529.1,GeneID:1262212;Name=NP_050529.1;Note=orf30;gbkey=CDS;locus_tag=VT2-Sap32;product=Lar family restriction alleviation protein;protein_id=NP_050529.1;transl_table=11
+NC_000902.1	RefSeq	gene	15892	16437	.	+	.	ID=gene-VT2-Sap33;Dbxref=GeneID:1262227;Name=VT2-Sap33;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap33
+NC_000902.1	RefSeq	CDS	15892	16437	.	+	0	ID=cds-NP_050530.1;Parent=gene-VT2-Sap33;Dbxref=Genbank:NP_050530.1,GeneID:1262227;Name=NP_050530.1;Note=orf31~;gbkey=CDS;locus_tag=VT2-Sap33;product=similar to nin 146 protein of bacteriophage lambda;protein_id=NP_050530.1;transl_table=11
+NC_000902.1	RefSeq	gene	16434	16961	.	+	.	ID=gene-VT2-Sap34;Dbxref=GeneID:1262269;Name=VT2-Sap34;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap34
+NC_000902.1	RefSeq	CDS	16434	16961	.	+	0	ID=cds-NP_050531.1;Parent=gene-VT2-Sap34;Dbxref=Genbank:NP_050531.1,GeneID:1262269;Name=NP_050531.1;Note=orf32~;gbkey=CDS;locus_tag=VT2-Sap34;product=N-6-adenine-methyltransferase;protein_id=NP_050531.1;transl_table=11
+NC_000902.1	RefSeq	gene	16958	17140	.	+	.	ID=gene-VT2-Sap35;Dbxref=GeneID:1262280;Name=VT2-Sap35;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap35
+NC_000902.1	RefSeq	CDS	16958	17140	.	+	0	ID=cds-NP_050532.1;Parent=gene-VT2-Sap35;Dbxref=Genbank:NP_050532.1,GeneID:1262280;Name=NP_050532.1;Note=orf33~;gbkey=CDS;locus_tag=VT2-Sap35;product=NinE family protein;protein_id=NP_050532.1;transl_table=11
+NC_000902.1	RefSeq	gene	17245	17418	.	+	.	ID=gene-VT2-Sap36;Dbxref=GeneID:1262278;Name=VT2-Sap36;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap36
+NC_000902.1	RefSeq	CDS	17245	17418	.	+	0	ID=cds-NP_050533.1;Parent=gene-VT2-Sap36;Dbxref=Genbank:NP_050533.1,GeneID:1262278;Name=NP_050533.1;Note=orf34;gbkey=CDS;locus_tag=VT2-Sap36;product=hypothetical protein;protein_id=NP_050533.1;transl_table=11
+NC_000902.1	RefSeq	gene	17415	18149	.	+	.	ID=gene-VT2-Sap37;Dbxref=GeneID:1262229;Name=ant;gbkey=Gene;gene=ant;gene_biotype=protein_coding;locus_tag=VT2-Sap37
+NC_000902.1	RefSeq	CDS	17415	18149	.	+	0	ID=cds-NP_050534.1;Parent=gene-VT2-Sap37;Dbxref=Genbank:NP_050534.1,GeneID:1262229;Name=NP_050534.1;gbkey=CDS;gene=ant;locus_tag=VT2-Sap37;product=antirepressor Ant;protein_id=NP_050534.1;transl_table=11
+NC_000902.1	RefSeq	gene	18218	18946	.	+	.	ID=gene-VT2-Sap38;Dbxref=GeneID:1262248;Name=roi;gbkey=Gene;gene=roi;gene_biotype=protein_coding;locus_tag=VT2-Sap38
+NC_000902.1	RefSeq	CDS	18218	18946	.	+	0	ID=cds-NP_050535.1;Parent=gene-VT2-Sap38;Dbxref=Genbank:NP_050535.1,GeneID:1262248;Name=NP_050535.1;gbkey=CDS;gene=roi;locus_tag=VT2-Sap38;product=DNA-binding protein;protein_id=NP_050535.1;transl_table=11
+NC_000902.1	RefSeq	gene	18946	19551	.	+	.	ID=gene-VT2-Sap39;Dbxref=GeneID:1262270;Name=VT2-Sap39;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap39
+NC_000902.1	RefSeq	CDS	18946	19551	.	+	0	ID=cds-NP_050536.1;Parent=gene-VT2-Sap39;Dbxref=Genbank:NP_050536.1,GeneID:1262270;Name=NP_050536.1;Note=orf37~;gbkey=CDS;locus_tag=VT2-Sap39;product=recombination protein NinG;protein_id=NP_050536.1;transl_table=11
+NC_000902.1	RefSeq	gene	19548	19742	.	+	.	ID=gene-VT2-Sap40;Dbxref=GeneID:1262240;Name=VT2-Sap40;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap40
+NC_000902.1	RefSeq	CDS	19548	19742	.	+	0	ID=cds-NP_050537.1;Parent=gene-VT2-Sap40;Dbxref=Genbank:NP_050537.1,GeneID:1262240;Name=NP_050537.1;Note=orf38~;gbkey=CDS;locus_tag=VT2-Sap40;product=NinH family protein;protein_id=NP_050537.1;transl_table=11
+NC_000902.1	RefSeq	gene	19696	20169	.	+	.	ID=gene-VT2-Sap41;Dbxref=GeneID:1262223;Name=Q;gbkey=Gene;gene=Q;gene_biotype=protein_coding;locus_tag=VT2-Sap41
+NC_000902.1	RefSeq	CDS	19696	20169	.	+	0	ID=cds-NP_050538.1;Parent=gene-VT2-Sap41;Dbxref=Genbank:NP_050538.1,GeneID:1262223;Name=NP_050538.1;gbkey=CDS;gene=Q;locus_tag=VT2-Sap41;product=antitermination protein;protein_id=NP_050538.1;transl_table=11
+NC_000902.1	RefSeq	gene	20602	20686	.	+	.	ID=gene-VT2-Sat01;Dbxref=GeneID:1262213;Name=VT2-Sat01;gbkey=Gene;gene_biotype=tRNA;locus_tag=VT2-Sat01
+NC_000902.1	RefSeq	tRNA	20602	20686	.	+	.	ID=rna-VT2-Sat01;Parent=gene-VT2-Sat01;Dbxref=GeneID:1262213;Note=recognize Ile codon;gbkey=tRNA;locus_tag=VT2-Sat01;product=tRNA-Ile
+NC_000902.1	RefSeq	exon	20602	20686	.	+	.	ID=exon-VT2-Sat01-1;Parent=rna-VT2-Sat01;Dbxref=GeneID:1262213;Note=recognize Ile codon;gbkey=tRNA;locus_tag=VT2-Sat01;product=tRNA-Ile
+NC_000902.1	RefSeq	gene	20697	20772	.	+	.	ID=gene-VT2-Sat02;Dbxref=GeneID:1262215;Name=VT2-Sat02;gbkey=Gene;gene_biotype=tRNA;locus_tag=VT2-Sat02
+NC_000902.1	RefSeq	tRNA	20697	20772	.	+	.	ID=rna-VT2-Sat02;Parent=gene-VT2-Sat02;Dbxref=GeneID:1262215;Note=recognize Arg codon;gbkey=tRNA;locus_tag=VT2-Sat02;product=tRNA-Arg
+NC_000902.1	RefSeq	exon	20697	20772	.	+	.	ID=exon-VT2-Sat02-1;Parent=rna-VT2-Sat02;Dbxref=GeneID:1262215;Note=recognize Arg codon;gbkey=tRNA;locus_tag=VT2-Sat02;product=tRNA-Arg
+NC_000902.1	RefSeq	gene	20787	20862	.	+	.	ID=gene-VT2-Sat03;Dbxref=GeneID:1262216;Name=VT2-Sat03;gbkey=Gene;gene_biotype=tRNA;locus_tag=VT2-Sat03
+NC_000902.1	RefSeq	tRNA	20787	20862	.	+	.	ID=rna-VT2-Sat03;Parent=gene-VT2-Sat03;Dbxref=GeneID:1262216;Note=recognize Arg codon;gbkey=tRNA;locus_tag=VT2-Sat03;product=tRNA-Arg
+NC_000902.1	RefSeq	exon	20787	20862	.	+	.	ID=exon-VT2-Sat03-1;Parent=rna-VT2-Sat03;Dbxref=GeneID:1262216;Note=recognize Arg codon;gbkey=tRNA;locus_tag=VT2-Sat03;product=tRNA-Arg
+NC_000902.1	RefSeq	gene	20953	21912	.	+	.	ID=gene-VT2-Sap42;Dbxref=GeneID:1262249;Name=stx2A;gbkey=Gene;gene=stx2A;gene_biotype=protein_coding;locus_tag=VT2-Sap42
+NC_000902.1	RefSeq	CDS	20953	21912	.	+	0	ID=cds-NP_050539.1;Parent=gene-VT2-Sap42;Dbxref=Genbank:NP_050539.1,GeneID:1262249;Name=NP_050539.1;gbkey=CDS;gene=stx2A;locus_tag=VT2-Sap42;product=Shiga toxin Stx2c subunit A;protein_id=NP_050539.1;transl_table=11
+NC_000902.1	RefSeq	gene	21924	22193	.	+	.	ID=gene-VT2-Sap43;Dbxref=GeneID:1262250;Name=stx2B;gbkey=Gene;gene=stx2B;gene_biotype=protein_coding;locus_tag=VT2-Sap43
+NC_000902.1	RefSeq	CDS	21924	22193	.	+	0	ID=cds-NP_050540.1;Parent=gene-VT2-Sap43;Dbxref=Genbank:NP_050540.1,GeneID:1262250;Name=NP_050540.1;gbkey=CDS;gene=stx2B;locus_tag=VT2-Sap43;product=Shiga toxin Stx2a subunit B;protein_id=NP_050540.1;transl_table=11
+NC_000902.1	RefSeq	gene	22680	24617	.	+	.	ID=gene-VT2-Sap44;Dbxref=GeneID:1262272;Name=VT2-Sap44;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap44
+NC_000902.1	RefSeq	CDS	22680	24617	.	+	0	ID=cds-NP_050541.1;Parent=gene-VT2-Sap44;Dbxref=Genbank:NP_050541.1,GeneID:1262272;Name=NP_050541.1;Note=orf42~;gbkey=CDS;locus_tag=VT2-Sap44;product=SASA family carbohydrate esterase;protein_id=NP_050541.1;transl_table=11
+NC_000902.1	RefSeq	gene	24801	25220	.	+	.	ID=gene-VT2-Sap45;Dbxref=GeneID:1262275;Name=VT2-Sap45;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap45
+NC_000902.1	RefSeq	CDS	24801	25220	.	+	0	ID=cds-NP_050542.1;Parent=gene-VT2-Sap45;Dbxref=Genbank:NP_050542.1,GeneID:1262275;Name=NP_050542.1;Note=orf43;gbkey=CDS;locus_tag=VT2-Sap45;product=hypothetical protein;protein_id=NP_050542.1;transl_table=11
+NC_000902.1	RefSeq	gene	25223	25513	.	+	.	ID=gene-VT2-Sap46;Dbxref=GeneID:1262228;Name=S;gbkey=Gene;gene=S;gene_biotype=protein_coding;locus_tag=VT2-Sap46
+NC_000902.1	RefSeq	CDS	25223	25513	.	+	0	ID=cds-NP_050543.1;Parent=gene-VT2-Sap46;Dbxref=Genbank:NP_050543.1,GeneID:1262228;Name=NP_050543.1;gbkey=CDS;gene=S;locus_tag=VT2-Sap46;product=lysis protein;protein_id=NP_050543.1;transl_table=11
+NC_000902.1	RefSeq	gene	25518	26051	.	+	.	ID=gene-VT2-Sap47;Dbxref=GeneID:1262225;Name=R;gbkey=Gene;gene=R;gene_biotype=protein_coding;locus_tag=VT2-Sap47
+NC_000902.1	RefSeq	CDS	25518	26051	.	+	0	ID=cds-NP_050544.1;Parent=gene-VT2-Sap47;Dbxref=Genbank:NP_050544.1,GeneID:1262225;Name=NP_050544.1;gbkey=CDS;gene=R;locus_tag=VT2-Sap47;product=lysozyme;protein_id=NP_050544.1;transl_table=11
+NC_000902.1	RefSeq	gene	26322	26891	.	+	.	ID=gene-VT2-Sap48;Dbxref=GeneID:1262230;Name=ant;gbkey=Gene;gene=ant;gene_biotype=protein_coding;locus_tag=VT2-Sap48
+NC_000902.1	RefSeq	CDS	26322	26891	.	+	0	ID=cds-NP_050545.1;Parent=gene-VT2-Sap48;Dbxref=Genbank:NP_050545.1,GeneID:1262230;Name=NP_050545.1;gbkey=CDS;gene=ant;locus_tag=VT2-Sap48;product=similar to antirepressor of bacteriophage P22;protein_id=NP_050545.1;transl_table=11
+NC_000902.1	RefSeq	gene	27045	27512	.	+	.	ID=gene-VT2-Sap49;Dbxref=GeneID:1262226;Name=Rz;gbkey=Gene;gene=Rz;gene_biotype=protein_coding;locus_tag=VT2-Sap49
+NC_000902.1	RefSeq	CDS	27045	27512	.	+	0	ID=cds-NP_050546.1;Parent=gene-VT2-Sap49;Dbxref=Genbank:NP_050546.1,GeneID:1262226;Name=NP_050546.1;gbkey=CDS;gene=Rz;locus_tag=VT2-Sap49;product=lysis protein;protein_id=NP_050546.1;transl_table=11
+NC_000902.1	RefSeq	gene	27500	27760	.	+	.	ID=gene-VT2-Sap50;Dbxref=GeneID:1262276;Name=VT2-Sap50;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap50
+NC_000902.1	RefSeq	CDS	27500	27760	.	+	0	ID=cds-NP_050547.1;Parent=gene-VT2-Sap50;Dbxref=Genbank:NP_050547.1,GeneID:1262276;Name=NP_050547.1;Note=orf48;gbkey=CDS;locus_tag=VT2-Sap50;product=hypothetical protein;protein_id=NP_050547.1;transl_table=11
+NC_000902.1	RefSeq	gene	27816	28622	.	+	.	ID=gene-VT2-Sap51;Dbxref=GeneID:1262239;Name=VT2-Sap51;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap51
+NC_000902.1	RefSeq	CDS	27816	28622	.	+	0	ID=cds-NP_050548.1;Parent=gene-VT2-Sap51;Dbxref=Genbank:NP_050548.1,GeneID:1262239;Name=NP_050548.1;Note=orf49;gbkey=CDS;locus_tag=VT2-Sap51;product=terminase;protein_id=NP_050548.1;transl_table=11
+NC_000902.1	RefSeq	gene	28603	30309	.	+	.	ID=gene-VT2-Sap52;Dbxref=GeneID:1262208;Name=VT2-Sap52;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap52
+NC_000902.1	RefSeq	CDS	28603	30309	.	+	0	ID=cds-NP_050549.1;Parent=gene-VT2-Sap52;Dbxref=Genbank:NP_050549.1,GeneID:1262208;Name=NP_050549.1;Note=orf50;gbkey=CDS;locus_tag=VT2-Sap52;product=terminase;protein_id=NP_050549.1;transl_table=11
+NC_000902.1	RefSeq	gene	30309	32453	.	+	.	ID=gene-VT2-Sap53;Dbxref=GeneID:1262279;Name=VT2-Sap53;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap53
+NC_000902.1	RefSeq	CDS	30309	32453	.	+	0	ID=cds-NP_050550.1;Parent=gene-VT2-Sap53;Dbxref=Genbank:NP_050550.1,GeneID:1262279;Name=NP_050550.1;Note=orf51;gbkey=CDS;locus_tag=VT2-Sap53;product=portal protein;protein_id=NP_050550.1;transl_table=11
+NC_000902.1	RefSeq	gene	32611	33618	.	+	.	ID=gene-VT2-Sap54;Dbxref=GeneID:1262214;Name=VT2-Sap54;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap54
+NC_000902.1	RefSeq	CDS	32611	33618	.	+	0	ID=cds-NP_050551.1;Parent=gene-VT2-Sap54;Dbxref=Genbank:NP_050551.1,GeneID:1262214;Name=NP_050551.1;Note=orf52;gbkey=CDS;locus_tag=VT2-Sap54;product=hypothetical protein;protein_id=NP_050551.1;transl_table=11
+NC_000902.1	RefSeq	gene	33642	34856	.	+	.	ID=gene-VT2-Sap55;Dbxref=GeneID:1262254;Name=VT2-Sap55;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap55
+NC_000902.1	RefSeq	CDS	33642	34856	.	+	0	ID=cds-NP_050552.1;Parent=gene-VT2-Sap55;Dbxref=Genbank:NP_050552.1,GeneID:1262254;Name=NP_050552.1;Note=orf53;gbkey=CDS;locus_tag=VT2-Sap55;product=N4-gp56 family major capsid protein;protein_id=NP_050552.1;transl_table=11
+NC_000902.1	RefSeq	gene	34912	35301	.	+	.	ID=gene-VT2-Sap56;Dbxref=GeneID:1262281;Name=VT2-Sap56;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap56
+NC_000902.1	RefSeq	CDS	34912	35301	.	+	0	ID=cds-NP_050553.1;Parent=gene-VT2-Sap56;Dbxref=Genbank:NP_050553.1,GeneID:1262281;Name=NP_050553.1;Note=orf54;gbkey=CDS;locus_tag=VT2-Sap56;product=hypothetical protein;protein_id=NP_050553.1;transl_table=11
+NC_000902.1	RefSeq	gene	35324	35812	.	+	.	ID=gene-VT2-Sap57;Dbxref=GeneID:1262259;Name=VT2-Sap57;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap57
+NC_000902.1	RefSeq	CDS	35324	35812	.	+	0	ID=cds-NP_050554.1;Parent=gene-VT2-Sap57;Dbxref=Genbank:NP_050554.1,GeneID:1262259;Name=NP_050554.1;Note=orf55;gbkey=CDS;locus_tag=VT2-Sap57;product=hypothetical protein;protein_id=NP_050554.1;transl_table=11
+NC_000902.1	RefSeq	gene	35688	36359	.	+	.	ID=gene-VT2-Sap58;Dbxref=GeneID:1262277;Name=VT2-Sap58;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap58
+NC_000902.1	RefSeq	CDS	35688	36359	.	+	0	ID=cds-NP_050555.1;Parent=gene-VT2-Sap58;Dbxref=Genbank:NP_050555.1,GeneID:1262277;Name=NP_050555.1;Note=orf56;gbkey=CDS;locus_tag=VT2-Sap58;product=hypothetical protein;protein_id=NP_050555.1;transl_table=11
+NC_000902.1	RefSeq	gene	36359	37009	.	+	.	ID=gene-VT2-Sap59;Dbxref=GeneID:1262282;Name=VT2-Sap59;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap59
+NC_000902.1	RefSeq	CDS	36359	37009	.	+	0	ID=cds-NP_050556.1;Parent=gene-VT2-Sap59;Dbxref=Genbank:NP_050556.1,GeneID:1262282;Name=NP_050556.1;Note=orf57;gbkey=CDS;locus_tag=VT2-Sap59;product=hypothetical protein;protein_id=NP_050556.1;transl_table=11
+NC_000902.1	RefSeq	gene	37006	38943	.	+	.	ID=gene-VT2-Sap60;Dbxref=GeneID:1262244;Name=VT2-Sap60;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap60
+NC_000902.1	RefSeq	CDS	37006	38943	.	+	0	ID=cds-NP_050557.1;Parent=gene-VT2-Sap60;Dbxref=Genbank:NP_050557.1,GeneID:1262244;Name=NP_050557.1;Note=orf58;gbkey=CDS;locus_tag=VT2-Sap60;product=tail fiber C-terminal domain-containing protein;protein_id=NP_050557.1;transl_table=11
+NC_000902.1	RefSeq	gene	38825	39214	.	+	.	ID=gene-VT2-Sap61;Dbxref=GeneID:1262284;Name=VT2-Sap61;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap61
+NC_000902.1	RefSeq	CDS	38825	39214	.	+	0	ID=cds-NP_050558.1;Parent=gene-VT2-Sap61;Dbxref=Genbank:NP_050558.1,GeneID:1262284;Name=NP_050558.1;Note=orf59;gbkey=CDS;locus_tag=VT2-Sap61;product=hypothetical protein;protein_id=NP_050558.1;transl_table=11
+NC_000902.1	RefSeq	gene	39261	39542	.	+	.	ID=gene-VT2-Sap62;Dbxref=GeneID:1262251;Name=VT2-Sap62;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap62
+NC_000902.1	RefSeq	CDS	39261	39542	.	+	0	ID=cds-NP_050559.1;Parent=gene-VT2-Sap62;Dbxref=Genbank:NP_050559.1,GeneID:1262251;Name=NP_050559.1;Note=orf60;gbkey=CDS;locus_tag=VT2-Sap62;product=hypothetical protein;protein_id=NP_050559.1;transl_table=11
+NC_000902.1	RefSeq	gene	39759	41462	.	+	.	ID=gene-VT2-Sap63;Dbxref=GeneID:1262210;Name=VT2-Sap63;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap63
+NC_000902.1	RefSeq	CDS	39759	41462	.	+	0	ID=cds-NP_050560.1;Parent=gene-VT2-Sap63;Dbxref=Genbank:NP_050560.1,GeneID:1262210;Name=NP_050560.1;Note=orf61;gbkey=CDS;locus_tag=VT2-Sap63;product=hypothetical protein;protein_id=NP_050560.1;transl_table=11
+NC_000902.1	RefSeq	gene	41459	42727	.	+	.	ID=gene-VT2-Sap64;Dbxref=GeneID:1262285;Name=VT2-Sap64;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap64
+NC_000902.1	RefSeq	CDS	41459	42727	.	+	0	ID=cds-NP_050561.1;Parent=gene-VT2-Sap64;Dbxref=Genbank:NP_050561.1,GeneID:1262285;Name=NP_050561.1;Note=orf62;gbkey=CDS;locus_tag=VT2-Sap64;product=DUF1983 domain-containing protein;protein_id=NP_050561.1;transl_table=11
+NC_000902.1	RefSeq	gene	42793	43020	.	+	.	ID=gene-VT2-Sap65;Dbxref=GeneID:1262209;Name=VT2-Sap65;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap65
+NC_000902.1	RefSeq	CDS	42793	43020	.	+	0	ID=cds-NP_050562.1;Parent=gene-VT2-Sap65;Dbxref=Genbank:NP_050562.1,GeneID:1262209;Name=NP_050562.1;Note=orf63;gbkey=CDS;locus_tag=VT2-Sap65;product=hypothetical protein;protein_id=NP_050562.1;transl_table=11
+NC_000902.1	RefSeq	gene	43026	43643	.	+	.	ID=gene-VT2-Sap66;Dbxref=GeneID:1262235;Name=VT2-Sap66;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap66
+NC_000902.1	RefSeq	CDS	43026	43643	.	+	0	ID=cds-NP_050563.1;Parent=gene-VT2-Sap66;Dbxref=Genbank:NP_050563.1,GeneID:1262235;Name=NP_050563.1;Note=orf64;gbkey=CDS;locus_tag=VT2-Sap66;product=hypothetical protein;protein_id=NP_050563.1;transl_table=11
+NC_000902.1	RefSeq	gene	43734	44468	.	+	.	ID=gene-VT2-Sap67;Dbxref=GeneID:1262247;Name=lom;gbkey=Gene;gene=lom;gene_biotype=protein_coding;locus_tag=VT2-Sap67
+NC_000902.1	RefSeq	CDS	43734	44468	.	+	0	ID=cds-NP_050564.1;Parent=gene-VT2-Sap67;Dbxref=Genbank:NP_050564.1,GeneID:1262247;Name=NP_050564.1;gbkey=CDS;gene=lom;locus_tag=VT2-Sap67;product=Ail/Lom family outer membrane beta-barrel protein;protein_id=NP_050564.1;transl_table=11
+NC_000902.1	RefSeq	gene	44898	45299	.	+	.	ID=gene-VT2-Sap68;Dbxref=GeneID:1262286;Name=VT2-Sap68;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap68
+NC_000902.1	RefSeq	CDS	44898	45299	.	+	0	ID=cds-NP_050565.1;Parent=gene-VT2-Sap68;Dbxref=Genbank:NP_050565.1,GeneID:1262286;Name=NP_050565.1;Note=orf66;gbkey=CDS;locus_tag=VT2-Sap68;product=hypothetical protein;protein_id=NP_050565.1;transl_table=11
+NC_000902.1	RefSeq	gene	45393	46049	.	+	.	ID=gene-VT2-Sap69;Dbxref=GeneID:1262236;Name=VT2-Sap69;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap69
+NC_000902.1	RefSeq	CDS	45393	46049	.	+	0	ID=cds-NP_050566.1;Parent=gene-VT2-Sap69;Dbxref=Genbank:NP_050566.1,GeneID:1262236;Name=NP_050566.1;Note=orf67;gbkey=CDS;locus_tag=VT2-Sap69;product=hypothetical protein;protein_id=NP_050566.1;transl_table=11
+NC_000902.1	RefSeq	gene	46052	46498	.	+	.	ID=gene-VT2-Sap70;Dbxref=GeneID:1262287;Name=VT2-Sap70;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap70
+NC_000902.1	RefSeq	CDS	46052	46498	.	+	0	ID=cds-NP_050567.1;Parent=gene-VT2-Sap70;Dbxref=Genbank:NP_050567.1,GeneID:1262287;Name=NP_050567.1;Note=orf68;gbkey=CDS;locus_tag=VT2-Sap70;product=hypothetical protein;protein_id=NP_050567.1;transl_table=11
+NC_000902.1	RefSeq	gene	46508	46759	.	+	.	ID=gene-VT2-Sap71;Dbxref=GeneID:1262211;Name=VT2-Sap71;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap71
+NC_000902.1	RefSeq	CDS	46508	46759	.	+	0	ID=cds-NP_050568.1;Parent=gene-VT2-Sap71;Dbxref=Genbank:NP_050568.1,GeneID:1262211;Name=NP_050568.1;Note=orf69;gbkey=CDS;locus_tag=VT2-Sap71;product=bacteriocin;protein_id=NP_050568.1;transl_table=11
+NC_000902.1	RefSeq	gene	46770	48035	.	+	.	ID=gene-VT2-Sap72;Dbxref=GeneID:1262245;Name=VT2-Sap72;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap72
+NC_000902.1	RefSeq	CDS	46770	48035	.	+	0	ID=cds-NP_050569.1;Parent=gene-VT2-Sap72;Dbxref=Genbank:NP_050569.1,GeneID:1262245;Name=NP_050569.1;Note=orf70;gbkey=CDS;locus_tag=VT2-Sap72;product=hypothetical protein;protein_id=NP_050569.1;transl_table=11
+NC_000902.1	RefSeq	gene	48066	56486	.	+	.	ID=gene-VT2-Sap73;Dbxref=GeneID:1262288;Name=VT2-Sap73;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap73
+NC_000902.1	RefSeq	CDS	48066	56486	.	+	0	ID=cds-NP_050570.1;Parent=gene-VT2-Sap73;Dbxref=Genbank:NP_050570.1,GeneID:1262288;Name=NP_050570.1;Note=orf71;gbkey=CDS;locus_tag=VT2-Sap73;product=LPD5 domain-containing protein;protein_id=NP_050570.1;transl_table=11
+NC_000902.1	RefSeq	gene	56769	56957	.	+	.	ID=gene-VT2-Sap74;Dbxref=GeneID:1262238;Name=VT2-Sap74;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap74
+NC_000902.1	RefSeq	CDS	56769	56957	.	+	0	ID=cds-NP_050571.1;Parent=gene-VT2-Sap74;Dbxref=Genbank:NP_050571.1,GeneID:1262238;Name=NP_050571.1;Note=orf72;gbkey=CDS;locus_tag=VT2-Sap74;product=hypothetical protein;protein_id=NP_050571.1;transl_table=11
+NC_000902.1	RefSeq	gene	57037	57381	.	-	.	ID=gene-VT2-Sap75;Dbxref=GeneID:1262289;Name=VT2-Sap75;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap75
+NC_000902.1	RefSeq	CDS	57037	57381	.	-	0	ID=cds-NP_050572.1;Parent=gene-VT2-Sap75;Dbxref=Genbank:NP_050572.1,GeneID:1262289;Name=NP_050572.1;Note=orf73;gbkey=CDS;locus_tag=VT2-Sap75;product=YgiW/YdeI family stress tolerance OB fold protein;protein_id=NP_050572.1;transl_table=11
+NC_000902.1	RefSeq	gene	57501	57713	.	-	.	ID=gene-VT2-Sap76;Dbxref=GeneID:1262217;Name=VT2-Sap76;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap76
+NC_000902.1	RefSeq	CDS	57501	57713	.	-	0	ID=cds-NP_050573.1;Parent=gene-VT2-Sap76;Dbxref=Genbank:NP_050573.1,GeneID:1262217;Name=NP_050573.1;gbkey=CDS;locus_tag=VT2-Sap76;product=type I toxin-antitoxin system Hok family toxin;protein_id=NP_050573.1;transl_table=11
+NC_000902.1	RefSeq	gene	57947	58417	.	-	.	ID=gene-VT2-Sap77;Dbxref=GeneID:1262290;Name=VT2-Sap77;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap77
+NC_000902.1	RefSeq	CDS	57947	58417	.	-	0	ID=cds-NP_050574.1;Parent=gene-VT2-Sap77;Dbxref=Genbank:NP_050574.1,GeneID:1262290;Name=NP_050574.1;Note=orf75;gbkey=CDS;locus_tag=VT2-Sap77;product=hypothetical protein;protein_id=NP_050574.1;transl_table=11
+NC_000902.1	RefSeq	gene	58342	59001	.	-	.	ID=gene-VT2-Sap78;Dbxref=GeneID:1262237;Name=VT2-Sap78;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap78
+NC_000902.1	RefSeq	CDS	58342	59001	.	-	0	ID=cds-NP_050575.1;Parent=gene-VT2-Sap78;Dbxref=Genbank:NP_050575.1,GeneID:1262237;Name=NP_050575.1;Note=orf76;gbkey=CDS;locus_tag=VT2-Sap78;product=DUF551 domain-containing protein;protein_id=NP_050575.1;transl_table=11
+NC_000902.1	RefSeq	gene	59022	59252	.	-	.	ID=gene-VT2-Sap79;Dbxref=GeneID:1262220;Name=VT2-Sap79;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap79
+NC_000902.1	RefSeq	CDS	59022	59252	.	-	0	ID=cds-NP_050576.1;Parent=gene-VT2-Sap79;Dbxref=Genbank:NP_050576.1,GeneID:1262220;Name=NP_050576.1;Note=orf77;gbkey=CDS;locus_tag=VT2-Sap79;product=ead/Ea22-like family protein;protein_id=NP_050576.1;transl_table=11
+NC_000902.1	RefSeq	gene	59227	59511	.	-	.	ID=gene-VT2-Sap80;Dbxref=GeneID:1262291;Name=VT2-Sap80;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap80
+NC_000902.1	RefSeq	CDS	59227	59511	.	-	0	ID=cds-NP_050577.1;Parent=gene-VT2-Sap80;Dbxref=Genbank:NP_050577.1,GeneID:1262291;Name=NP_050577.1;Note=orf78;gbkey=CDS;locus_tag=VT2-Sap80;product=DUF4752 family protein;protein_id=NP_050577.1;transl_table=11
+NC_000902.1	RefSeq	gene	59508	59729	.	-	.	ID=gene-VT2-Sap81;Dbxref=GeneID:1262266;Name=VT2-Sap81;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap81
+NC_000902.1	RefSeq	CDS	59508	59729	.	-	0	ID=cds-NP_050578.1;Parent=gene-VT2-Sap81;Dbxref=Genbank:NP_050578.1,GeneID:1262266;Name=NP_050578.1;Note=putative C4-type zinc finger domain;gbkey=CDS;locus_tag=VT2-Sap81;product=TraR/DksA family transcriptional regulator;protein_id=NP_050578.1;transl_table=11
+NC_000902.1	RefSeq	gene	59777	60406	.	-	.	ID=gene-VT2-Sap82;Dbxref=GeneID:1262274;Name=VT2-Sap82;gbkey=Gene;gene_biotype=protein_coding;locus_tag=VT2-Sap82
+NC_000902.1	RefSeq	CDS	59777	60406	.	-	0	ID=cds-NP_050579.1;Parent=gene-VT2-Sap82;Dbxref=Genbank:NP_050579.1,GeneID:1262274;Name=NP_050579.1;Note=orf80;gbkey=CDS;locus_tag=VT2-Sap82;product=anti-repressor protein;protein_id=NP_050579.1;transl_table=11
+###

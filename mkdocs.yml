@@ -1,0 +1,67 @@
+site_name: pyCirclize
+site_description: Circular visualization in Python
+site_author: moshi4
+repo_name: moshi4/pyCirclize
+repo_url: https://github.com/moshi4/pyCirclize
+edit_uri: ""
+use_directory_urls: true
+watch:
+  - src
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.ipynb
+  - Plot API Example: plot_api_example.ipynb
+  - Chord Diagram: chord_diagram.ipynb
+  - Circos Plot (Genomics): circos_plot.ipynb
+  - Phylogenetic Tree: phylogenetic_tree.ipynb
+  - API Docs:
+      - Circos: api-docs/circos.md
+      - Sector: api-docs/sector.md
+      - Track: api-docs/track.md
+
+theme:
+  name: material # material, readthedocs, mkdocs
+  features:
+    - navigation.top
+    - navigation.expand
+    # - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+
+plugins:
+  - search
+  - mkdocs-jupyter:
+      execute: False
+  - mkdocstrings:
+      handlers:
+        python:
+          # Reference: https://mkdocstrings.github.io/python/usage/
+          options:
+            # Heading options
+            heading_level: 2
+            show_root_full_path: False
+            show_root_heading: True
+            # Member options
+            members_order: source # alphabetical, source
+            # Docstrings options
+            docstring_style: numpy
+            docstring_section_style: spacy # table, list, spacy
+            line_length: 89
+            merge_init_into_class: True
+            # Signatures/annotations options
+            show_signature_annotations: True
+            separate_signature: True
+            # Additional options
+            show_source: False
