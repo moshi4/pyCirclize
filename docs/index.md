@@ -34,8 +34,8 @@ pyCirclize was inspired by [circlize](https://github.com/jokergoo/circlize) and 
 
 API usage is described in each of the following sections.
 
-- [Getting Started](../getting_started/)
-- [Plot API Example](../plot_api_example/)
-- [Chord Diagram](../chord_diagram/)
-- [Circos Plot (Genomics)](../circos_plot/)
-- [Phylogenetic Tree](../phylogenetic_tree/)
+- [Getting Started](./getting_started/)
+- [Plot API Example](./plot_api_example/)
+- [Chord Diagram](./chord_diagram/)
+- [Circos Plot (Genomics)](./circos_plot/)
+- [Phylogenetic Tree](./phylogenetic_tree/)
