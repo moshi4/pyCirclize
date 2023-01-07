@@ -21,6 +21,26 @@ def matrix_df() -> pd.DataFrame:
 
 
 @pytest.fixture
+def fromto_table_df() -> pd.DataFrame:
+    """Pandas from-to table dataframe"""
+    return pd.DataFrame(
+        data=[
+            ["A", "B", 10],
+            ["A", "C", 5],
+            ["A", "D", 15],
+            ["A", "E", 20],
+            ["A", "F", 3],
+            ["B", "A", 3],
+            ["B", "G", 15],
+            ["F", "D", 13],
+            ["F", "E", 2],
+            ["E", "A", 20],
+            ["E", "D", 6],
+        ],
+    )
+
+
+@pytest.fixture
 def csv_matrix_file(matrix_df: pd.DataFrame, tmp_path: Path) -> Path:
     """CSV matrix file fixture"""
     csv_matrix_file = tmp_path / "matrix.csv"
@@ -47,6 +67,22 @@ def test_load_dataframe_matrix(matrix_df: pd.DataFrame):
     assert matrix.all_names == row_names + col_names
     assert matrix.row_names == row_names
     assert matrix.col_names == col_names
+
+    # Only test successfully call function
+    matrix.to_sectors()
+    matrix.to_links()
+
+
+def test_parse_fromto_table(fromto_table_df: pd.DataFrame):
+    """Test parse from-to table"""
+    # Parse from-to table dataframe
+    matrix = Matrix.parse_fromto_table(fromto_table_df)
+
+    # Test row & column names
+    expected_names = list("ABCDEFG")
+    assert matrix.all_names == expected_names
+    assert matrix.row_names == expected_names
+    assert matrix.col_names == expected_names
 
     # Only test successfully call function
     matrix.to_sectors()
