@@ -403,7 +403,7 @@ class Track:
 
     def xticks_by_interval(
         self,
-        interval: float,
+        interval: int | float,
         *,
         tick_length: float = 2,
         outer: bool = True,
@@ -424,7 +424,7 @@ class Track:
 
         Parameters
         ----------
-        interval : float
+        interval : int | float
             Xticks interval
         tick_length : float, optional
             Tick length (Radius unit)
@@ -454,6 +454,7 @@ class Track:
         start_pos, end_pos = self.start - (self.start % interval), self.end + interval
         for x in np.arange(start_pos, end_pos, interval):
             if self.start <= x <= self.end:
+                x = int(x) if isinstance(interval, int) else float(x)
                 x_list.append(x)
 
         # Setup xticks labels
