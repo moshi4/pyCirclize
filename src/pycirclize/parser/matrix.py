@@ -27,6 +27,8 @@ class Matrix:
         name2size, links = defaultdict(float), []
         for row_name, row in zip(rev_matrix.index, rev_matrix.values):
             for col_name, value in zip(rev_matrix.columns, row):
+                if value <= 0:
+                    continue
                 row_size, col_size = name2size[row_name], name2size[col_name]
                 if row_name == col_name:
                     link_row = (row_name, row_size, row_size + value)
@@ -44,6 +46,67 @@ class Matrix:
         self._links = links
         self._name2size = name2size
 
+    @staticmethod
+    def parse_fromto_table(
+        fromto_table: str | Path | pd.DataFrame,
+        delimiter: str = "\t",
+        header: bool = True,
+    ) -> Matrix:
+        """Parse from-to table and convert to Matrix
+
+        ```
+        From-to Table Example
+        # from  to  value
+        #    A   B     10
+        #    A   C      5
+        #    A   D     15
+        #    B   D      8
+        #    C   D      6
+        ```
+
+        Parameters
+        ----------
+        fromto_table : str | Path | pd.DataFrame
+            From-to table file or DataFrame
+        delimiter : str, optional
+            From-to table file delimiter
+        header : bool, optional
+            If True, from-to table file first line is parsed as header line.
+
+        Returns
+        -------
+        matrix : Matrix
+            Matrix converted from from-to table
+        """
+        # If input from-to table is file path, convert to pandas dataframe
+        if isinstance(fromto_table, (str, Path)):
+            fromto_table = pd.read_csv(
+                fromto_table,
+                delimiter=delimiter,
+                header=0 if header else None,
+            )
+
+        # Parse from-to table dataframe
+        all_labels = []
+        fromto2value = defaultdict(int)
+        for row in fromto_table.itertuples():
+            from_label, to_label, value = str(row[1]), str(row[2]), row[3]
+            all_labels.extend([from_label, to_label])
+            fromto = f"{from_label}{to_label}"
+            fromto2value[fromto] = value
+        all_labels = dict.fromkeys(all_labels)
+
+        # Convert from-to table to matrix
+        matrix_data = []
+        for row_label in all_labels:
+            row_data = []
+            for col_label in all_labels:
+                row_data.append(fromto2value[f"{row_label}{col_label}"])
+            matrix_data.append(row_data)
+        matrix_df = pd.DataFrame(matrix_data, index=all_labels, columns=all_labels)
+
+        return Matrix(matrix_df)
+
     @property
     def all_names(self) -> list[str]:
         """Row + Column all names"""
@@ -52,12 +115,12 @@ class Matrix:
     @property
     def col_names(self) -> list[str]:
         """Column names"""
-        return self._col_names
+        return list(map(str, self._col_names))
 
     @property
     def row_names(self) -> list[str]:
         """Row names"""
-        return self._row_names
+        return list(map(str, self._row_names))
 
     def to_sectors(self) -> dict[str, float]:
         """Convert matrix to sectors for Circos initialization
