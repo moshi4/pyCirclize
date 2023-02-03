@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import itertools
 import math
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.collections import PatchCollection
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
-from pycirclize.parser import Bed
+from pycirclize.parser import Bed, Matrix
 from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve
 from pycirclize.sector import Sector
 from pycirclize.track import Track
@@ -129,6 +131,96 @@ class Circos:
     ############################################################
     # Public Method
     ############################################################
+
+    @staticmethod
+    def initialize_from_matrix(
+        matrix: str | Path | pd.DataFrame | Matrix,
+        *,
+        start: float = 0,
+        end: float = 360,
+        space: float | list[float] = 0,
+        endspace: bool = True,
+        r_lim: tuple[float, float] = (97, 100),
+        cmap: str | dict[str, str] = "viridis",
+        ticks_interval: int | None = None,
+        label_kws: dict[str, Any] = {},
+        ticks_kws: dict[str, Any] = {},
+        link_kws: dict[str, Any] = {},
+    ) -> Circos:
+        """Initialize Circos instance from Matrix
+
+        Circos tracks and links are auto-defined by Matrix (For plotting Chord Diagram)
+
+        Parameters
+        ----------
+        matrix : str | Path | pd.DataFrame | Matrix
+            Matrix file or Matrix dataframe or Matrix instance
+        start : float, optional
+            Plot start degree (-360 <= start < end <= 360)
+        end : float, optional
+            Plot end degree (-360 <= start < end <= 360)
+        space : float | list[float], optional
+            Space degree(s) between sector
+        endspace : bool, optional
+            If True, insert space after the end sector
+        r_lim : tuple[float, float], optional
+            Outer track radius limit region (0 - 100)
+        cmap : str | dict[str, str], optional
+            Colormap assigned to each outer track and link.
+            User can set matplotlib's colormap (e.g. `viridis`, `jet`, `tab10`) or
+            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green")`)
+        ticks_interval : int | None, optional
+            Ticks interval. If None, ticks are not plotted.
+        label_kws : dict[str, Any], optional
+            Keyword arguments passed to `sector.text()` method
+            (e.g. `dict(r=110, orientation="vertical", size=15, ...)`)
+        ticks_kws : dict[str, Any], optional
+            Keyword arguments passed to `track.xticks_by_interval()` method
+            (e.g. `dict(label_size=10, label_orientation="vertical", ...)`)
+        link_kws : dict[str, Any], optional
+            Keyword arguments passed to `circos.link()` method
+            (e.g. `dict(direction=1, ec="black", lw=0.5, alpha=0.8, ...)`)
+
+        Returns
+        -------
+        circos : Circos
+            Circos instance initialized from Matrix
+        """
+        # If input matrix is file path, convert to Matrix instance
+        if isinstance(matrix, (str, Path, pd.DataFrame)):
+            matrix = Matrix(matrix)
+
+        # Get name2color dict from user-specified colormap
+        names = matrix.all_names
+        if isinstance(cmap, str):
+            utils.ColorCycler.set_cmap(cmap)
+            colors = utils.ColorCycler.get_color_list(len(names))
+            name2color = dict(zip(names, colors))
+        else:
+            if type(cmap) == defaultdict:
+                name2color = cmap
+            else:
+                name2color: dict[str, str] = defaultdict(lambda: "grey")
+                name2color.update(cmap)
+
+        # Initialize circos sectors
+        circos = Circos(matrix.to_sectors(), start, end, space=space, endspace=endspace)
+        for sector in circos.sectors:
+            # Plot label, outer track axis & xticks
+            sector.text(sector.name, **label_kws)
+            outer_track = sector.add_track(r_lim)
+            color = name2color[sector.name]
+            outer_track.axis(fc=color)
+            if ticks_interval is not None:
+                outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
+
+        # Plot links
+        for link in matrix.to_links():
+            row_name = link[0][0]
+            color = name2color[row_name]
+            circos.link(*link, fc=color, **link_kws)
+
+        return circos
 
     @staticmethod
     def initialize_from_bed(

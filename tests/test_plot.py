@@ -3,6 +3,7 @@ from io import StringIO
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 from Bio import Phylo
 
@@ -109,6 +110,13 @@ def test_circos_link_plot(fig_outfile: Path):
     circos.link(("C", 1, 3), ("B", 2, 0), direction=1, color="limegreen")
     circos.link(("C", 11.5, 14), ("A", 4, 3), direction=2, color="olive", ec="black")
 
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
+def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
+    """Test chord diagram plot"""
+    circos = Circos.initialize_from_matrix(tsv_matrix_file)
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 
