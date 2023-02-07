@@ -484,6 +484,7 @@ class Track:
         *,
         vmin: float = 0,
         vmax: float | None = None,
+        side: str = "right",
         tick_length: float = 1,
         label_size: float = 8,
         label_margin: float = 0.5,
@@ -502,6 +503,8 @@ class Track:
             Y min value
         vmax : float | None, optional
             Y max value. If None, `max(y)` is set.
+        side : str, optional
+            Ticks side position (`right` or `left`)
         tick_length : float, optional
             Tick length (Degree unit)
         label_size : float, optional
@@ -520,6 +523,9 @@ class Track:
         if len(y) != len(labels):
             err_msg = f"List length is not match ({len(y)=}, {len(labels)=})"
             raise ValueError(err_msg)
+        # Check side value
+        if side not in ("right", "left"):
+            raise ValueError(f"{side=} is invalid ('right' or 'left').")
         # Set vmax & check if y is in min-max range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
@@ -527,23 +533,32 @@ class Track:
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
         for r_pos, label in zip(r, labels):
-            # Plot yticks
+            # Set plot properties
             x_tick_length = (self.size / self.deg_size) * tick_length
-            if tick_length > 0:
-                x_lim, r_lim = (self.end, self.end + x_tick_length), (r_pos, r_pos)
-                self._simpleline(x_lim, r_lim, **line_kws)
-            # Plot ylabels
-            if label != "":
-                x_label_margin = (self.size / self.deg_size) * label_margin
-                x_text = self.end + x_tick_length + x_label_margin
-                deg_text = math.degrees(self.x_to_rad(x_text, ignore_range_error=True))
+            x_label_margin = (self.size / self.deg_size) * label_margin
+            if side == "right":
+                x_lim = (self.end, self.end + x_tick_length)
+                x_text = self.end + (x_tick_length + x_label_margin)
+                deg_text = math.degrees(self.x_to_rad(x_text, True))
                 is_lower_loc = -270 <= deg_text < -90 or 90 <= deg_text < 270
                 ha = "right" if is_lower_loc else "left"
+            elif side == "left":
+                x_lim = (self.start, self.start - x_tick_length)
+                x_text = self.start - (x_tick_length + x_label_margin)
+                deg_text = math.degrees(self.x_to_rad(x_text, True))
+                is_lower_loc = -270 <= deg_text < -90 or 90 <= deg_text < 270
+                ha = "left" if is_lower_loc else "right"
+            # Plot yticks
+            if tick_length > 0:
+                self._simpleline(x_lim, (r_pos, r_pos), **line_kws)
+            # Plot ylabels
+            if label != "":
                 va = "center_baseline"
-                text_kws.update(
+                _text_kws = deepcopy(text_kws)
+                _text_kws.update(
                     dict(ha=ha, va=va, rotation_mode="anchor", size=label_size)
                 )
-                self.text(label, x_text, r_pos, ignore_range_error=True, **text_kws)
+                self.text(label, x_text, r_pos, ignore_range_error=True, **_text_kws)
 
     def line(
         self,

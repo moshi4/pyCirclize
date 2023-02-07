@@ -360,6 +360,7 @@ def test_track_yticks_plot(fig_outfile: Path):
             y_labels,
             vmin=10,
             vmax=25,
+            side="left",
             line_kws=dict(color="red", lw=1),
             text_kws=dict(color="blue"),
         )
