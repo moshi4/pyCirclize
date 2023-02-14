@@ -35,7 +35,8 @@ def load_prokaryote_example_file(
     cache_dir : str | Path | None, optional
         Output cache directory (Default: `~/.cache/pycirclize/`)
     overwrite_cache : bool, optional
-        If True, overwrite cached file
+        If True, overwrite cache file.
+        Assumed to be used when cache file is corrupt.
 
     Returns
     -------
@@ -89,7 +90,8 @@ def load_eukaryote_example_dataset(
     cache_dir : str | Path | None, optional
         Output cache directory (Default: `~/.cache/pycirclize/`)
     overwrite_cache : bool
-        If True, overwrite cached dataset
+        If True, overwrite cache dataset.
+        Assumed to be used when cache dataset is corrupt.
 
     Returns
     -------
