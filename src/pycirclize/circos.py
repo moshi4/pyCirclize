@@ -501,21 +501,36 @@ class Circos:
         )
         self._patches.append(bezier_curve)
 
-    def plotfig(self, dpi: int = 100) -> Figure:
+    def plotfig(
+        self,
+        dpi: int = 100,
+        *,
+        ax: PolarAxes | None = None,
+    ) -> Figure:
         """Plot figure
 
         Parameters
         ----------
         dpi : int, optional
             Figure DPI
+        ax : PolarAxes | None
+            If None, figure and axes are newly created.
 
         Returns
         -------
         figure : Figure
             Circos matplotlib figure
         """
-        # Initialize Figure & PolarAxes
-        fig, ax = self._initialize_figure(dpi=dpi)
+        if ax is None:
+            # Initialize Figure & PolarAxes
+            fig, ax = self._initialize_figure(dpi=dpi)
+        else:
+            # Check PolarAxes or not
+            if not isinstance(ax, PolarAxes):
+                ax_class_name = type(ax).__name__
+                err_msg = f"Input ax is not PolarAxes (={ax_class_name})."
+                raise ValueError(err_msg)
+            fig = ax.get_figure()
         self._initialize_polar_axes(ax)
 
         # Plot all patches
@@ -533,7 +548,7 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig
+        return fig  # type: ignore
 
     def savefig(
         self,
