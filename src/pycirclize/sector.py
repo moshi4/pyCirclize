@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 import numpy as np
 from matplotlib.patches import Patch
@@ -338,7 +340,7 @@ class Sector:
         Parameters
         ----------
         img : str | Path | np.ndarray | Image.Image
-            Image for plotting (`File Path` or `Numpy Array` or `PIL Image`)
+            Image for plotting (`File Path`|`URL`|`Numpy Array`|`PIL Image`)
         size : float, optional
             Image size (ratio to overall figure size)
         x : float | None, optional
@@ -361,8 +363,10 @@ class Sector:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # Load image data
-        if isinstance(img, (str, Path)):
-            im = Image.open(img)  # type: ignore
+        if isinstance(img, str) and urlparse(img).scheme in ("http", "https"):
+            im = Image.open(urlopen(img))
+        elif isinstance(img, (str, Path)):
+            im = Image.open(str(img))
         else:
             im = img
 
