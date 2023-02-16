@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from pathlib import Path
+from typing import Any, Callable
 
+import numpy as np
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
+from PIL import Image
 
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle
@@ -313,6 +316,94 @@ class Sector:
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
         self._patches.append(ArcRectangle(radr, width, height, **kwargs))
+
+    def raster(
+        self,
+        img: str | Path | np.ndarray | Image.Image,
+        *,
+        size: float = 0.05,
+        x: float | None = None,
+        r: float = 105,
+        label: str | None = None,
+        label_pos: str = "bottom",
+        label_margin: float = 0.1,
+        show_border: bool = True,
+        imshow_kws: dict[str, Any] = {},
+        text_kws: dict[str, Any] = {},
+    ) -> None:
+        """Plot raster image
+
+        This method is experimental. API may change in the future release.
+
+        Parameters
+        ----------
+        img : str | Path | np.ndarray | Image.Image
+            Image for plotting (`File Path` or `Numpy Array` or `PIL Image`)
+        size : float, optional
+            Image size (ratio to overall figure size)
+        x : float | None, optional
+            X position. If None, sector center x position is set.
+        r : float, optional
+            Radius position
+        label : str | None, optional
+            Image label. If None, no plotting label.
+        label_pos : str, optional
+            Label plot position (`bottom` or `top`)
+        label_margin : float, optional
+            Label margin
+        show_border : bool, optional
+            If True, show label border.
+        imshow_kws : dict[str, Any], optional
+            Axes.imshow properties
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>
+        text_kws : dict[str, Any], optional
+            Text properties (e.g. `dict(size=10, color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        """
+        # Load image data
+        if isinstance(img, (str, Path)):
+            im = Image.open(img)  # type: ignore
+        else:
+            im = img
+
+        # Calculate x, y image set position
+        x = (self.start + self.end) / 2 if x is None else x
+        rad = self.x_to_rad(x)
+        max_r_lim = config.MAX_R + config.R_PLOT_MARGIN
+        im_x = np.cos((np.pi / 2) - rad) * (r / max_r_lim)
+        im_y = np.sin((np.pi / 2) - rad) * (r / max_r_lim)
+        # Normalize (-1, 1) to (0, 1) axis range
+        im_x = (im_x + 1) / 2
+        im_y = (im_y + 1) / 2
+
+        def plot_raster(ax: PolarAxes) -> None:
+            # Set inset axes
+            bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
+            axin = ax.inset_axes(bounds, transform=ax.transAxes)
+            # Set image border param
+            if show_border:
+                axin.tick_params(bottom=False, left=False)
+                axin.tick_params(labelbottom=False, labelleft=False)
+            else:
+                axin.axis("off")
+            # Plot raster image
+            axin.imshow(im, **imshow_kws)
+
+            # Plot label
+            if label is not None:
+                text_x = sum(axin.get_xlim()) / 2
+                y_size = max(axin.get_ylim()) - min(axin.get_ylim())
+                if label_pos == "bottom":
+                    text_y = max(axin.get_ylim()) + (y_size * label_margin)
+                    va = "top"
+                elif label_pos == "top":
+                    text_y = min(axin.get_ylim()) - (y_size * label_margin)
+                    va = "bottom"
+                else:
+                    raise ValueError(f"{label_pos=} is invalid ('top' or 'bottom').")
+                axin.text(text_x, text_y, label, ha="center", va=va, **text_kws)
+
+        self._plot_funcs.append(plot_raster)
 
     ############################################################
     # Private Method
