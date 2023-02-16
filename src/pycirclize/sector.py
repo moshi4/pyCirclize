@@ -14,6 +14,7 @@ from PIL import Image
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle
 from pycirclize.track import Track
+from pycirclize.utils.plot import get_label_params_by_rad
 
 
 class Sector:
@@ -321,11 +322,12 @@ class Sector:
 
     def raster(
         self,
-        img: str | Path | np.ndarray | Image.Image,
+        img: str | Path | Image.Image,
         *,
         size: float = 0.05,
         x: float | None = None,
         r: float = 105,
+        rotation: int | float | str | None = None,
         label: str | None = None,
         label_pos: str = "bottom",
         label_margin: float = 0.1,
@@ -339,14 +341,19 @@ class Sector:
 
         Parameters
         ----------
-        img : str | Path | np.ndarray | Image.Image
-            Image for plotting (`File Path`|`URL`|`Numpy Array`|`PIL Image`)
+        img : str | Path | Image
+            Image for plotting (`File Path`|`URL`|`PIL Image`)
         size : float, optional
             Image size (ratio to overall figure size)
         x : float | None, optional
             X position. If None, sector center x position is set.
         r : float, optional
             Radius position
+        rotation : int | float | str | None, optional
+            Image rotation setting.
+            If `None`, no rotate image (default).
+            If `auto`, rotate image by auto set rotation.
+            If `int` or `float` value, rotate image by user-specified rotation.
         label : str | None, optional
             Image label. If None, no plotting label.
         label_pos : str, optional
@@ -370,9 +377,16 @@ class Sector:
         else:
             im = img
 
-        # Calculate x, y image set position
+        # Rotate image
         x = (self.start + self.end) / 2 if x is None else x
         rad = self.x_to_rad(x)
+        if isinstance(rotation, (int, float)):
+            im = im.rotate(rotation, expand=True)
+        elif rotation == "auto":
+            rotate_value = get_label_params_by_rad(rad, "horizontal")["rotation"]
+            im = im.rotate(rotate_value, expand=True)
+
+        # Calculate x, y image set position
         max_r_lim = config.MAX_R + config.R_PLOT_MARGIN
         im_x = np.cos((np.pi / 2) - rad) * (r / max_r_lim)
         im_y = np.sin((np.pi / 2) - rad) * (r / max_r_lim)
