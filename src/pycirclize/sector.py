@@ -9,7 +9,7 @@ from urllib.request import urlopen
 import numpy as np
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
-from PIL import Image
+from PIL import Image, ImageOps
 
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle
@@ -328,10 +328,10 @@ class Sector:
         x: float | None = None,
         r: float = 105,
         rotation: int | float | str | None = None,
+        border_width: int = 0,
         label: str | None = None,
         label_pos: str = "bottom",
         label_margin: float = 0.1,
-        show_border: bool = True,
         imshow_kws: dict[str, Any] = {},
         text_kws: dict[str, Any] = {},
     ) -> None:
@@ -354,14 +354,14 @@ class Sector:
             If `None`, no rotate image (default).
             If `auto`, rotate image by auto set rotation.
             If `int` or `float` value, rotate image by user-specified rotation.
+        border_width : int, optional
+            Border width in pixel. By default, 0 is set (no border shown).
         label : str | None, optional
-            Image label. If None, no plotting label.
+            Image label. If None, no label shown.
         label_pos : str, optional
             Label plot position (`bottom` or `top`)
         label_margin : float, optional
             Label margin
-        show_border : bool, optional
-            If True, show label border.
         imshow_kws : dict[str, Any], optional
             Axes.imshow properties
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>
@@ -376,6 +376,11 @@ class Sector:
             im = Image.open(str(img))
         else:
             im = img
+        im = im.convert("RGBA")
+
+        # Draw border on image
+        if border_width > 0:
+            im = ImageOps.expand(im, border=border_width, fill="black")
 
         # Rotate image
         x = (self.start + self.end) / 2 if x is None else x
@@ -395,16 +400,10 @@ class Sector:
         im_y = (im_y + 1) / 2
 
         def plot_raster(ax: PolarAxes) -> None:
-            # Set inset axes
+            # Set inset axes & plot raster image
             bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
-            # Set image border param
-            if show_border:
-                axin.tick_params(bottom=False, left=False)
-                axin.tick_params(labelbottom=False, labelleft=False)
-            else:
-                axin.axis("off")
-            # Plot raster image
+            axin.axis("off")
             axin.imshow(im, **imshow_kws)
 
             # Plot label
