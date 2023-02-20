@@ -142,7 +142,9 @@ class Circos:
         endspace: bool = True,
         r_lim: tuple[float, float] = (97, 100),
         cmap: str | dict[str, str] = "viridis",
+        link_cmap: list[tuple[str, str, str]] = [],
         ticks_interval: int | None = None,
+        order: str | list[str] | None = None,
         label_kws: dict[str, Any] = {},
         ticks_kws: dict[str, Any] = {},
         link_kws: dict[str, Any] = {},
@@ -168,9 +170,17 @@ class Circos:
         cmap : str | dict[str, str], optional
             Colormap assigned to each outer track and link.
             User can set matplotlib's colormap (e.g. `viridis`, `jet`, `tab10`) or
-            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green")`)
+            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
+        link_cmap : list[tuple[str, str, str]], optional
+            Link colormap to overwrite link colors automatically set by cmap.
+            User can set list of `from_label`, `to_label`, `color` tuple
+            (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00), ...]`)
         ticks_interval : int | None, optional
             Ticks interval. If None, ticks are not plotted.
+        order : str | list[str] | None, optional
+            Sort order of matrix for plotting Chord Diagram. If `None`, no sorting.
+            If `asc`|`desc`, sort in ascending(or descending) order by node size.
+            If node name list is set, sort in user specified node order.
         label_kws : dict[str, Any], optional
             Keyword arguments passed to `sector.text()` method
             (e.g. `dict(r=110, orientation="vertical", size=15, ...)`)
@@ -189,6 +199,10 @@ class Circos:
         # If input matrix is file path, convert to Matrix instance
         if isinstance(matrix, (str, Path, pd.DataFrame)):
             matrix = Matrix(matrix)
+
+        # Sort matrix if order is set
+        if order is not None:
+            matrix = matrix.sort(order)
 
         # Get name2color dict from user-specified colormap
         names = matrix.all_names
@@ -215,9 +229,14 @@ class Circos:
                 outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
 
         # Plot links
+        fromto_label2color = {f"{t[0]}{t[1]}": t[2] for t in link_cmap}
         for link in matrix.to_links():
-            row_name = link[0][0]
-            color = name2color[row_name]
+            from_label, to_label = link[0][0], link[1][0]
+            fromto_label = f"{from_label}{to_label}"
+            if fromto_label in fromto_label2color:
+                color = fromto_label2color[fromto_label]
+            else:
+                color = name2color[from_label]
             circos.link(*link, fc=color, **link_kws)
 
         return circos
