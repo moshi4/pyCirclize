@@ -81,3 +81,50 @@ class ColorCycler:
             raise ValueError(f"{n=} is invalid number (Must be 'n > 0').")
 
         return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]
+
+
+def calc_group_spaces(
+    groups: list[int],
+    *,
+    space_bw_group: float = 5,
+    space_in_group: float = 2,
+    endspace: bool = True,
+) -> list[float]:
+    """Calculate spaces between/within groups
+
+    This function can be used to easily calculate the space size
+    when data is separated into multiple groups for display.
+    For example, the space size for displaying 10 pieces of data
+    `[A, B, C, D, E, F, G, H, I, J]` divided into
+    3 groups `[(A, B, C, D), (E, F, G), (H, I, J)]`.
+
+    Parameters
+    ----------
+    groups : list[int]
+        List of each group number (e.g. `[4, 3, 3]`)
+    space_bw_group : float, optional
+        Space size between group
+    space_in_group : float, optional
+        Space size within group
+    endspace : bool, optional
+        If True, insert space after the end group
+
+    Returns
+    -------
+    spaces : list[float]
+        Spaces between/within groups
+    """
+    if len(groups) == 0:
+        raise ValueError(f"{len(groups)=} is invalid.")
+    elif len(groups) == 1:
+        group_num = groups[0]
+        spaces = [space_in_group] * group_num
+    else:
+        spaces: list[float] = []
+        for group_num in groups:
+            group_spaces = [space_in_group] * (group_num - 1)
+            group_spaces.extend([space_bw_group])
+            spaces.extend(group_spaces)
+    if not endspace:
+        spaces = spaces[:-1]
+    return spaces

@@ -4,7 +4,7 @@ from pycirclize.utils.dataset import (
     load_eukaryote_example_dataset,
     load_prokaryote_example_file,
 )
-from pycirclize.utils.helper import ColorCycler
+from pycirclize.utils.helper import ColorCycler, calc_group_spaces
 from pycirclize.utils.tree import TreeUtil
 
 __all__ = [
@@ -13,5 +13,6 @@ __all__ = [
     "load_eukaryote_example_dataset",
     "load_prokaryote_example_file",
     "ColorCycler",
+    "calc_group_spaces",
     "TreeUtil",
 ]
