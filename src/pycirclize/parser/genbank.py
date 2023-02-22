@@ -136,7 +136,7 @@ class Genbank:
     @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
         """Calculate genome GC content"""
-        return SeqUtils.GC(self.genome_seq)
+        return SeqUtils.gc_fraction(self.genome_seq) * 100
 
     def calc_gc_skew(
         self,
@@ -148,9 +148,9 @@ class Genbank:
         Parameters
         ----------
         window_size : int | None, optional
-            Window size (Default: `genome_size / 1000`)
+            Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
-            Step size (Default: `genome_size / 2000`)
+            Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
@@ -160,9 +160,9 @@ class Genbank:
         pos_list, gc_skew_list = [], []
         seq = self.genome_seq
         if window_size is None:
-            window_size = int(len(seq) / 1000)
+            window_size = int(len(seq) / 500)
         if step_size is None:
-            step_size = int(len(seq) / 2000)
+            step_size = int(len(seq) / 1000)
         pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
         for pos in pos_list:
             window_start_pos = pos - int(window_size / 2)
@@ -191,9 +191,9 @@ class Genbank:
         Parameters
         ----------
         window_size : int | None, optional
-            Window size (Default: `genome_size / 1000`)
+            Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
-            Step size (Default: `genome_size / 2000`)
+            Step size (Default: `genome_size / 1000`)
 
         Returns
         -------
@@ -203,9 +203,9 @@ class Genbank:
         pos_list, gc_content_list = [], []
         seq = self.genome_seq
         if window_size is None:
-            window_size = int(len(seq) / 1000)
+            window_size = int(len(seq) / 500)
         if step_size is None:
-            step_size = int(len(seq) / 2000)
+            step_size = int(len(seq) / 1000)
         pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
         for pos in pos_list:
             window_start_pos = pos - int(window_size / 2)
@@ -214,7 +214,7 @@ class Genbank:
             window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
             subseq = seq[window_start_pos:window_end_pos]
-            gc_content_list.append(SeqUtils.GC(subseq))
+            gc_content_list.append(SeqUtils.gc_fraction(subseq) * 100)
 
         return (np.array(pos_list), np.array(gc_content_list))
 
@@ -353,7 +353,7 @@ class Genbank:
             elif seqtype == "nucleotide":
                 seq = Seq(feature.location.extract(self.genome_seq))
             else:
-                raise ValueError(f"seqtype='{seqtype}' is invalid.")
+                raise ValueError(f"{seqtype=} is invalid.")
 
             cds_seq_record = SeqRecord(seq=seq, id=seq_id, description=product)
             cds_seq_records.append(cds_seq_record)
@@ -382,4 +382,7 @@ class Genbank:
     def __str__(self):
         name = str(self._gbk_source)
         min_max_range = f"{self.min_range:,} - {self.max_range:,} bp"
-        return f"{name} ({min_max_range})"
+        if self.reverse:
+            return f"{name} ({min_max_range}) [Reverse Complement]"
+        else:
+            return f"{name} ({min_max_range})"

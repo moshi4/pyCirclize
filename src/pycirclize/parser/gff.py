@@ -48,7 +48,7 @@ class Gff:
 
         if not 0 <= self.min_range <= self.max_range:
             err_msg = "Range must be '0 <= min_range <= max_range' "
-            err_msg += f"(min_range={self.min_range}, max_range={self.max_range})"
+            err_msg += f"({self.min_range=}, {self.max_range=})"
             raise ValueError(err_msg)
 
     def _parse_gff(
@@ -123,7 +123,7 @@ class Gff:
             target_seqid = seqid_list[0]
         self._target_seqid = target_seqid
         if target_seqid not in seqid_list:
-            err_msg = f"Not found target_seqid='{target_seqid}' in '{self._gff_file}'"
+            err_msg = f"Not found {target_seqid=} in '{self._gff_file}'"
             raise ValueError(err_msg)
         gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 
@@ -202,7 +202,7 @@ class Gff:
         target_strand : int | None, optional
             Extract target strand
         pseudogene : bool, optional
-            If True, `pseudo=`, `pseudogene=` tagged record only extract.
+            If True, `pseudo=`, `pseudogne=` tagged record only extract.
             If False, `pseudo=`, `pseudogene=` not tagged record only extract.
 
         Returns
@@ -267,7 +267,6 @@ class Gff:
                 exon_feature = SeqFeature(
                     location=CompoundLocation(locs),
                     type=parent_feature.type,
-                    strand=parent_feature.strand,
                     id=parent_feature.id,
                     qualifiers=parent_feature.qualifiers,
                 )
@@ -322,7 +321,6 @@ class GffRecord:
         return SeqFeature(
             location=self.to_feature_location(),
             type=self.type,
-            strand=self.strand,
             id=self.attrs.get("ID", [""])[0],
             qualifiers=self.attrs,
         )
