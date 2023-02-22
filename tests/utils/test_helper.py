@@ -49,7 +49,7 @@ def test_calc_group_spaces():
 
     # Case4. List length > 1 (endspace=True)
     spaces = calc_group_spaces([4, 3, 3])
-    expected_spaces = [2, 2, 2, 5, 2, 2, 5, 2, 2, 5]
+    expected_spaces = [2, 2, 2, 15, 2, 2, 15, 2, 2, 15]
     assert spaces == expected_spaces
 
     # Case5. List length > 1 (endspace=False)

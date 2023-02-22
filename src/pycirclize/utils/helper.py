@@ -86,7 +86,7 @@ class ColorCycler:
 def calc_group_spaces(
     groups: list[int],
     *,
-    space_bw_group: float = 5,
+    space_bw_group: float = 15,
     space_in_group: float = 2,
     endspace: bool = True,
 ) -> list[float]:
@@ -94,9 +94,9 @@ def calc_group_spaces(
 
     This function can be used to easily calculate the space size
     when data is separated into multiple groups for display.
-    For example, the space size for displaying 10 pieces of data
-    `[A, B, C, D, E, F, G, H, I, J]` divided into
-    3 groups `[(A, B, C, D), (E, F, G), (H, I, J)]`.
+    For example, to set up a space to divide `[A, B, C, D, E, F, G, H, I, J]`
+    into three groups such as `[(A, B, C, D), (E, F, G), (H, I, J)]`,
+    set `groups=[4, 3, 3]`.
 
     Parameters
     ----------
@@ -125,6 +125,7 @@ def calc_group_spaces(
             group_spaces = [space_in_group] * (group_num - 1)
             group_spaces.extend([space_bw_group])
             spaces.extend(group_spaces)
-    if not endspace:
-        spaces = spaces[:-1]
-    return spaces
+    if endspace:
+        return spaces
+    else:
+        return spaces[:-1]
