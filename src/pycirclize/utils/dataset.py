@@ -129,6 +129,32 @@ def load_eukaryote_example_dataset(
     return *eukaryote_files, chr_links
 
 
+def load_example_image_file(filename: str) -> Path:
+    """Load example image file from local package data
+
+    e.g. `python_logo.png`
+
+    Parameters
+    ----------
+    filename : str
+        Image file name
+
+    Returns
+    -------
+    image_file_path : Path
+        Image file path
+    """
+    image_dir = Path(__file__).parent / "images"
+    image_filenames = [f.name for f in image_dir.glob("*.png")]
+
+    if filename.lower() in image_filenames:
+        return image_dir / filename.lower()
+    else:
+        err_msg = f"{filename=} is not found.\n"
+        err_msg += f"Available filenames = {image_filenames}"
+        raise FileNotFoundError(err_msg)
+
+
 def fetch_genbank_by_accid(
     accid: str,
     gbk_outfile: str | Path | None = None,
