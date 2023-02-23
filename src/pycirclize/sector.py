@@ -353,7 +353,7 @@ class Sector:
             Image rotation setting.
             If `None`, no rotate image (default).
             If `auto`, rotate image by auto set rotation.
-            If `int` or `float` value, rotate image by user-specified rotation.
+            If `int` or `float` value, rotate image by user-specified value.
         border_width : int, optional
             Border width in pixel. By default, 0 is set (no border shown).
         label : str | None, optional
@@ -387,9 +387,14 @@ class Sector:
         rad = self.x_to_rad(x)
         if isinstance(rotation, (int, float)):
             im = im.rotate(rotation, expand=True)
+            rotate_value = rotation
         elif rotation == "auto":
-            rotate_value = get_label_params_by_rad(rad, "horizontal")["rotation"]
+            rotate_value: float = get_label_params_by_rad(rad, "horizontal")["rotation"]
             im = im.rotate(rotate_value, expand=True)
+        elif rotation is None:
+            rotate_value = 0
+        else:
+            raise ValueError(f"{rotation=} is invalid.")
 
         # Calculate x, y image set position
         max_r_lim = config.MAX_R + config.R_PLOT_MARGIN
@@ -398,6 +403,12 @@ class Sector:
         # Normalize (-1, 1) to (0, 1) axis range
         im_x = (im_x + 1) / 2
         im_y = (im_y + 1) / 2
+
+        # TODO: Terrible code to be fixed in the future
+        # Approximate image size calculation logic, not complete
+        scale = 1 - (abs(abs(rotate_value) % 90 - 45) / 45)  # 0 - 1.0
+        size_ratio = 1 + (scale * (np.sqrt(2) - 1))
+        size = size * size_ratio
 
         def plot_raster(ax: PolarAxes) -> None:
             # Set inset axes & plot raster image
