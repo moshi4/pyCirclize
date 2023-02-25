@@ -15,6 +15,7 @@ nav:
   - Chord Diagram: chord_diagram.ipynb
   - Circos Plot (Genomics): circos_plot.ipynb
   - Phylogenetic Tree: phylogenetic_tree.ipynb
+  - Plot Tips: plot_tips.ipynb
   - API Docs:
       - Circos: api-docs/circos.md
       - Sector: api-docs/sector.md
