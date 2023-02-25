@@ -335,6 +335,27 @@ class Circos:
             raise ValueError(f"{name=} sector not found.")
         return name2sector[name]
 
+    def get_group_sectors_deg_lim(
+        self,
+        group_sector_names: list[str],
+    ) -> tuple[float, float]:
+        """Get degree min-max limit in target group sectors
+
+        Parameters
+        ----------
+        sector_names : list[str]
+            Group sector names
+
+        Returns
+        -------
+        group_sectors_deg_lim : tuple[float, float]
+            Degree limit in group sectors
+        """
+        group_sectors = [self.get_sector(name) for name in group_sector_names]
+        min_deg = min([min(s.deg_lim) for s in group_sectors])
+        max_deg = max([max(s.deg_lim) for s in group_sectors])
+        return min_deg, max_deg
+
     def axis(self, **kwargs) -> None:
         """Plot axis
 
