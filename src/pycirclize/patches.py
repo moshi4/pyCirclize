@@ -207,7 +207,9 @@ class BezierCurve(PathPatch):
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
 
-        def make_arc_paths(rad1: float, rad2: float, r: float):
+        def arc_paths(
+            rad1: float, rad2: float, r: float
+        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
             # If rad1 == rad2, return blank list
             arc_paths = []
             step = config.ARC_RADIAN_STEP if rad1 <= rad2 else -config.ARC_RADIAN_STEP
@@ -215,25 +217,27 @@ class BezierCurve(PathPatch):
                 arc_paths.append((Path.LINETO, (rad, r)))
             return arc_paths
 
-        def make_arrow_paths(rad1: float, rad2: float, r_side: float, r_top: float):
+        def arrow_paths(
+            rad1: float, rad2: float, r_side: float, r_top: float
+        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
             return [
                 (Path.LINETO, (rad1, r_side)),
                 (Path.LINETO, ((rad1 + rad2) / 2, r_top)),
                 (Path.LINETO, (rad2, r_side)),
             ]
 
-        def make_bezier_paths(
+        def bezier_paths(
             rad1: float, rad2: float, r1: float, r2: float, height_ratio: float = 0.5
-        ):
+        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
             if height_ratio >= 0.5:
-                # Case1: height_ratio: 0.50 => r_ctl_pos: 0
-                # Case2: height_ratio: 0.75 => r_ctl_pos: 25
-                # Case3: height_ratio: 1.00 => r_ctl_pos: 50
+                # Example1: height_ratio: 0.50 => r_ctl_pos: 0
+                # Example2: height_ratio: 0.75 => r_ctl_pos: 25
+                # Example3: height_ratio: 1.00 => r_ctl_pos: 50
                 r_ctl_pos = config.MAX_R * (height_ratio - 0.5)
                 rad_ctl_pos = (rad1 + rad2) / 2 + math.pi
             else:
-                # Case1: height_ratio: 0.25 => r_ctl_pos: 25
-                # Case2: height_ratio: 0.00 => r_ctl_pos: 50
+                # Example1: height_ratio: 0.25 => r_ctl_pos: 25
+                # Example2: height_ratio: 0.00 => r_ctl_pos: 50
                 r_ctl_pos = config.MAX_R * (0.5 - height_ratio)
                 rad_ctl_pos = (rad1 + rad2) / 2
             return [
@@ -249,59 +253,55 @@ class BezierCurve(PathPatch):
         if direction == config.Direction.NONE:
             path_data = [
                 (Path.MOVETO, (rad_start1, r1)),
-                *make_arc_paths(rad_start1, rad_end1, r1),
+                *arc_paths(rad_start1, rad_end1, r1),
                 (Path.LINETO, (rad_end1, r1)),
-                *make_bezier_paths(rad_end1, rad_end2, r1, r2, height_ratio),
+                *bezier_paths(rad_end1, rad_end2, r1, r2, height_ratio),
                 (Path.LINETO, (rad_end2, r2)),
-                *make_arc_paths(rad_end2, rad_start2, r2),
+                *arc_paths(rad_end2, rad_start2, r2),
                 (Path.LINETO, (rad_start2, r2)),
-                *make_bezier_paths(rad_start2, rad_start1, r2, r1, height_ratio),
+                *bezier_paths(rad_start2, rad_start1, r2, r1, height_ratio),
                 (Path.CLOSEPOLY, (rad_start1, r1)),
             ]
         elif direction == config.Direction.FORWARD:
             path_data = [
                 (Path.MOVETO, (rad_start1, r1)),
-                *make_arc_paths(rad_start1, rad_end1, r1),
+                *arc_paths(rad_start1, rad_end1, r1),
                 (Path.LINETO, (rad_end1, r1)),
-                *make_bezier_paths(rad_end1, rad_end2, r1, arrow_r2, height_ratio),
+                *bezier_paths(rad_end1, rad_end2, r1, arrow_r2, height_ratio),
                 (Path.LINETO, (rad_end2, arrow_r2)),
-                *make_arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
+                *arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
                 (Path.LINETO, (rad_start2, arrow_r2)),
-                *make_bezier_paths(rad_start2, rad_start1, arrow_r2, r1, height_ratio),
+                *bezier_paths(rad_start2, rad_start1, arrow_r2, r1, height_ratio),
                 (Path.CLOSEPOLY, (rad_start1, r1)),
             ]
         elif direction == config.Direction.REVERSE:
             path_data = [
                 (Path.MOVETO, (rad_start1, arrow_r1)),
-                *make_arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
+                *arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
                 (Path.LINETO, (rad_end1, arrow_r1)),
-                *make_bezier_paths(rad_end1, rad_end2, arrow_r1, r2, height_ratio),
+                *bezier_paths(rad_end1, rad_end2, arrow_r1, r2, height_ratio),
                 (Path.LINETO, (rad_end2, r2)),
-                *make_arc_paths(rad_end2, rad_start2, r2),
+                *arc_paths(rad_end2, rad_start2, r2),
                 (Path.LINETO, (rad_start2, r2)),
-                *make_bezier_paths(rad_start2, rad_start1, r2, arrow_r1, height_ratio),
+                *bezier_paths(rad_start2, rad_start1, r2, arrow_r1, height_ratio),
                 (Path.CLOSEPOLY, (rad_start1, arrow_r1)),
             ]
         elif direction == config.Direction.BIDIRECTIONAL:
             path_data = [
                 (Path.MOVETO, (rad_start1, arrow_r1)),
-                *make_arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
+                *arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
                 (Path.LINETO, (rad_end1, arrow_r1)),
-                *make_bezier_paths(
-                    rad_end1, rad_end2, arrow_r1, arrow_r2, height_ratio
-                ),
+                *bezier_paths(rad_end1, rad_end2, arrow_r1, arrow_r2, height_ratio),
                 (Path.LINETO, (rad_end2, arrow_r2)),
-                *make_arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
+                *arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
                 (Path.LINETO, (rad_start2, arrow_r2)),
-                *make_bezier_paths(
-                    rad_start2, rad_start1, arrow_r2, arrow_r1, height_ratio
-                ),
+                *bezier_paths(rad_start2, rad_start1, arrow_r2, arrow_r1, height_ratio),
                 (Path.CLOSEPOLY, (rad_start1, arrow_r1)),
             ]
         else:
             err_msg = f"{direction=} is invalid value (0 or 1 or -1 or 2)."
             raise ValueError(err_msg)
 
-        codes, verts = zip(*path_data)
+        verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
         bezier_curve_path = Path(verts, codes, closed=True)
         super().__init__(bezier_curve_path, **kwargs)

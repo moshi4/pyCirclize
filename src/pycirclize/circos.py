@@ -142,7 +142,9 @@ class Circos:
         endspace: bool = True,
         r_lim: tuple[float, float] = (97, 100),
         cmap: str | dict[str, str] = "viridis",
+        link_cmap: list[tuple[str, str, str]] = [],
         ticks_interval: int | None = None,
+        order: str | list[str] | None = None,
         label_kws: dict[str, Any] = {},
         ticks_kws: dict[str, Any] = {},
         link_kws: dict[str, Any] = {},
@@ -168,9 +170,17 @@ class Circos:
         cmap : str | dict[str, str], optional
             Colormap assigned to each outer track and link.
             User can set matplotlib's colormap (e.g. `viridis`, `jet`, `tab10`) or
-            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green")`)
+            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
+        link_cmap : list[tuple[str, str, str]], optional
+            Link colormap to overwrite link colors automatically set by cmap.
+            User can set list of `from_label`, `to_label`, `color` tuple
+            (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00), ...]`)
         ticks_interval : int | None, optional
             Ticks interval. If None, ticks are not plotted.
+        order : str | list[str] | None, optional
+            Sort order of matrix for plotting Chord Diagram. If `None`, no sorting.
+            If `asc`|`desc`, sort in ascending(or descending) order by node size.
+            If node name list is set, sort in user specified node order.
         label_kws : dict[str, Any], optional
             Keyword arguments passed to `sector.text()` method
             (e.g. `dict(r=110, orientation="vertical", size=15, ...)`)
@@ -189,6 +199,10 @@ class Circos:
         # If input matrix is file path, convert to Matrix instance
         if isinstance(matrix, (str, Path, pd.DataFrame)):
             matrix = Matrix(matrix)
+
+        # Sort matrix if order is set
+        if order is not None:
+            matrix = matrix.sort(order)
 
         # Get name2color dict from user-specified colormap
         names = matrix.all_names
@@ -215,9 +229,14 @@ class Circos:
                 outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
 
         # Plot links
+        fromto_label2color = {f"{t[0]}{t[1]}": t[2] for t in link_cmap}
         for link in matrix.to_links():
-            row_name = link[0][0]
-            color = name2color[row_name]
+            from_label, to_label = link[0][0], link[1][0]
+            fromto_label = f"{from_label}{to_label}"
+            if fromto_label in fromto_label2color:
+                color = fromto_label2color[fromto_label]
+            else:
+                color = name2color[from_label]
             circos.link(*link, fc=color, **link_kws)
 
         return circos
@@ -316,6 +335,27 @@ class Circos:
             raise ValueError(f"{name=} sector not found.")
         return name2sector[name]
 
+    def get_group_sectors_deg_lim(
+        self,
+        group_sector_names: list[str],
+    ) -> tuple[float, float]:
+        """Get degree min-max limit in target group sectors
+
+        Parameters
+        ----------
+        sector_names : list[str]
+            Group sector names
+
+        Returns
+        -------
+        group_sectors_deg_lim : tuple[float, float]
+            Degree limit in group sectors
+        """
+        group_sectors = [self.get_sector(name) for name in group_sector_names]
+        min_deg = min([min(s.deg_lim) for s in group_sectors])
+        max_deg = max([max(s.deg_lim) for s in group_sectors])
+        return min_deg, max_deg
+
     def axis(self, **kwargs) -> None:
         """Plot axis
 
@@ -341,8 +381,11 @@ class Circos:
     def text(
         self,
         text: str,
+        *,
         r: float = 0,
         deg: float = 0,
+        adjust_rotation: bool = False,
+        orientation: str = "horizontal",
         **kwargs,
     ) -> None:
         """Plot text
@@ -355,6 +398,11 @@ class Circos:
             Radius position
         deg : float
             Degree position (0 - 360)
+        adjust_rotation : bool, optional
+            If True, text rotation is auto set based on `deg` param.
+        orientation : str, optional
+            Text orientation (`horizontal` or `vertical`)
+            If adjust_rotation=True, orientation is used for rotation calculation.
         **kwargs : dict, optional
             Text properties (e.g. `size=12, color="red", rotation=90, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
@@ -363,6 +411,10 @@ class Circos:
             kwargs.update(dict(va="center"))
         if "ha" not in kwargs and "horizontalalignment" not in kwargs:
             kwargs.update(dict(ha="center"))
+        if adjust_rotation:
+            rad = math.radians(deg)
+            params = utils.plot.get_label_params_by_rad(rad, orientation)
+            kwargs.update(**params)
 
         def plot_text(ax: PolarAxes) -> None:
             ax.text(math.radians(deg), r, text, **kwargs)
@@ -371,6 +423,7 @@ class Circos:
 
     def line(
         self,
+        *,
         r: float,
         deg_lim: tuple[float, float] | None = None,
         **kwargs,
@@ -501,21 +554,36 @@ class Circos:
         )
         self._patches.append(bezier_curve)
 
-    def plotfig(self, dpi: int = 100) -> Figure:
+    def plotfig(
+        self,
+        dpi: int = 100,
+        *,
+        ax: PolarAxes | None = None,
+    ) -> Figure:
         """Plot figure
 
         Parameters
         ----------
         dpi : int, optional
             Figure DPI
+        ax : PolarAxes | None
+            If None, figure and axes are newly created.
 
         Returns
         -------
         figure : Figure
             Circos matplotlib figure
         """
-        # Initialize Figure & PolarAxes
-        fig, ax = self._initialize_figure(dpi=dpi)
+        if ax is None:
+            # Initialize Figure & PolarAxes
+            fig, ax = self._initialize_figure(dpi=dpi)
+        else:
+            # Check PolarAxes or not
+            if not isinstance(ax, PolarAxes):
+                ax_class_name = type(ax).__name__
+                err_msg = f"Input ax is not PolarAxes (={ax_class_name})."
+                raise ValueError(err_msg)
+            fig = ax.get_figure()
         self._initialize_polar_axes(ax)
 
         # Plot all patches
@@ -533,11 +601,12 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig
+        return fig  # type: ignore
 
     def savefig(
         self,
         savefile: str | Path,
+        *,
         dpi: int = 100,
         pad_inches: float = 0.5,
     ) -> None:

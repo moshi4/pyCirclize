@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import math
-from typing import Callable
+from pathlib import Path
+from typing import Any, Callable
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
+import numpy as np
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
+from PIL import Image, ImageOps
 
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle
 from pycirclize.track import Track
+from pycirclize.utils.plot import get_label_params_by_rad
 
 
 class Sector:
@@ -255,6 +261,7 @@ class Sector:
 
     def line(
         self,
+        *,
         r: float,
         start: float | None = None,
         end: float | None = None,
@@ -313,6 +320,119 @@ class Sector:
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
         self._patches.append(ArcRectangle(radr, width, height, **kwargs))
+
+    def raster(
+        self,
+        img: str | Path | Image.Image,
+        *,
+        size: float = 0.05,
+        x: float | None = None,
+        r: float = 105,
+        rotation: int | float | str | None = None,
+        border_width: int = 0,
+        label: str | None = None,
+        label_pos: str = "bottom",
+        label_margin: float = 0.1,
+        imshow_kws: dict[str, Any] = {},
+        text_kws: dict[str, Any] = {},
+    ) -> None:
+        """Plot raster image
+
+        This method is experimental. API may change in the future release.
+
+        Parameters
+        ----------
+        img : str | Path | Image
+            Image for plotting (`File Path`|`URL`|`PIL Image`)
+        size : float, optional
+            Image size (ratio to overall figure size)
+        x : float | None, optional
+            X position. If None, sector center x position is set.
+        r : float, optional
+            Radius position
+        rotation : int | float | str | None, optional
+            Image rotation setting.
+            If `None`, no rotate image (default).
+            If `auto`, rotate image by auto set rotation.
+            If `int` or `float` value, rotate image by user-specified value.
+        border_width : int, optional
+            Border width in pixel. By default, 0 is set (no border shown).
+        label : str | None, optional
+            Image label. If None, no label shown.
+        label_pos : str, optional
+            Label plot position (`bottom` or `top`)
+        label_margin : float, optional
+            Label margin
+        imshow_kws : dict[str, Any], optional
+            Axes.imshow properties
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>
+        text_kws : dict[str, Any], optional
+            Text properties (e.g. `dict(size=10, color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        """
+        # Load image data
+        if isinstance(img, str) and urlparse(img).scheme in ("http", "https"):
+            im = Image.open(urlopen(img))
+        elif isinstance(img, (str, Path)):
+            im = Image.open(str(img))
+        else:
+            im = img
+        im = im.convert("RGBA")
+
+        # Draw border on image
+        if border_width > 0:
+            im = ImageOps.expand(im, border=border_width, fill="black")
+
+        # Rotate image
+        x = (self.start + self.end) / 2 if x is None else x
+        rad = self.x_to_rad(x)
+        if isinstance(rotation, (int, float)):
+            im = im.rotate(rotation, expand=True)
+            rotate_value = rotation
+        elif rotation == "auto":
+            rotate_value: float = get_label_params_by_rad(rad, "horizontal")["rotation"]
+            im = im.rotate(rotate_value, expand=True)
+        elif rotation is None:
+            rotate_value = 0
+        else:
+            raise ValueError(f"{rotation=} is invalid.")
+
+        # Calculate x, y image set position
+        max_r_lim = config.MAX_R + config.R_PLOT_MARGIN
+        im_x = np.cos((np.pi / 2) - rad) * (r / max_r_lim)
+        im_y = np.sin((np.pi / 2) - rad) * (r / max_r_lim)
+        # Normalize (-1, 1) to (0, 1) axis range
+        im_x = (im_x + 1) / 2
+        im_y = (im_y + 1) / 2
+
+        # TODO: Terrible code to be fixed in the future
+        # Approximate image size calculation logic, not complete
+        scale = 1 - (abs(abs(rotate_value) % 90 - 45) / 45)  # 0 - 1.0
+        size_ratio = 1 + (scale * (np.sqrt(2) - 1))
+        size = size * size_ratio
+
+        def plot_raster(ax: PolarAxes) -> None:
+            # Set inset axes & plot raster image
+            bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
+            axin = ax.inset_axes(bounds, transform=ax.transAxes)
+            axin.axis("off")
+            axin.imshow(im, **imshow_kws)
+
+            # Plot label
+            if label is not None:
+                text_x = sum(axin.get_xlim()) / 2
+                y_size = max(axin.get_ylim()) - min(axin.get_ylim())
+                if label_pos == "bottom":
+                    text_y = max(axin.get_ylim()) + (y_size * label_margin)
+                    va = "top"
+                elif label_pos == "top":
+                    text_y = min(axin.get_ylim()) - (y_size * label_margin)
+                    va = "bottom"
+                else:
+                    raise ValueError(f"{label_pos=} is invalid ('top' or 'bottom').")
+                axin.text(text_x, text_y, label, ha="center", va=va, **text_kws)
+
+        self._plot_funcs.append(plot_raster)
 
     ############################################################
     # Private Method

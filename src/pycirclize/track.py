@@ -1066,27 +1066,6 @@ class Track:
             all_arc_r.extend(arc_r)
         return all_arc_rad, all_arc_r
 
-    def _to_arc_rad(self, rad: list[float] | np.ndarray) -> list[float]:
-        """Convert radian to arc radian
-
-        Parameters
-        ----------
-        rad : list[float] | np.ndarray
-            Radian list
-
-        Returns
-        -------
-        arc_rad : list[float]
-            Arc radian list
-        """
-        all_arc_rad = []
-        for i in range(len(rad) - 1):
-            rad1, rad2 = rad[i], rad[i + 1]
-            step = config.ARC_RADIAN_STEP
-            arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
-            all_arc_rad.extend(arc_rad)
-        return all_arc_rad
-
     def _simpleline(
         self,
         x_lim: tuple[float, float],
