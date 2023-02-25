@@ -381,8 +381,11 @@ class Circos:
     def text(
         self,
         text: str,
+        *,
         r: float = 0,
         deg: float = 0,
+        adjust_rotation: bool = False,
+        orientation: str = "horizontal",
         **kwargs,
     ) -> None:
         """Plot text
@@ -395,6 +398,11 @@ class Circos:
             Radius position
         deg : float
             Degree position (0 - 360)
+        adjust_rotation : bool, optional
+            If True, text rotation is auto set based on `deg` param.
+        orientation : str, optional
+            Text orientation (`horizontal` or `vertical`)
+            If adjust_rotation=True, orientation is used for rotation calculation.
         **kwargs : dict, optional
             Text properties (e.g. `size=12, color="red", rotation=90, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
@@ -403,6 +411,10 @@ class Circos:
             kwargs.update(dict(va="center"))
         if "ha" not in kwargs and "horizontalalignment" not in kwargs:
             kwargs.update(dict(ha="center"))
+        if adjust_rotation:
+            rad = math.radians(deg)
+            params = utils.plot.get_label_params_by_rad(rad, orientation)
+            kwargs.update(**params)
 
         def plot_text(ax: PolarAxes) -> None:
             ax.text(math.radians(deg), r, text, **kwargs)
