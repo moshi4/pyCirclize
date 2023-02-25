@@ -62,3 +62,18 @@ def test_get_sector():
     # Case2: Failed to get sector
     with pytest.raises(ValueError):
         circos.get_sector("error")
+
+
+def test_get_group_sectors_deg_lim():
+    """Test `get_group_sectors_deg_lim()`"""
+    sectors = dict(A=10, B=10, C=10, D=10, E=10, F=10, G=10, H=10)
+
+    group1 = list("BCD")
+    circos = Circos(sectors)
+    group1_deg_lim = circos.get_group_sectors_deg_lim(group1)
+    assert tuple(map(round, group1_deg_lim)) == (45, 180)
+
+    group2 = list("HEF")
+    circos = Circos(sectors, start=20, end=340)
+    group2_deg_lim = circos.get_group_sectors_deg_lim(group2)
+    assert tuple(map(round, group2_deg_lim)) == (180, 340)
