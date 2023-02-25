@@ -131,5 +131,4 @@ I may implement them when I feel like it.
 - Plot histogram
 - Plot boxplot
 - Plot violin
-- Plot raster image
 - Label position auto adjustment
