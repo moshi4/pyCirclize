@@ -423,6 +423,7 @@ class Circos:
 
     def line(
         self,
+        *,
         r: float,
         deg_lim: tuple[float, float] | None = None,
         **kwargs,
@@ -605,6 +606,7 @@ class Circos:
     def savefig(
         self,
         savefile: str | Path,
+        *,
         dpi: int = 100,
         pad_inches: float = 0.5,
     ) -> None:

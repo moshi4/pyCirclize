@@ -261,6 +261,7 @@ class Sector:
 
     def line(
         self,
+        *,
         r: float,
         start: float | None = None,
         end: float | None = None,
