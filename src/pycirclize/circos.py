@@ -148,6 +148,7 @@ class Circos:
         label_kws: dict[str, Any] = {},
         ticks_kws: dict[str, Any] = {},
         link_kws: dict[str, Any] = {},
+        link_kws_handler: Callable[[str, str], dict[str, Any] | None] | None = None,
     ) -> Circos:
         """Initialize Circos instance from Matrix
 
@@ -190,6 +191,11 @@ class Circos:
         link_kws : dict[str, Any], optional
             Keyword arguments passed to `circos.link()` method
             (e.g. `dict(direction=1, ec="black", lw=0.5, alpha=0.8, ...)`)
+        link_kws_handler : Callable[[str, str], dict[str, Any] | None] | None, optional
+            User-defined function to handle keyword arguments for each link.
+            This option allows user to set or override properties such as
+            `fc`, `alpha`, `zorder`, etc... on each link.
+            Handler function arguments `[str, str]` means `[from_label, to_label]`.
 
         Returns
         -------
@@ -233,11 +239,19 @@ class Circos:
         for link in matrix.to_links():
             from_label, to_label = link[0][0], link[1][0]
             fromto_label = f"{from_label}{to_label}"
+            # Set link color
             if fromto_label in fromto_label2color:
                 color = fromto_label2color[fromto_label]
             else:
                 color = name2color[from_label]
-            circos.link(*link, fc=color, **link_kws)
+            # Update link properties by user-defined handler function
+            _link_kws = deepcopy(link_kws)
+            _link_kws.update(fc=color)
+            if link_kws_handler is not None:
+                handle_link_kws = link_kws_handler(from_label, to_label)
+                if handle_link_kws is not None:
+                    _link_kws.update(handle_link_kws)
+            circos.link(*link, **_link_kws)
 
         return circos
 
