@@ -19,10 +19,11 @@ def load_prokaryote_example_file(
 ) -> Path:
     """Load pycirclize example Genbank or GFF file
 
-    Load example file from https://github.com/moshi4/pycirclize-data/
+    Load example file from <https://github.com/moshi4/pycirclize-data/>
     and cache file in local directory (Default: `~/.cache/pycirclize/`).
 
     List of example Genbank or GFF filename
+
     - `enterobacteria_phage.gbk`
     - `enterobacteria_phage.gff`
     - `escherichia_coli.gbk.gz`
@@ -75,10 +76,11 @@ def load_eukaryote_example_dataset(
 ) -> tuple[Path, Path, list[ChrLink]]:
     """Load pycirclize eukaryote example dataset
 
-    Load example file from https://github.com/moshi4/pycirclize-data/
+    Load example file from <https://github.com/moshi4/pycirclize-data/>
     and cache file in local directory (Default: `~/.cache/pycirclize/`).
 
     List of dataset contents (download from UCSC)
+
     1. Chromosome BED file (e.g. `chr1 0 248956422`)
     2. Cytoband file (e.g. `chr1 0 2300000 p36.33 gneg`)
     3. Chromosome links (e.g. `chr1 1000 4321 chr3 8000 5600`)

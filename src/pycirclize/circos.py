@@ -357,7 +357,7 @@ class Circos:
 
         Parameters
         ----------
-        sector_names : list[str]
+        group_sector_names : list[str]
             Group sector names
 
         Returns
