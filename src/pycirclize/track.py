@@ -560,6 +560,58 @@ class Track:
                 )
                 self.text(label, x_text, r_pos, ignore_range_error=True, **_text_kws)
 
+    def grid(
+        self,
+        y_grid_num: int | None = 6,
+        x_grid_interval: float | None = None,
+        **kwargs,
+    ) -> None:
+        """Plot grid
+
+        By default, `color="grey", alpha=0.5, zorder=0` line params are set.
+
+        Parameters
+        ----------
+        y_grid_num : int | None, optional
+            Y-axis grid line number. If None, y-axis grid line is not shown.
+        x_grid_interval : float | None, optional
+            X-axis grid line interval. If None, x-axis grid line is not shown.
+        **kwargs : dict, optional
+            Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
+        """
+        # Check argument values
+        if y_grid_num is not None and not y_grid_num >= 2:
+            raise ValueError(f"{y_grid_num=} is invalid (y_grid_num >= 2).")
+        if x_grid_interval is not None and not x_grid_interval > 0:
+            raise ValueError(f"{x_grid_interval=} is invalid (x_grid_interval > 0).")
+
+        # Set default grid line properties
+        default_props = dict(color="grey", alpha=0.5, zorder=0)
+        for name, value in default_props.items():
+            if name not in kwargs:
+                kwargs.update({name: value})
+
+        # Plot y-axis grid line
+        if y_grid_num is not None:
+            vmin, vmax = 0, y_grid_num - 1
+            for y_grid_idx in range(y_grid_num):
+                x = [self.start, self.end]
+                y: list[float] = [y_grid_idx, y_grid_idx]
+                self.line(x, y, vmin=vmin, vmax=vmax, **kwargs)
+
+        # Plot x-axis grid line
+        if x_grid_interval is not None:
+            vmin, vmax = 0, 1.0
+            x_grid_idx = 0
+            while True:
+                x_pos = self.start + (x_grid_interval * x_grid_idx)
+                if x_pos > self.end:
+                    break
+                x, y = [x_pos, x_pos], [vmin, vmax]
+                self.line(x, y, vmin=vmin, vmax=vmax, **kwargs)
+                x_grid_idx += 1
+
     def line(
         self,
         x: list[float] | np.ndarray,
@@ -585,6 +637,11 @@ class Track:
             Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
         """
+        # Check x, y list length
+        if len(x) != len(y):
+            err_msg = f"List length is not match ({len(x)=}, {len(y)=})"
+            raise ValueError(err_msg)
+
         # Convert (x, y) to (rad, r)
         rad = list(map(self.x_to_rad, x))
         vmax = max(y) if vmax is None else vmax
@@ -1059,11 +1116,17 @@ class Track:
         all_arc_rad, all_arc_r = [], []
         for i in range(len(rad) - 1):
             rad1, rad2, r1, r2 = rad[i], rad[i + 1], r[i], r[i + 1]
-            step = config.ARC_RADIAN_STEP
-            arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
-            all_arc_rad.extend(arc_rad)
-            arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
-            all_arc_r.extend(arc_r)
+            if rad1 == rad2:
+                all_arc_rad.extend([rad1, rad2])
+                all_arc_r.extend([r1, r2])
+            else:
+                step = config.ARC_RADIAN_STEP
+                if rad1 > rad2:
+                    step *= -1
+                arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
+                all_arc_rad.extend(arc_rad)
+                arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
+                all_arc_r.extend(arc_r)
         return all_arc_rad, all_arc_r
 
     def _simpleline(
