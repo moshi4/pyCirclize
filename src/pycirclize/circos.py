@@ -88,6 +88,7 @@ class Circos:
         self._rad_lim = (math.radians(start), math.radians(end))
         self._patches: list[Patch] = []
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
+        self._ax: PolarAxes | None = None
         self._show_axis_for_debug = show_axis_for_debug
 
     ############################################################
@@ -127,6 +128,17 @@ class Circos:
             for track in sector.tracks:
                 tracks.append(track)
         return tracks
+
+    @property
+    def ax(self) -> PolarAxes:
+        """Plot polar axes
+
+        Can't access `ax` property before calling `circos.plotfig()` method
+        """
+        if self._ax is None:
+            err_msg = "Can't access ax property before calling `circos.plotfig() method"
+            raise ValueError(err_msg)
+        return self._ax
 
     ############################################################
     # Public Method
@@ -705,6 +717,7 @@ class Circos:
 
         show_axis = "on" if self._show_axis_for_debug else "off"
         ax.axis(show_axis)
+        self._ax = ax
 
     def _get_all_patches(self) -> list[Patch]:
         """Get all patches from `circos, sector, track`
