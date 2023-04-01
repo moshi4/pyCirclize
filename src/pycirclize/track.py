@@ -585,6 +585,11 @@ class Track:
             Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
         """
+        # Check x, y list length
+        if len(x) != len(y):
+            err_msg = f"List length is not match ({len(x)=}, {len(y)=})"
+            raise ValueError(err_msg)
+
         # Convert (x, y) to (rad, r)
         rad = list(map(self.x_to_rad, x))
         vmax = max(y) if vmax is None else vmax
@@ -1059,11 +1064,17 @@ class Track:
         all_arc_rad, all_arc_r = [], []
         for i in range(len(rad) - 1):
             rad1, rad2, r1, r2 = rad[i], rad[i + 1], r[i], r[i + 1]
-            step = config.ARC_RADIAN_STEP
-            arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
-            all_arc_rad.extend(arc_rad)
-            arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
-            all_arc_r.extend(arc_r)
+            if rad1 == rad2:
+                all_arc_rad.extend([rad1, rad2])
+                all_arc_r.extend([r1, r2])
+            else:
+                step = config.ARC_RADIAN_STEP
+                if rad1 > rad2:
+                    step *= -1
+                arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
+                all_arc_rad.extend(arc_rad)
+                arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
+                all_arc_r.extend(arc_r)
         return all_arc_rad, all_arc_r
 
     def _simpleline(
