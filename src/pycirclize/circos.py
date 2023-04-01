@@ -9,7 +9,10 @@ from typing import Any, Callable
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.axes import Axes
 from matplotlib.collections import PatchCollection
+from matplotlib.colorbar import Colorbar
+from matplotlib.colors import Colormap, Normalize
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
@@ -579,6 +582,54 @@ class Circos:
             **kwargs,
         )
         self._patches.append(bezier_curve)
+
+    def colorbar(
+        self,
+        bounds: tuple[float, float, float, float] = (1.02, 0.3, 0.02, 0.4),
+        *,
+        vmin: float = 0,
+        vmax: float = 1,
+        cmap: str | Colormap = "bwr",
+        orientation: str = "vertical",
+        colorbar_kws: dict[str, Any] = {},
+        tick_kws: dict[str, Any] = {},
+    ) -> None:
+        """Plot colorbar
+
+        Parameters
+        ----------
+        bounds : tuple[float, float, float, float], optional
+            Colorbar bounds tuple (`x`, `y`, `width`, `height`)
+        vmin : float, optional
+            Colorbar min value
+        vmax : float, optional
+            Colorbar max value
+        cmap : str | Colormap, optional
+            Colormap (e.g. `viridis`, `Spectral`, `Reds`, `Greys`)
+            <https://matplotlib.org/stable/tutorials/colors/colormaps.html>
+        orientation : str, optional
+            Colorbar orientation (`vertical`|`horizontal`)
+        colorbar_kws : dict[str, Any], optional
+            Colorbar properties (e.g. `dict(label="name", format="%.1f", ...)`)
+            <https://matplotlib.org/stable/api/colorbar_api.html>
+        tick_kws : dict[str, Any], optional
+            Axes.tick_params properties (e.g. `dict(labelsize=12, colors="red", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.tick_params.html>
+        """
+
+        def plot_colorbar(ax: PolarAxes) -> None:
+            axin: Axes = ax.inset_axes(bounds)
+            norm = Normalize(vmin=vmin, vmax=vmax)
+            Colorbar(
+                axin,
+                cmap=cmap,
+                norm=norm,
+                orientation=orientation,
+                **colorbar_kws,
+            )
+            axin.tick_params(**tick_kws)
+
+        self._plot_funcs.append(plot_colorbar)
 
     def plotfig(
         self,
