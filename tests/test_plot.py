@@ -114,6 +114,34 @@ def test_circos_link_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
+def test_circos_colorbar_plot(fig_outfile: Path):
+    """Test `circos.colorbar()`"""
+    circos = Circos(sectors=dict(data=100), start=90)
+    circos.axis()
+
+    # Plot colorbar in various style
+    vmin1, vmax1 = 0, 100
+    circos.colorbar(vmin=vmin1, vmax=vmax1)
+    circos.colorbar(bounds=(0.7, 0.6, 0.02, 0.3), vmin=vmin1, vmax=vmax1, cmap="bwr")
+
+    vmin2, vmax2 = -200, 200
+    circos.colorbar(
+        bounds=(0.8, 0.6, 0.02, 0.3), vmin=vmin2, vmax=vmax2, cmap="viridis"
+    )
+    circos.colorbar(
+        bounds=(0.3, 0.485, 0.4, 0.03),
+        vmin=vmin2,
+        vmax=vmax2,
+        cmap="viridis",
+        orientation="horizontal",
+        colorbar_kws=dict(label="Colorbar in center"),
+        tick_kws=dict(labelsize=12, colors="red"),
+    )
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
 def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
     """Test chord diagram plot"""
     circos = Circos.initialize_from_matrix(tsv_matrix_file)
@@ -367,6 +395,27 @@ def test_track_yticks_plot(fig_outfile: Path):
 
     circos.savefig(fig_outfile)
     fig_outfile.exists()
+
+
+def test_track_grid_plot(fig_outfile: Path):
+    """Test `track.grid()`"""
+    sectors = {"A": 10, "B": 20, "C": 15}
+    circos = Circos(sectors, space=5)
+    for sector in circos.sectors:
+        # Plot Y-axis grid line (Default: 6 grid line)
+        track1 = sector.add_track((80, 100), r_pad_ratio=0.1)
+        track1.axis()
+        track1.grid()
+        # Plot X-axis grid line (interval=1)
+        track2 = sector.add_track((55, 75))
+        track2.axis()
+        track2.grid(y_grid_num=None, x_grid_interval=1, color="red")
+        # Plot both XY-axis grid line
+        track3 = sector.add_track((30, 50))
+        track3.grid(y_grid_num=11, x_grid_interval=0.5, color="blue", ls="dashed")
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
 
 
 def test_track_line_plot(fig_outfile: Path):

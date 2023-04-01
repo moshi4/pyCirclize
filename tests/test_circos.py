@@ -9,6 +9,7 @@ def test_circos_init():
     """Test circos initialization"""
     circos = Circos({"A": 10, "B": 20, "C": 15})
     assert [s.name for s in circos.sectors] == ["A", "B", "C"]
+    assert [s.size for s in circos.sectors] == [10, 20, 15]
 
 
 @pytest.mark.parametrize(
@@ -77,3 +78,14 @@ def test_get_group_sectors_deg_lim():
     circos = Circos(sectors, start=20, end=340)
     group2_deg_lim = circos.get_group_sectors_deg_lim(group2)
     assert tuple(map(round, group2_deg_lim)) == (180, 340)
+
+
+def test_ax_property():
+    """Test `circos.ax` property"""
+    sectors = {"A": 10, "B": 20, "C": 15}
+    circos = Circos(sectors)
+    # Raise error before calling `circos.plotfig()` method
+    with pytest.raises(ValueError):
+        circos.ax
+    circos.plotfig()
+    circos.ax
