@@ -47,6 +47,7 @@ API usage is described in each of the following sections in the [document](https
 - [Chord Diagram](https://moshi4.github.io/pyCirclize/chord_diagram/)
 - [Circos Plot (Genomics)](https://moshi4.github.io/pyCirclize/circos_plot/)
 - [Phylogenetic Tree](https://moshi4.github.io/pyCirclize/phylogenetic_tree/)
+- [Plot Tips](https://moshi4.github.io/pyCirclize/plot_tips/)
 
 ## Code Example
 

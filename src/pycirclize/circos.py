@@ -19,7 +19,7 @@ from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
 from pycirclize.parser import Bed, Matrix
-from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve
+from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve, Line
 from pycirclize.sector import Sector
 from pycirclize.track import Track
 
@@ -453,25 +453,31 @@ class Circos:
     def line(
         self,
         *,
-        r: float,
+        r: float | tuple[float, float],
         deg_lim: tuple[float, float] | None = None,
+        arc: bool = True,
         **kwargs,
     ) -> None:
         """Plot line
 
         Parameters
         ----------
-        r : float
-            Radius position (0 - 100)
+        r : float, tuple[float, float]
+            Line radius position (0 - 100). If r is float, (r, r) is set.
         deg_lim : tuple[float, float]
             Degree limit region (-360 - 360). If None, `circos.deg_lim` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Patch properties (e.g. `color="red", lw=3, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         deg_lim = self.deg_lim if deg_lim is None else deg_lim
         rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
-        self._patches.append(ArcLine(rad_lim, (r, r), **kwargs))
+        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        LinePatch = ArcLine if arc else Line
+        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
     def rect(
         self,

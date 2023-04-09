@@ -3,6 +3,7 @@ from __future__ import annotations
 import bz2
 import gzip
 import zipfile
+from collections import defaultdict
 from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
@@ -136,12 +137,19 @@ class Genbank:
     @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
         """Calculate genome GC content"""
-        return SeqUtils.gc_fraction(self.genome_seq) * 100
+        try:
+            gc_content = SeqUtils.gc_fraction(self.genome_seq) * 100
+        except AttributeError:
+            # For backward compatibility, biopython <= 1.79
+            gc_content = SeqUtils.GC(self.genome_seq)
+        return gc_content
 
     def calc_gc_skew(
         self,
         window_size: int | None = None,
         step_size: int | None = None,
+        *,
+        seq: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC skew in sliding window
 
@@ -151,6 +159,8 @@ class Genbank:
             Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
+        seq : str | None, optional
+            Sequence for GCskew calculation (Default: `self.genome_seq`)
 
         Returns
         -------
@@ -158,7 +168,7 @@ class Genbank:
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
-        seq = self.genome_seq
+        seq = self.genome_seq if seq is None else seq
         if window_size is None:
             window_size = int(len(seq) / 500)
         if step_size is None:
@@ -185,6 +195,8 @@ class Genbank:
         self,
         window_size: int | None = None,
         step_size: int | None = None,
+        *,
+        seq: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC content in sliding window
 
@@ -194,6 +206,8 @@ class Genbank:
             Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
+        seq : str | None, optional
+            Sequence for GCskew calculation (Default: `self.genome_seq`)
 
         Returns
         -------
@@ -201,7 +215,7 @@ class Genbank:
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []
-        seq = self.genome_seq
+        seq = self.genome_seq if seq is None else seq
         if window_size is None:
             window_size = int(len(seq) / 500)
         if step_size is None:
@@ -214,9 +228,90 @@ class Genbank:
             window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
             subseq = seq[window_start_pos:window_end_pos]
-            gc_content_list.append(SeqUtils.gc_fraction(subseq) * 100)
+            try:
+                gc_content = SeqUtils.gc_fraction(subseq) * 100
+            except AttributeError:
+                # For backward compatibility, biopython <= 1.79
+                gc_content = SeqUtils.GC(subseq)
+            gc_content_list.append(gc_content)
 
         return (np.array(pos_list), np.array(gc_content_list))
+
+    def get_seqid2seq(self) -> dict[str, str]:
+        """Get seqid & complete/contig/scaffold genome sequence dict
+
+        Returns
+        -------
+        seqid2seq : dict[str, int]
+            seqid & genome sequence dict
+        """
+        return {rec.id: rec.seq for rec in self.records}
+
+    def get_seqid2size(self) -> dict[str, int]:
+        """Get seqid & complete/contig/scaffold genome size dict
+
+        Returns
+        -------
+        seqid2size : dict[str, int]
+            seqid & genome size dict
+        """
+        return {seqid: len(seq) for seqid, seq in self.get_seqid2seq().items()}
+
+    def get_seqid2features(
+        self,
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+        pseudogene: bool | None = False,
+    ) -> dict[str, list[SeqFeature]]:
+        """Get seqid & features in target seqid genome dict
+
+        Parameters
+        ----------
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        pseudogene : bool | None, optional
+            If True, `pseudo=`, `pseudogene=` tagged record only extract.
+            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
+            If None, extract regardless of pseudogene tag.
+
+        Returns
+        -------
+        seqid2features : dict[str, list[SeqFeature]]
+            seqid & features dict
+        """
+        seqid2features = defaultdict(list)
+        for rec in self.records:
+            feat: SeqFeature
+            for feat in rec.features:
+                if feature_type is not None and feat.type != feature_type:
+                    continue
+                if target_strand is not None and feat.strand != target_strand:
+                    continue
+                if feat.strand == -1:
+                    start = self._to_int(feat.location.parts[-1].start)
+                    end = self._to_int(feat.location.parts[0].end)
+                else:
+                    start = self._to_int(feat.location.parts[0].start)
+                    end = self._to_int(feat.location.parts[-1].end)
+
+                qual = feat.qualifiers
+                has_pseudo_qual = "pseudo" in qual or "pseudogene" in qual
+                if (
+                    pseudogene is None
+                    or (pseudogene is True and has_pseudo_qual)
+                    or (pseudogene is False and not has_pseudo_qual)
+                ):
+                    seqid2features[rec.id].append(
+                        SeqFeature(
+                            location=FeatureLocation(start, end, feat.strand),
+                            type=feat.type,
+                            qualifiers=feat.qualifiers,
+                        ),
+                    )
+        return seqid2features
 
     def extract_features(
         self,

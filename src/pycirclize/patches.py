@@ -9,6 +9,38 @@ from matplotlib.path import Path
 from pycirclize import config
 
 
+class Line(PathPatch):
+    """Linear Line Patch"""
+
+    def __init__(
+        self,
+        rad_lim: tuple[float, float],
+        r_lim: tuple[float, float],
+        **kwargs,
+    ):
+        """
+        Parameters
+        ----------
+        rad_lim : tuple[float, float]
+            Radian limit region
+        r_lim : tuple[float, float]
+            Radius limit region
+        **kwargs : dict, optional
+            Patch properties (e.g. `ec="red", lw=1.0, ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        """
+        # Default params: fc='none', color='black', linewidth=0.5
+        kwargs.update(dict(fc="none"))
+        if "ec" not in kwargs and "edgecolor" not in kwargs and "color" not in kwargs:
+            kwargs.update(dict(ec="black"))
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.update(dict(lw=0.5))
+
+        # Set line path
+        verts = list(zip(rad_lim, r_lim))
+        super().__init__(Path(verts), **kwargs)
+
+
 class ArcLine(PathPatch):
     """Arc Line Patch"""
 

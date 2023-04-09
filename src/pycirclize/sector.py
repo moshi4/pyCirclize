@@ -12,7 +12,7 @@ from matplotlib.projections.polar import PolarAxes
 from PIL import Image, ImageOps
 
 from pycirclize import config, utils
-from pycirclize.patches import ArcLine, ArcRectangle
+from pycirclize.patches import ArcLine, ArcRectangle, Line
 from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
 
@@ -224,7 +224,9 @@ class Sector:
         x: float | None = None,
         r: float = 105,
         *,
+        adjust_rotation: bool = True,
         orientation: str = "horizontal",
+        ignore_range_error: bool = False,
         **kwargs,
     ) -> None:
         """Plot text
@@ -237,22 +239,30 @@ class Sector:
             X position. If None, sector center x is set.
         r : float, optional
             Radius position. By default, outer position `r=105` is set.
+        adjust_rotation : bool, optional
+            If True, text rotation is auto set based on `x` and `orientation` params.
         orientation : str, optional
             Text orientation (`horizontal` or `vertical`)
+        ignore_range_error : bool, optional
+            If True, ignore x position range error
+            (ErrorCase: `not track.start <= x <= track.end`)
         **kwargs : dict, optional
             Text properties (e.g. `size=12, color="red", va="center", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
-        if x is None:
-            # Get sector center radian position
-            center_x = (self.start + self.end) / 2
-            rad = self.x_to_rad(center_x)
-        else:
-            rad = self.x_to_rad(x)
+        # If value is None, center position is set.
+        x = (self.start + self.end) / 2 if x is None else x
+        rad = self.x_to_rad(x, ignore_range_error)
 
-        # Set label proper alignment, rotation parameters by radian
-        params = utils.plot.get_label_params_by_rad(rad, orientation, outer=True)
-        kwargs.update(params)
+        if adjust_rotation:
+            # Set label proper alignment, rotation parameters by radian
+            params = utils.plot.get_label_params_by_rad(rad, orientation)
+            kwargs.update(params)
+
+        if "ha" not in kwargs and "horizontalalignment" not in kwargs:
+            kwargs.update(dict(ha="center"))
+        if "va" not in kwargs and "verticalalignment" not in kwargs:
+            kwargs.update(dict(va="center"))
 
         def plot_text(ax: PolarAxes) -> None:
             ax.text(rad, r, text, **kwargs)
@@ -262,21 +272,25 @@ class Sector:
     def line(
         self,
         *,
-        r: float,
+        r: float | tuple[float, float],
         start: float | None = None,
         end: float | None = None,
+        arc: bool = True,
         **kwargs,
     ) -> None:
         """Plot line
 
         Parameters
         ----------
-        r : float
-            Line radius position (0 - 100)
+        r : float, tuple[float, float]
+            Line radius position (0 - 100). If r is float, (r, r) is set.
         start : float, optional
             Start position (x coordinate). If None, `sector.start` is set.
         end : float, optional
             End position (x coordinate). If None, `sector.end` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Patch properties (e.g. `color="red", lw=3, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -284,7 +298,9 @@ class Sector:
         start = self.start if start is None else start
         end = self.end if end is None else end
         rad_lim = (self.x_to_rad(start), self.x_to_rad(end))
-        self._patches.append(ArcLine(rad_lim, (r, r), **kwargs))
+        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        LinePatch = ArcLine if arc else Line
+        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
     def rect(
         self,
