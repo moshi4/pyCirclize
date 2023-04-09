@@ -147,6 +147,8 @@ class Genbank:
         self,
         window_size: int | None = None,
         step_size: int | None = None,
+        *,
+        seq: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC skew in sliding window
 
@@ -156,6 +158,8 @@ class Genbank:
             Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
+        seq : str | None, optional
+            Sequence for GCskew calculation (Default: `self.genome_seq`)
 
         Returns
         -------
@@ -163,7 +167,7 @@ class Genbank:
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
-        seq = self.genome_seq
+        seq = self.genome_seq if seq is None else seq
         if window_size is None:
             window_size = int(len(seq) / 500)
         if step_size is None:
@@ -190,6 +194,8 @@ class Genbank:
         self,
         window_size: int | None = None,
         step_size: int | None = None,
+        *,
+        seq: str | None = None,
     ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate GC content in sliding window
 
@@ -199,6 +205,8 @@ class Genbank:
             Window size (Default: `genome_size / 500`)
         step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
+        seq : str | None, optional
+            Sequence for GCskew calculation (Default: `self.genome_seq`)
 
         Returns
         -------
@@ -206,7 +214,7 @@ class Genbank:
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []
-        seq = self.genome_seq
+        seq = self.genome_seq if seq is None else seq
         if window_size is None:
             window_size = int(len(seq) / 500)
         if step_size is None:
