@@ -224,7 +224,9 @@ class Sector:
         x: float | None = None,
         r: float = 105,
         *,
+        adjust_rotation: bool = True,
         orientation: str = "horizontal",
+        ignore_range_error: bool = False,
         **kwargs,
     ) -> None:
         """Plot text
@@ -237,22 +239,30 @@ class Sector:
             X position. If None, sector center x is set.
         r : float, optional
             Radius position. By default, outer position `r=105` is set.
+        adjust_rotation : bool, optional
+            If True, text rotation is auto set based on `x` and `orientation` params.
         orientation : str, optional
             Text orientation (`horizontal` or `vertical`)
+        ignore_range_error : bool, optional
+            If True, ignore x position range error
+            (ErrorCase: `not track.start <= x <= track.end`)
         **kwargs : dict, optional
             Text properties (e.g. `size=12, color="red", va="center", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
-        if x is None:
-            # Get sector center radian position
-            center_x = (self.start + self.end) / 2
-            rad = self.x_to_rad(center_x)
-        else:
-            rad = self.x_to_rad(x)
+        # If value is None, center position is set.
+        x = (self.start + self.end) / 2 if x is None else x
+        rad = self.x_to_rad(x, ignore_range_error)
 
-        # Set label proper alignment, rotation parameters by radian
-        params = utils.plot.get_label_params_by_rad(rad, orientation, outer=True)
-        kwargs.update(params)
+        if adjust_rotation:
+            # Set label proper alignment, rotation parameters by radian
+            params = utils.plot.get_label_params_by_rad(rad, orientation)
+            kwargs.update(params)
+
+        if "ha" not in kwargs and "horizontalalignment" not in kwargs:
+            kwargs.update(dict(ha="center"))
+        if "va" not in kwargs and "verticalalignment" not in kwargs:
+            kwargs.update(dict(va="center"))
 
         def plot_text(ax: PolarAxes) -> None:
             ax.text(rad, r, text, **kwargs)
