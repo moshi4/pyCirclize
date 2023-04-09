@@ -619,6 +619,7 @@ class Track:
         *,
         vmin: float = 0,
         vmax: float | None = None,
+        arc: bool = True,
         **kwargs,
     ) -> None:
         """Plot line
@@ -633,6 +634,9 @@ class Track:
             Y min value
         vmax : float | None, optional
             Y max value. If None, `max(y)` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
@@ -648,11 +652,14 @@ class Track:
         self._check_value_min_max(y, vmin, vmax)
         r = [self._y_to_r(v, vmin, vmax) for v in y]
 
-        # Convert normal line to arc line (rad, r) points
-        arc_rad, arc_r = self._to_arc_radr(rad, r)
+        if arc:
+            # Convert linear line to arc line (rad, r) points
+            plot_rad, plot_r = self._to_arc_radr(rad, r)
+        else:
+            plot_rad, plot_r = rad, r
 
         def plot_line(ax: PolarAxes) -> None:
-            ax.plot(arc_rad, arc_r, **kwargs)
+            ax.plot(plot_rad, plot_r, **kwargs)
 
         self._plot_funcs.append(plot_line)
 
