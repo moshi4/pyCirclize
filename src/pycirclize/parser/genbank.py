@@ -136,7 +136,12 @@ class Genbank:
     @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
         """Calculate genome GC content"""
-        return SeqUtils.gc_fraction(self.genome_seq) * 100
+        try:
+            gc_content = SeqUtils.gc_fraction(self.genome_seq) * 100
+        except AttributeError:
+            # For backward compatibility, biopython <= 1.79
+            gc_content = SeqUtils.GC(self.genome_seq)
+        return gc_content
 
     def calc_gc_skew(
         self,
@@ -214,7 +219,12 @@ class Genbank:
             window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
             subseq = seq[window_start_pos:window_end_pos]
-            gc_content_list.append(SeqUtils.gc_fraction(subseq) * 100)
+            try:
+                gc_content = SeqUtils.gc_fraction(subseq) * 100
+            except AttributeError:
+                # For backward compatibility, biopython <= 1.79
+                gc_content = SeqUtils.GC(subseq)
+            gc_content_list.append(gc_content)
 
         return (np.array(pos_list), np.array(gc_content_list))
 
