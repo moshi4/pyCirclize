@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
   pull_request:
     branches: [main, develop]
@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
+          curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Dependencies
