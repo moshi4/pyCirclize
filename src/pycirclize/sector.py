@@ -288,6 +288,9 @@ class Sector:
             Start position (x coordinate). If None, `sector.start` is set.
         end : float, optional
             End position (x coordinate). If None, `sector.end` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Patch properties (e.g. `color="red", lw=3, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>

@@ -466,6 +466,9 @@ class Circos:
             Line radius position (0 - 100). If r is float, (r, r) is set.
         deg_lim : tuple[float, float]
             Degree limit region (-360 - 360). If None, `circos.deg_lim` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Patch properties (e.g. `color="red", lw=3, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
