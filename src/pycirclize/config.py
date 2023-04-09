@@ -99,6 +99,8 @@ EUKARYOTE_DATASET = {
 PROKARYOTE_FILES = [
     "enterobacteria_phage.gbk",
     "enterobacteria_phage.gff",
+    "mycoplasma_alvi.gbk",
+    "mycoplasma_alvi.gff",
     "escherichia_coli.gbk.gz",
     "escherichia_coli.gff.gz",
 ]

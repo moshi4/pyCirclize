@@ -24,10 +24,9 @@ def load_prokaryote_example_file(
 
     List of example Genbank or GFF filename
 
-    - `enterobacteria_phage.gbk`
-    - `enterobacteria_phage.gff`
-    - `escherichia_coli.gbk.gz`
-    - `escherichia_coli.gff.gz`
+    - `enterobacteria_phage.[gbk|gff]`
+    - `mycoplasma_alvi.[gbk|gff]`
+    - `escherichia_coli.[gbk|gff].gz`
 
     Parameters
     ----------
