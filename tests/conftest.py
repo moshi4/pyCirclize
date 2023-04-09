@@ -11,6 +11,24 @@ def testdata_dir() -> Path:
 
 
 @pytest.fixture
+def fig_outfile(tmp_path: Path) -> Path:
+    """Figure output file fixture"""
+    return tmp_path / "figure.png"
+
+
+@pytest.fixture
+def hg38_testdata_dir(testdata_dir: Path):
+    """hg38 dataset directory fixture"""
+    return testdata_dir / "eukaryote" / "hg38"
+
+
+@pytest.fixture
+def prokaryote_testdata_dir(testdata_dir: Path):
+    """Prokaryote test file directory"""
+    return testdata_dir / "prokaryote"
+
+
+@pytest.fixture
 def matrix_df() -> pd.DataFrame:
     """Pandas matrix dataframe"""
     matrix_data = [
