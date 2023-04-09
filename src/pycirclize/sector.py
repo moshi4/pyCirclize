@@ -12,7 +12,7 @@ from matplotlib.projections.polar import PolarAxes
 from PIL import Image, ImageOps
 
 from pycirclize import config, utils
-from pycirclize.patches import ArcLine, ArcRectangle
+from pycirclize.patches import ArcLine, ArcRectangle, Line
 from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
 
@@ -262,17 +262,18 @@ class Sector:
     def line(
         self,
         *,
-        r: float,
+        r: float | tuple[float, float],
         start: float | None = None,
         end: float | None = None,
+        arc: bool = True,
         **kwargs,
     ) -> None:
         """Plot line
 
         Parameters
         ----------
-        r : float
-            Line radius position (0 - 100)
+        r : float, tuple[float, float]
+            Line radius position (0 - 100). If r is float, (r, r) is set.
         start : float, optional
             Start position (x coordinate). If None, `sector.start` is set.
         end : float, optional
@@ -284,7 +285,9 @@ class Sector:
         start = self.start if start is None else start
         end = self.end if end is None else end
         rad_lim = (self.x_to_rad(start), self.x_to_rad(end))
-        self._patches.append(ArcLine(rad_lim, (r, r), **kwargs))
+        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        LinePatch = ArcLine if arc else Line
+        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
     def rect(
         self,
