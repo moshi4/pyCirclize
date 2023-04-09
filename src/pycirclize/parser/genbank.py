@@ -3,6 +3,7 @@ from __future__ import annotations
 import bz2
 import gzip
 import zipfile
+from collections import defaultdict
 from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
@@ -235,6 +236,82 @@ class Genbank:
             gc_content_list.append(gc_content)
 
         return (np.array(pos_list), np.array(gc_content_list))
+
+    def get_seqid2seq(self) -> dict[str, str]:
+        """Get seqid & complete/contig/scaffold genome sequence dict
+
+        Returns
+        -------
+        seqid2seq : dict[str, int]
+            seqid & genome sequence dict
+        """
+        return {rec.id: rec.seq for rec in self.records}
+
+    def get_seqid2size(self) -> dict[str, int]:
+        """Get seqid & complete/contig/scaffold genome size dict
+
+        Returns
+        -------
+        seqid2size : dict[str, int]
+            seqid & genome size dict
+        """
+        return {seqid: len(seq) for seqid, seq in self.get_seqid2seq().items()}
+
+    def get_seqid2features(
+        self,
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+        pseudogene: bool | None = False,
+    ) -> dict[str, list[SeqFeature]]:
+        """Get seqid & features in target seqid genome dict
+
+        Parameters
+        ----------
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        pseudogene : bool | None, optional
+            If True, `pseudo=`, `pseudogene=` tagged record only extract.
+            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
+            If None, extract regardless of pseudogene tag.
+
+        Returns
+        -------
+        seqid2features : dict[str, list[SeqFeature]]
+            seqid & features dict
+        """
+        seqid2features = defaultdict(list)
+        for rec in self.records:
+            feat: SeqFeature
+            for feat in rec.features:
+                if feature_type is not None and feat.type != feature_type:
+                    continue
+                if target_strand is not None and feat.strand != target_strand:
+                    continue
+                if feat.strand == -1:
+                    start = self._to_int(feat.location.parts[-1].start)
+                    end = self._to_int(feat.location.parts[0].end)
+                else:
+                    start = self._to_int(feat.location.parts[0].start)
+                    end = self._to_int(feat.location.parts[-1].end)
+
+                qual = feat.qualifiers
+                has_pseudo_qual = "pseudo" in qual or "pseudogene" in qual
+                if (
+                    pseudogene is None
+                    or (pseudogene is True and has_pseudo_qual)
+                    or (pseudogene is False and not has_pseudo_qual)
+                ):
+                    seqid2features[rec.id].append(
+                        SeqFeature(
+                            location=FeatureLocation(start, end, feat.strand),
+                            type=feat.type,
+                            qualifiers=feat.qualifiers,
+                        ),
+                    )
+        return seqid2features
 
     def extract_features(
         self,

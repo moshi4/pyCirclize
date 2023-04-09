@@ -187,23 +187,72 @@ class Gff:
         """seqid list"""
         return self._seqid_list
 
+    def get_seqid2size(self) -> dict[str, int]:
+        """Get seqid & complete/contig/scaffold genome size dict
+
+        Returns
+        -------
+        seqid2size : dict[str, int]
+            seqid & genome size dict
+        """
+        seqid2size: dict[str, int] = {}
+        for seqid in self.seqid_list:
+            gff = Gff(self._gff_file, target_seqid=seqid)
+            seqid2size[seqid] = gff.range_size
+        return seqid2size
+
+    def get_seqid2features(
+        self,
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+        pseudogene: bool | None = False,
+    ) -> dict[str, list[SeqFeature]]:
+        """Get seqid & features in target seqid genome dict
+
+        Parameters
+        ----------
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        pseudogene : bool | None, optional
+            If True, `pseudo=`, `pseudogene=` tagged record only extract.
+            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
+            If None, extract regardless of pseudogene tag.
+
+        Returns
+        -------
+        seqid2features : dict[str, list[SeqFeature]]
+            seqid & features dict
+        """
+        seqid2features = {}
+        for seqid in self.seqid_list:
+            gff = Gff(self._gff_file, target_seqid=seqid)
+            seqid2features[seqid] = gff.extract_features(
+                feature_type, target_strand, pseudogene
+            )
+        return seqid2features
+
     def extract_features(
         self,
-        feature_type: str = "CDS",
+        feature_type: str | None = "CDS",
         target_strand: int | None = None,
-        pseudogene: bool = False,
+        pseudogene: bool | None = False,
     ) -> list[SeqFeature]:
         """Extract features within min-max range
 
         Parameters
         ----------
-        feature_type : str, optional
+        feature_type : str | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
         target_strand : int | None, optional
-            Extract target strand
-        pseudogene : bool, optional
-            If True, `pseudo=`, `pseudogne=` tagged record only extract.
+            Extract target strand. If None, extract regardless of strand.
+        pseudogene : bool | None, optional
+            If True, `pseudo=`, `pseudogene=` tagged record only extract.
             If False, `pseudo=`, `pseudogene=` not tagged record only extract.
+            If None, extract all regardless of pseudogene tag.
 
         Returns
         -------
@@ -212,15 +261,17 @@ class Gff:
         """
         features: list[SeqFeature] = []
         for rec in self.records_within_range:
-            if rec.type != feature_type:
+            if feature_type is not None and rec.type != feature_type:
                 continue
             if target_strand is not None and rec.strand != target_strand:
                 continue
-            if pseudogene and ("pseudo" in rec.attrs or "pseudogene" in rec.attrs):
+            has_pseudo_attr = "pseudo" in rec.attrs or "pseudogene" in rec.attrs
+            if (
+                pseudogene is None
+                or (pseudogene is True and has_pseudo_attr)
+                or (pseudogene is False and not has_pseudo_attr)
+            ):
                 features.append(rec.to_seq_feature())
-            else:
-                features.append(rec.to_seq_feature())
-
         return features
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
