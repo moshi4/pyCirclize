@@ -39,4 +39,4 @@ API usage is described in each of the following sections.
 - [Chord Diagram](./chord_diagram/)
 - [Circos Plot (Genomics)](./circos_plot/)
 - [Phylogenetic Tree](./phylogenetic_tree/)
-- [Phylogenetic Tree](./plot_tips/)
+- [Plot Tips](./plot_tips/)
