@@ -131,6 +131,11 @@ class Track:
         return self._parent_sector
 
     @property
+    def clockwise(self) -> bool:
+        """Track coordinate direction"""
+        return self.parent_sector.clockwise
+
+    @property
     def patches(self) -> list[Patch]:
         """Plot patches"""
         return self._patches
@@ -267,7 +272,7 @@ class Track:
         """
         rad_rect_start = self.x_to_rad(start)
         rad_rect_end = self.x_to_rad(end)
-        rad = rad_rect_start if start < end else rad_rect_end
+        rad = min(rad_rect_start, rad_rect_end)
         width = abs(rad_rect_end - rad_rect_start)
         if r_lim is not None:
             if not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
@@ -338,8 +343,8 @@ class Track:
         label_size: float = 8,
         label_margin: float = 0.5,
         label_orientation: str = "horizontal",
-        line_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        line_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot xticks & labels on user-specified position
 
@@ -364,13 +369,16 @@ class Track:
             Label margin size
         label_orientation : str, optional
             Label orientation (`horizontal` or `vertical`)
-        line_kws : dict[str, Any], optional
+        line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Check list length of x & labels
         labels = [""] * len(x) if labels is None else labels
         if len(x) != len(labels):
@@ -413,8 +421,8 @@ class Track:
         label_margin: float = 0.5,
         label_orientation: str = "horizontal",
         label_formatter: Callable[[float], str] | None = None,
-        line_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        line_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot xticks & position labels by user-specified interval
 
@@ -442,13 +450,16 @@ class Track:
             Label orientation (`horizontal` or `vertical`)
         label_formatter : Callable[[float], str] | None, optional
             User-defined function for label format. (e.g. `1000 -> '1.0 Kb'`)
-        line_kws : dict[str, Any], optional
+        line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Setup xtick positions
         x_list = []
         start_pos, end_pos = self.start - (self.start % interval), self.end + interval
@@ -488,8 +499,8 @@ class Track:
         tick_length: float = 1,
         label_size: float = 8,
         label_margin: float = 0.5,
-        line_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        line_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot yticks & labels on user-specified position
 
@@ -511,13 +522,16 @@ class Track:
             Label size
         label_margin : float, optional
             Label margin size
-        line_kws : dict[str, Any], optional
+        line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Check y, labels list length
         labels = [""] * len(y) if labels is None else labels
         if len(y) != len(labels):
@@ -529,6 +543,9 @@ class Track:
         # Set vmax & check if y is in min-max range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
+        # Temporarily set clockwise=True in this method
+        original_clockwise = self.clockwise
+        self.parent_sector._clockwise = True
 
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
@@ -559,6 +576,9 @@ class Track:
                     dict(ha=ha, va=va, rotation_mode="anchor", size=label_size)
                 )
                 self.text(label, x_text, r_pos, ignore_range_error=True, **_text_kws)
+
+        # Restore clockwise to original value
+        self.parent_sector._clockwise = original_clockwise
 
     def grid(
         self,
@@ -824,8 +844,8 @@ class Track:
         end: float | None = None,
         cmap: str | Colormap = "bwr",
         show_value: bool = False,
-        rect_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        rect_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot heatmap
 
@@ -848,13 +868,16 @@ class Track:
             <https://matplotlib.org/stable/tutorials/colors/colormaps.html>
         show_value : bool, optional
             If True, show data value on heatmap rectangle
-        rect_kws : dict[str, Any], optional
+        rect_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(ec="black", lw=0.5, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(size=6, color="red", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        rect_kws = {} if rect_kws is None else deepcopy(rect_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Set default value for None properties
         vmin = np.min(data) if vmin is None else vmin
         vmax = np.max(data) if vmax is None else vmax
@@ -908,9 +931,9 @@ class Track:
         innode_label_size: float = 0,
         leaf_label_margin: float = 0.5,
         label_formatter: Callable[[Clade], str] | None = None,
-        node_color_list: list[tuple[list[str], str]] = [],
-        line_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        node_color_list: list[tuple[list[str], str]] | None = None,
+        line_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot tree
 
@@ -937,18 +960,22 @@ class Track:
         label_formatter : Callable[[Clade], str] | None, optional
             User-defined label format function.
             (e.g. `lambda node: node.name.replace("_", " ")`)
-        node_color_list : list[tuple[list[str], str]]
+        node_color_list : list[tuple[list[str], str]] | None, optional
             Tree node & color setting list.
             If multi nodes are set, MRCA(Most Recent Common Ancestor) node of
             target nodes is set.
             (e.g. `[(["node1"], "red"), (["taxa1", "taxa2"], "blue"), ...]`)
-        line_kws : dict[str, Any], optional
+        line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(ec="red", lw=1, ls="dashed", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(color="red", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        node_color_list = [] if node_color_list is None else deepcopy(node_color_list)
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Load tree data, set node names, set node colors
         tree = utils.TreeUtil.load_tree(treedata, format)
         tree = utils.TreeUtil.set_unique_node_name(tree)

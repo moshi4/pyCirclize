@@ -86,6 +86,6 @@ def test_ax_property():
     circos = Circos(sectors)
     # Raise error before calling `circos.plotfig()` method
     with pytest.raises(ValueError):
-        circos.ax
+        assert circos.ax
     circos.plotfig()
-    circos.ax
+    assert circos.ax

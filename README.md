@@ -65,22 +65,22 @@ circos = Circos(sectors, space=5)
 for sector in circos.sectors:
     # Plot sector name
     sector.text(f"Sector: {sector.name}", r=110, size=15)
-    # Create x positions & randomized y values
+    # Create x positions & random y values
     x = np.arange(sector.start, sector.end) + 0.5
     y = np.random.randint(0, 100, len(x))
-    # Plot line track
-    line_track = sector.add_track((80, 100), r_pad_ratio=0.1)
-    line_track.xticks_by_interval(interval=1)
-    line_track.axis()
-    line_track.line(x, y)
-    # Plot points track
-    points_track = sector.add_track((55, 75), r_pad_ratio=0.1)
-    points_track.axis()
-    points_track.scatter(x, y)
-    # Plot bar track
-    bar_track = sector.add_track((30, 50), r_pad_ratio=0.1)
-    bar_track.axis()
-    bar_track.bar(x, y)
+    # Plot lines
+    track1 = sector.add_track((80, 100), r_pad_ratio=0.1)
+    track1.xticks_by_interval(interval=1)
+    track1.axis()
+    track1.line(x, y)
+    # Plot points 
+    track2 = sector.add_track((55, 75), r_pad_ratio=0.1)
+    track2.axis()
+    track2.scatter(x, y)
+    # Plot bars
+    track3 = sector.add_track((30, 50), r_pad_ratio=0.1)
+    track3.axis()
+    track3.bar(x, y)
 
 # Plot links 
 circos.link(("A", 0, 3), ("B", 15, 12))
