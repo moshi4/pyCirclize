@@ -4,7 +4,6 @@ import bz2
 import gzip
 import zipfile
 from collections import defaultdict
-from functools import lru_cache
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Any
@@ -134,7 +133,6 @@ class Genbank:
         seq = "".join(str(r.seq) for r in self.records)
         return seq[self.min_range : self.max_range]
 
-    @lru_cache(maxsize=None)
     def calc_genome_gc_content(self) -> float:
         """Calculate genome GC content"""
         try:
