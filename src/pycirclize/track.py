@@ -131,6 +131,11 @@ class Track:
         return self._parent_sector
 
     @property
+    def clockwise(self) -> bool:
+        """Track coordinate direction"""
+        return self.parent_sector.clockwise
+
+    @property
     def patches(self) -> list[Patch]:
         """Plot patches"""
         return self._patches
@@ -267,7 +272,7 @@ class Track:
         """
         rad_rect_start = self.x_to_rad(start)
         rad_rect_end = self.x_to_rad(end)
-        rad = rad_rect_start if start < end else rad_rect_end
+        rad = min(rad_rect_start, rad_rect_end)
         width = abs(rad_rect_end - rad_rect_start)
         if r_lim is not None:
             if not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
@@ -529,6 +534,9 @@ class Track:
         # Set vmax & check if y is in min-max range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
+        # Temporarily set clockwise=True in this method
+        original_clockwise = self.clockwise
+        self.parent_sector._clockwise = True
 
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
@@ -559,6 +567,9 @@ class Track:
                     dict(ha=ha, va=va, rotation_mode="anchor", size=label_size)
                 )
                 self.text(label, x_text, r_pos, ignore_range_error=True, **_text_kws)
+
+        # Restore clockwise to original value
+        self.parent_sector._clockwise = original_clockwise
 
     def grid(
         self,

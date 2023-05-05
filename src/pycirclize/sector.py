@@ -26,6 +26,7 @@ class Sector:
         size: float,
         rad_lim: tuple[float, float],
         start_pos: float = 0,
+        clockwise: bool = True,
     ):
         """
         Parameters
@@ -38,11 +39,14 @@ class Sector:
             Sector radian limit region
         start_pos : float, optional
             Sector start position
+        clockwise : bool, optional
+            Sector coordinate direction (clockwise or anti-clockwise).
         """
         self._name = name
         self._size = size
         self._rad_lim = rad_lim
         self._start_pos = start_pos
+        self._clockwise = clockwise
         self._tracks: list[Track] = []
 
         # Plot data and functions
@@ -92,6 +96,11 @@ class Sector:
     def deg_lim(self) -> tuple[float, float]:
         """Sector degree limit"""
         return tuple(map(math.degrees, self.rad_lim))
+
+    @property
+    def clockwise(self) -> bool:
+        """Sector coordinate direction"""
+        return self._clockwise
 
     @property
     def tracks(self) -> list[Track]:
@@ -190,6 +199,8 @@ class Sector:
         if not self.start <= x <= self.end and not ignore_range_error:
             err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
             raise ValueError(err_msg)
+        if not self.clockwise:
+            x = (self.start + self.end) - x
         size_ratio = self.rad_size / self.size
         x_from_start = x - self.start
         rad_from_start = x_from_start * size_ratio

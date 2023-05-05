@@ -36,6 +36,7 @@ class Circos:
         space: float | list[float] = 0,
         endspace: bool = True,
         sectors_start_pos: dict[str, int] | dict[str, float] = {},
+        sector2clockwise: dict[str, bool] = {},
         show_axis_for_debug: bool = False,
     ):
         """
@@ -53,6 +54,8 @@ class Circos:
             If True, insert space after the end sector
         sectors_start_pos : dict[str, int] | dict[str, float], optional
             Sector name & start position dict. By default, `start_pos=0`.
+        sector2clockwise : dict[str, bool], optional
+            Sector name & clockwise bool dict. By default, `clockwise=True`.
         show_axis_for_debug : bool, optional
             Show axis for position check debugging (Developer option)
         """
@@ -84,7 +87,8 @@ class Circos:
             rad_lim = (rad_pos, rad_pos + rad_size)
             rad_pos += rad_size + math.radians(space_list[idx])
             start_pos = sectors_start_pos.get(sector_name, 0)
-            sector = Sector(sector_name, sector_size, rad_lim, start_pos)
+            clockwise = sector2clockwise.get(sector_name, True)
+            sector = Sector(sector_name, sector_size, rad_lim, start_pos, clockwise)
             self._sectors.append(sector)
 
         self._deg_lim = (start, end)
@@ -278,6 +282,7 @@ class Circos:
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
+        sector2clockwise: dict[str, bool] = {},
     ) -> Circos:
         """Initialize Circos instance from BED file
 
@@ -295,6 +300,8 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
+        sector2clockwise : dict[str, bool], optional
+            Sector name & clockwise bool dict. By default, `clockwise=True`.
 
         Returns
         -------
@@ -311,6 +318,7 @@ class Circos:
             space=space,
             endspace=endspace,
             sectors_start_pos=sectors_start_pos,
+            sector2clockwise=sector2clockwise,
         )
 
     def add_cytoband_tracks(
