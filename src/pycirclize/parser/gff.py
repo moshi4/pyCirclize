@@ -110,6 +110,7 @@ class Gff:
         gff_records, start, end : tuple[list[GffRecord], int, int]
             GFF record list, start, end
         """
+        # Parse GFF lines
         gff_all_lines = handle.read().splitlines()
         gff_record_lines = filter(GffRecord.is_gff_line, gff_all_lines)
         gff_records = list(map(GffRecord.parse_gff_line, gff_record_lines))
@@ -117,28 +118,38 @@ class Gff:
             err_msg = f"Failed to parse '{self._gff_file}' as GFF file "
             raise ValueError(err_msg)
 
+        # Get target seqid & GFF records
         seqid_list = list(dict.fromkeys([rec.seqid for rec in gff_records]))
-        self._seqid_list = seqid_list
         if target_seqid is None:
             target_seqid = seqid_list[0]
-        self._target_seqid = target_seqid
         if target_seqid not in seqid_list:
             err_msg = f"Not found {target_seqid=} in '{self._gff_file}'"
             raise ValueError(err_msg)
-        gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
+        target_gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 
         # Try to get start-end region from '##sequence-region' annotation line
-        start, end = None, None
-        for line in gff_all_lines:
-            if line.startswith("##sequence-region") and target_seqid in line:
-                if len(line.split()) == 4:
-                    start, end = line.split()[2:4]
-                    start, end = int(start) - 1, int(end)
-                    break
-        if start is None or end is None:
-            start, end = 0, max([r.end for r in gff_records])
+        # If not found, (0, max_coordinate) is set as start-end
+        seqid2start_end: dict[str, tuple[int, int]] = {}
+        for seqid in seqid_list:
+            start, end = None, None
+            for line in gff_all_lines:
+                if line.startswith("##sequence-region") and seqid in line:
+                    if len(line.split()) == 4:
+                        start, end = line.split()[2:4]
+                        start, end = int(start) - 1, int(end)
+                        break
+            if start is None or end is None:
+                start, end = 0, max([r.end for r in target_gff_records])
+            seqid2start_end[seqid] = (start, end)
+        seqid2size = {seqid: e - s for seqid, (s, e) in seqid2start_end.items()}
 
-        return gff_records, start, end
+        # Set properties
+        self._target_seqid = target_seqid
+        self._seqid_list = seqid_list
+        self._all_records = gff_records
+        self._seqid2size = seqid2size
+
+        return target_gff_records, *seqid2start_end[target_seqid]
 
     @property
     def name(self) -> str:
@@ -160,8 +171,13 @@ class Gff:
 
     @property
     def records(self) -> list[GffRecord]:
-        """GFF records"""
+        """GFF records (target seqid only)"""
         return self._records
+
+    @property
+    def all_records(self) -> list[GffRecord]:
+        """All GFF records"""
+        return self._all_records
 
     @property
     def records_within_range(self) -> list[GffRecord]:
@@ -195,11 +211,7 @@ class Gff:
         seqid2size : dict[str, int]
             seqid & genome size dict
         """
-        seqid2size: dict[str, int] = {}
-        for seqid in self.seqid_list:
-            gff = Gff(self._gff_file, target_seqid=seqid)
-            seqid2size[seqid] = gff.range_size
-        return seqid2size
+        return self._seqid2size
 
     def get_seqid2features(
         self,
@@ -226,12 +238,17 @@ class Gff:
         seqid2features : dict[str, list[SeqFeature]]
             seqid & features dict
         """
-        seqid2features = {}
+        gff_records = GffRecord.filter_records(
+            self.all_records,
+            feature_type=feature_type,
+            target_strand=target_strand,
+            pseudogene=pseudogene,
+        )
+        seqid2features: dict[str, list[SeqFeature]] = {}
         for seqid in self.seqid_list:
-            gff = Gff(self._gff_file, target_seqid=seqid)
-            seqid2features[seqid] = gff.extract_features(
-                feature_type, target_strand, pseudogene
-            )
+            seqid2features[seqid] = []
+        for rec in gff_records:
+            seqid2features[rec.seqid].append(rec.to_seq_feature())
         return seqid2features
 
     def extract_features(
@@ -259,20 +276,13 @@ class Gff:
         features : list[SeqFeature]
             Feature list
         """
-        features: list[SeqFeature] = []
-        for rec in self.records_within_range:
-            if feature_type is not None and rec.type != feature_type:
-                continue
-            if target_strand is not None and rec.strand != target_strand:
-                continue
-            has_pseudo_attr = "pseudo" in rec.attrs or "pseudogene" in rec.attrs
-            if (
-                pseudogene is None
-                or (pseudogene is True and has_pseudo_attr)
-                or (pseudogene is False and not has_pseudo_attr)
-            ):
-                features.append(rec.to_seq_feature())
-        return features
+        gff_records = GffRecord.filter_records(
+            self.records_within_range,
+            feature_type=feature_type,
+            target_strand=target_strand,
+            pseudogene=pseudogene,
+        )
+        return [rec.to_seq_feature() for rec in gff_records]
 
     def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
         """Extract exon structure features within min-max range
@@ -465,3 +475,45 @@ class GffRecord:
         gff_elms[8] = attr_dict
 
         return GffRecord(*gff_elms)
+
+    @staticmethod
+    def filter_records(
+        gff_records: list[GffRecord],
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+        pseudogene: bool | None = False,
+    ) -> list[GffRecord]:
+        """Filter GFF records (feature_type, strand, pseudogene)
+
+        Parameters
+        ----------
+        gff_records : list[GffRecord]
+            GFF records to be filterd
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...). If None, no filter.
+        target_strand : int | None, optional
+            Target strand. If None, no filter.
+        pseudogene : bool | None, optional
+            If True, `pseudo=`, `pseudogene=` tagged record only filter.
+            If False, `pseudo=`, `pseudogene=` not tagged record only filter.
+            If None, no filter.
+
+        Returns
+        -------
+        filter_gff_records : list[SeqFeature]
+            Filtered GFF records
+        """
+        filter_gff_records = []
+        for rec in gff_records:
+            if feature_type is not None and rec.type != feature_type:
+                continue
+            if target_strand is not None and rec.strand != target_strand:
+                continue
+            has_pseudo_attr = "pseudo" in rec.attrs or "pseudogene" in rec.attrs
+            if (
+                pseudogene is None
+                or (pseudogene is True and has_pseudo_attr)
+                or (pseudogene is False and not has_pseudo_attr)
+            ):
+                filter_gff_records.append(rec)
+        return filter_gff_records
