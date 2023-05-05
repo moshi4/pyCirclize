@@ -57,6 +57,7 @@ def test_load_eukaryote_example_dataset():
     reason="No network connection.",
 )
 def test_fetch_genbank_by_accid(tmp_path: Path):
+    """Test `fetch_genbank_by_accid()`"""
     accid = "JX128258.1"
     # Case1. Download as textio
     _ = fetch_genbank_by_accid(accid)

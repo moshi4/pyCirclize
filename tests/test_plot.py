@@ -327,11 +327,11 @@ def test_track_xticks_by_interval_plot(fig_outfile: Path):
     """Test `track.xticks_by_interval()`"""
     sectors = {"A": 10000000, "B": 20000000, "C": 15000000}
     circos = Circos(sectors, space=5)
+    mb_size = 1000000
     for sector in circos.sectors:
         # Major & Minor xticks
         track1 = sector.add_track((90, 100))
         track1.axis()
-        mb_size = 1000000
         track1.xticks_by_interval(mb_size, label_orientation="vertical")
         track1.xticks_by_interval(mb_size / 5, tick_length=1, show_label=False)
         # Mb formatted xticks
