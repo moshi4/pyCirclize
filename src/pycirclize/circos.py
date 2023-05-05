@@ -35,8 +35,8 @@ class Circos:
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sectors_start_pos: dict[str, int] | dict[str, float] = {},
-        sector2clockwise: dict[str, bool] = {},
+        sectors_start_pos: dict[str, int] | dict[str, float] | None = None,
+        sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
         """
@@ -52,13 +52,16 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sectors_start_pos : dict[str, int] | dict[str, float], optional
+        sectors_start_pos : dict[str, int] | dict[str, float] | None, optional
             Sector name & start position dict. By default, `start_pos=0`.
-        sector2clockwise : dict[str, bool], optional
+        sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
         show_axis_for_debug : bool, optional
             Show axis for position check debugging (Developer option)
         """
+        sectors_start_pos = {} if sectors_start_pos is None else sectors_start_pos
+        sector2clockwise = {} if sector2clockwise is None else sector2clockwise
+
         # Check start-end degree range
         self._check_degree_range(start, end)
 
@@ -161,12 +164,12 @@ class Circos:
         endspace: bool = True,
         r_lim: tuple[float, float] = (97, 100),
         cmap: str | dict[str, str] = "viridis",
-        link_cmap: list[tuple[str, str, str]] = [],
+        link_cmap: list[tuple[str, str, str]] | None = None,
         ticks_interval: int | None = None,
         order: str | list[str] | None = None,
-        label_kws: dict[str, Any] = {},
-        ticks_kws: dict[str, Any] = {},
-        link_kws: dict[str, Any] = {},
+        label_kws: dict[str, Any] | None = None,
+        ticks_kws: dict[str, Any] | None = None,
+        link_kws: dict[str, Any] | None = None,
         link_kws_handler: Callable[[str, str], dict[str, Any] | None] | None = None,
     ) -> Circos:
         """Initialize Circos instance from Matrix
@@ -191,7 +194,7 @@ class Circos:
             Colormap assigned to each outer track and link.
             User can set matplotlib's colormap (e.g. `viridis`, `jet`, `tab10`) or
             label_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
-        link_cmap : list[tuple[str, str, str]], optional
+        link_cmap : list[tuple[str, str, str]] | None, optional
             Link colormap to overwrite link colors automatically set by cmap.
             User can set list of `from_label`, `to_label`, `color` tuple
             (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00), ...]`)
@@ -201,13 +204,13 @@ class Circos:
             Sort order of matrix for plotting Chord Diagram. If `None`, no sorting.
             If `asc`|`desc`, sort in ascending(or descending) order by node size.
             If node name list is set, sort in user specified node order.
-        label_kws : dict[str, Any], optional
+        label_kws : dict[str, Any] | None, optional
             Keyword arguments passed to `sector.text()` method
             (e.g. `dict(r=110, orientation="vertical", size=15, ...)`)
-        ticks_kws : dict[str, Any], optional
+        ticks_kws : dict[str, Any] | None, optional
             Keyword arguments passed to `track.xticks_by_interval()` method
             (e.g. `dict(label_size=10, label_orientation="vertical", ...)`)
-        link_kws : dict[str, Any], optional
+        link_kws : dict[str, Any] | None, optional
             Keyword arguments passed to `circos.link()` method
             (e.g. `dict(direction=1, ec="black", lw=0.5, alpha=0.8, ...)`)
         link_kws_handler : Callable[[str, str], dict[str, Any] | None] | None, optional
@@ -221,6 +224,11 @@ class Circos:
         circos : Circos
             Circos instance initialized from Matrix
         """
+        link_cmap = [] if link_cmap is None else deepcopy(link_cmap)
+        label_kws = {} if label_kws is None else deepcopy(label_kws)
+        ticks_kws = {} if ticks_kws is None else deepcopy(ticks_kws)
+        link_kws = {} if link_kws is None else deepcopy(link_kws)
+
         # If input matrix is file path, convert to Matrix instance
         if isinstance(matrix, (str, Path, pd.DataFrame)):
             matrix = Matrix(matrix)
@@ -282,7 +290,7 @@ class Circos:
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sector2clockwise: dict[str, bool] = {},
+        sector2clockwise: dict[str, bool] | None = None,
     ) -> Circos:
         """Initialize Circos instance from BED file
 
@@ -300,7 +308,7 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sector2clockwise : dict[str, bool], optional
+        sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
 
         Returns
@@ -308,6 +316,7 @@ class Circos:
         circos : Circos
             Circos instance initialized from BED file
         """
+        sector2clockwise = {} if sector2clockwise is None else sector2clockwise
         records = Bed(bed_file).records
         sectors = {rec.chr: rec.size for rec in records}
         sectors_start_pos = {rec.chr: rec.start for rec in records}
@@ -605,8 +614,8 @@ class Circos:
         vmax: float = 1,
         cmap: str | Colormap = "bwr",
         orientation: str = "vertical",
-        colorbar_kws: dict[str, Any] = {},
-        tick_kws: dict[str, Any] = {},
+        colorbar_kws: dict[str, Any] | None = None,
+        tick_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot colorbar
 
@@ -623,13 +632,15 @@ class Circos:
             <https://matplotlib.org/stable/tutorials/colors/colormaps.html>
         orientation : str, optional
             Colorbar orientation (`vertical`|`horizontal`)
-        colorbar_kws : dict[str, Any], optional
+        colorbar_kws : dict[str, Any] | None, optional
             Colorbar properties (e.g. `dict(label="name", format="%.1f", ...)`)
             <https://matplotlib.org/stable/api/colorbar_api.html>
-        tick_kws : dict[str, Any], optional
+        tick_kws : dict[str, Any] | None, optional
             Axes.tick_params properties (e.g. `dict(labelsize=12, colors="red", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.tick_params.html>
         """
+        colorbar_kws = {} if colorbar_kws is None else deepcopy(colorbar_kws)
+        tick_kws = {} if tick_kws is None else deepcopy(tick_kws)
 
         def plot_colorbar(ax: PolarAxes) -> None:
             axin: Axes = ax.inset_axes(bounds)
@@ -702,6 +713,11 @@ class Circos:
         pad_inches: float = 0.5,
     ) -> None:
         """Save figure to file
+
+        `circos.savefig("result.png")` is alias for the following code
+
+        >>> fig = circos.plotfig()
+        >>> fig.savefig("result.png")
 
         Parameters
         ----------

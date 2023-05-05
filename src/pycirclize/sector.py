@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import urlparse
@@ -360,8 +361,8 @@ class Sector:
         label: str | None = None,
         label_pos: str = "bottom",
         label_margin: float = 0.1,
-        imshow_kws: dict[str, Any] = {},
-        text_kws: dict[str, Any] = {},
+        imshow_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot raster image
 
@@ -390,13 +391,16 @@ class Sector:
             Label plot position (`bottom` or `top`)
         label_margin : float, optional
             Label margin
-        imshow_kws : dict[str, Any], optional
+        imshow_kws : dict[str, Any] | None, optional
             Axes.imshow properties
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html>
-        text_kws : dict[str, Any], optional
+        text_kws : dict[str, Any] | None, optional
             Text properties (e.g. `dict(size=10, color="red", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
+        imshow_kws = {} if imshow_kws is None else deepcopy(imshow_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
         # Load image data
         if isinstance(img, str) and urlparse(img).scheme in ("http", "https"):
             im = Image.open(urlopen(img))
