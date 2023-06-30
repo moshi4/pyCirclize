@@ -725,15 +725,13 @@ class Circos:
     ) -> None:
         """Save figure to file
 
-        `circos.savefig("result.png")` is alias for the following code
-
-        >>> fig = circos.plotfig()
-        >>> fig.savefig("result.png")
+        `circos.savefig("result.png")` is alias for
+        `circos.plotfig().savefig("result.png")`
 
         Parameters
         ----------
         savefile : str | Path
-            Save file
+            Save file (`*.png`|`*.jpg`|`*.svg`|`*.pdf`)
         dpi : int, optional
             DPI
         pad_inches : float, optional
