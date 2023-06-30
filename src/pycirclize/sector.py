@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import textwrap
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -470,11 +471,13 @@ class Sector:
     ############################################################
 
     def __str__(self):
-        return (
-            f"# Sector = '{self.name}'\n"
-            f"# Size = {self.size} ({self.start} - {self.end})\n"
-            f"# Radian size = {self.rad_size:.2f} "
-            f"({min(self.rad_lim):.2f} - {max(self.rad_lim):.2f})\n"
-            f"# Degree size = {self.deg_size:.2f} "
-            f"({min(self.deg_lim):.2f} - {max(self.deg_lim):.2f})\n"
-        )
+        min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)
+        track_names = [t.name for t in self.tracks]
+        return textwrap.dedent(
+            f"""
+            # Sector = '{self.name}'
+            # Size = {self.size} ({self.start} - {self.end})
+            # Degree Size = {self.deg_size:.2f} ({min_deg_lim:.2f} - {max_deg_lim:.2f})
+            # Track List = {track_names}
+            """
+        )[1:]

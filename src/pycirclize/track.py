@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import textwrap
 from copy import deepcopy
 from io import StringIO
 from pathlib import Path
@@ -1216,11 +1217,13 @@ class Track:
                 raise ValueError(err_msg)
 
     def __str__(self):
-        return (
-            f"# Track = '{self.name}' (Parent Sector = '{self.parent_sector.name}')\n"
-            f"# Size = {self.size} ({self.start} - {self.end})\n"
-            f"# Radius size = {self.r_size:.2f} "
-            f"({min(self.r_lim):.2f} - {max(self.r_lim):.2f})\n"
-            f"# Degree size = {self.deg_size:.2f} "
-            f"({min(self.deg_lim):.2f} - {max(self.deg_lim):.2f})\n"
-        )
+        min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)
+        min_r_lim, max_r_lim = min(self.r_lim), max(self.r_lim)
+        return textwrap.dedent(
+            f"""
+            # Track = '{self.name}' (Parent Sector = '{self.parent_sector.name}')
+            # Size = {self.size} ({self.start} - {self.end})
+            # Degree Size = {self.deg_size:.2f} ({min_deg_lim:.2f} - {max_deg_lim:.2f})
+            # Radius Size = {self.r_size:.2f} ({min_r_lim:.2f} - {max_r_lim:.2f})
+            """
+        )[1:]
