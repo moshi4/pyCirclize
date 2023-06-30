@@ -154,6 +154,11 @@ class Matrix:
         """Row names"""
         return self._row_names
 
+    @property
+    def dataframe(self) -> pd.DataFrame:
+        """Matrix dataframe"""
+        return self._matrix
+
     def sort(self, order: str | list[str] = "asc") -> Matrix:
         """Sort order of matrix
 
@@ -220,10 +225,10 @@ class Matrix:
         fromto_table_data = []
         for row_name in self.row_names:
             for col_name in self.col_names:
-                value = self._matrix[col_name][row_name]
+                value = self.dataframe[col_name][row_name]
                 if value > 0:
                     fromto_table_data.append([row_name, col_name, value])
         return pd.DataFrame(fromto_table_data, columns=["from", "to", "value"])
 
     def __str__(self):
-        return str(self._matrix)
+        return str(self.dataframe)
