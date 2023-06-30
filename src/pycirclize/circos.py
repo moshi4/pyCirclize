@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import textwrap
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -76,9 +77,19 @@ class Circos:
             space_list = list(space) + [0]
             space_deg_size = sum(space)
         else:
-            space_deg_size = space * space_num
             space_list = [space] * space_num + [0]
+            space_deg_size = space * space_num
         whole_deg_size_without_space = whole_deg_size - space_deg_size
+        if whole_deg_size_without_space < 0:
+            err_msg = textwrap.dedent(
+                f"""
+                Too large sector space size is set!!
+                Circos Degree Size = {whole_deg_size} ({start} - {end})
+                Total Sector Space Size = {space_deg_size}
+                List of Sector Space Size = {space_list}
+                """
+            )[1:-1]
+            raise ValueError(err_msg)
         sector_total_size = sum(sectors.values())
 
         rad_pos = math.radians(start)
