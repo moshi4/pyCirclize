@@ -11,6 +11,7 @@ from pycirclize.parser import Genbank, Gff
 from pycirclize.utils import (
     ColorCycler,
     load_eukaryote_example_dataset,
+    load_example_image_file,
     load_prokaryote_example_file,
 )
 
@@ -214,6 +215,23 @@ def test_sector_rect_plot(fig_outfile: Path):
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 
+def test_sector_raster_plot(fig_outfile: Path):
+    """Test `sector.raster()`"""
+    sectors = {"A": 10, "B": 15, "C": 12, "D": 20, "E": 15}
+    circos = Circos(sectors, space=5)
+    for sector in circos.sectors:
+        # Plot line in sector region
+        sector.axis(ec="grey")
+        for r in range(10, 100, 10):
+            sector.line(r=r, ec="lightgrey")
+        # Plot raster image (python logo)
+        logo_file = load_example_image_file("python_logo.png")
+        sector.raster(logo_file, r=110, label=sector.name)
+        sector.raster(logo_file, r=50, size=0.1, rotation="auto", border_width=5)
+        sector.text(sector.name, r=62)
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
 
 ###########################################################
 # Track Class Plot
