@@ -215,6 +215,7 @@ def test_sector_rect_plot(fig_outfile: Path):
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 
+
 def test_sector_raster_plot(fig_outfile: Path):
     """Test `sector.raster()`"""
     sectors = {"A": 10, "B": 15, "C": 12, "D": 20, "E": 15}
@@ -232,6 +233,7 @@ def test_sector_raster_plot(fig_outfile: Path):
 
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
+
 
 ###########################################################
 # Track Class Plot
