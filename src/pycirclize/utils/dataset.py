@@ -161,7 +161,7 @@ def fetch_genbank_by_accid(
     gbk_outfile: str | Path | None = None,
     email: str | None = None,
 ) -> TextIOWrapper:
-    """Fetch genbank text by 'Accession ID'
+    """Fetch genbank text by `Accession ID`
 
     Parameters
     ----------
@@ -179,7 +179,7 @@ def fetch_genbank_by_accid(
 
     Examples
     --------
-    >>> gbk_fetch_data = fetch_genbank_by_accid("JX128258.1")
+    >>> gbk_fetch_data = fetch_genbank_by_accid("NC_002483")
     >>> gbk = Genbank(gbk_fetch_data)
     """
     Entrez.email = "" if email is None else email
