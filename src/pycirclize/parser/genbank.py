@@ -4,7 +4,7 @@ import bz2
 import gzip
 import zipfile
 from collections import defaultdict
-from io import TextIOWrapper
+from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import Any
 
@@ -94,7 +94,7 @@ class Genbank:
                 return gbk_file.with_suffix("").with_suffix("").name
             else:
                 return gbk_file.with_suffix("").name
-        elif isinstance(self._gbk_source, TextIOWrapper):
+        elif isinstance(self._gbk_source, (StringIO, TextIOWrapper)):
             return self._records[0].name
         else:
             raise NotImplementedError()
