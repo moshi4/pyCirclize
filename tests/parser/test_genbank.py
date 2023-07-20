@@ -46,3 +46,27 @@ def test_parse_contig_genomes(prokaryote_testdata_dir: Path):
     seqid2trna_features = gbk.get_seqid2features("tRNA", pseudogene=None)
     first_contig_trna_features = list(seqid2trna_features.values())[0]
     assert len(first_contig_trna_features) == 12
+
+
+def test_calc_gc(prokaryote_testdata_dir: Path):
+    """Test GCskew, GCcontent calculation"""
+    gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
+    gbk = Genbank(gbk_file)
+    gbk.calc_gc_skew()
+    gbk.calc_gc_content()
+
+
+def test_write_cds_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
+    """Test `gbk.write_cds_fasta()` (only check properly output file)"""
+    gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
+    gbk = Genbank(gbk_file)
+    gbk.write_cds_fasta(fig_outfile)
+    assert fig_outfile.exists()
+
+
+def test_genome_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
+    """Test `gbk.write_genome_fasta()` (only check properly output file)"""
+    gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
+    gbk = Genbank(gbk_file)
+    gbk.write_genome_fasta(fig_outfile)
+    assert fig_outfile.exists()
