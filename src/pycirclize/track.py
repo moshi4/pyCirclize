@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 import matplotlib as mpl
 import numpy as np
+import pandas as pd
 from Bio.Phylo.BaseTree import Clade, Tree
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, Normalize
@@ -16,6 +17,7 @@ from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
+from pycirclize.parser import StackedBarTable
 from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
 
 if TYPE_CHECKING:
@@ -538,9 +540,6 @@ class Track:
         if len(y) != len(labels):
             err_msg = f"List length is not match ({len(y)=}, {len(labels)=})"
             raise ValueError(err_msg)
-        # Check side value
-        if side not in ("right", "left"):
-            raise ValueError(f"{side=} is invalid ('right' or 'left').")
         # Set vmax & check if y is in min-max range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
@@ -566,6 +565,8 @@ class Track:
                 deg_text = math.degrees(self.x_to_rad(x_text, True))
                 is_lower_loc = -270 <= deg_text < -90 or 90 <= deg_text < 270
                 ha = "left" if is_lower_loc else "right"
+            else:
+                raise ValueError(f"{side=} is invalid ('right' or 'left').")
             # Plot yticks
             if tick_length > 0:
                 self._simpleline(x_lim, (r_pos, r_pos), **line_kws)
@@ -786,6 +787,172 @@ class Track:
             ax.bar(rad, r_height, rad_width, r_bottom, align=align, **kwargs)
 
         self._plot_funcs.append(plot_bar)
+
+    def stacked_bar(
+        self,
+        table_data: str | Path | pd.DataFrame | StackedBarTable,
+        *,
+        delimiter: str = "\t",
+        width: float = 0.6,
+        cmap: str | dict[str, str] = "tab10",
+        vmax: float | None = None,
+        show_label: bool = True,
+        label_pos: str = "bottom",
+        label_margin: float = 2,
+        bar_kws: dict[str, Any] | None = None,
+        label_kws: dict[str, Any] | None = None,
+    ) -> StackedBarTable:
+        """Plot stacked bar from table data
+
+        Parameters
+        ----------
+        table_data : str | Path | pd.DataFrame | StackedBarTable
+            Table file or Table DataFrame or StackedBarTable
+        delimiter : str, optional
+            Table file delimiter
+        width : float, optional
+            Bar width ratio (0.0 - 1.0)
+        cmap : str | dict[str, str], optional
+            Colormap assigned to each stacked bar.
+            User can set matplotlib's colormap (e.g. `tab10`, `Set3`) or
+            col_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
+        vmax : float | None, optional
+            Stacked bar max value.
+            If None, max value in each row values sum is set.
+        show_label : bool, optional
+            Show table row names as labels
+        label_pos : str, optional
+            Label position (`bottom`|`top`)
+        label_margin : float, optional
+            Label margin size
+        bar_kws : dict[str, Any] | None, optional
+            Axes.bar properties (e.g. `dict(ec="black", lw=0.5, hatch="//", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.bar.html>
+        label_kws : dict[str, Any] | None, optional
+            Text properties (e.g. `dict(size=12, orientation="vertical", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+
+        Returns
+        -------
+        sb_table : StackedBarTable
+            Stacked bar table
+        """
+        bar_kws = {} if bar_kws is None else deepcopy(bar_kws)
+        label_kws = {} if label_kws is None else deepcopy(label_kws)
+
+        if not 0.0 <= width <= 1.0:
+            raise ValueError(f"{width=} is invalid (0.0 <= width <= 1.0).")
+
+        # Load table data
+        if isinstance(table_data, StackedBarTable):
+            sb_table = table_data
+        else:
+            sb_table = StackedBarTable(table_data, delimiter=delimiter)
+
+        # Make column name & color dict
+        if isinstance(cmap, str):
+            col_name2color = sb_table.get_col_name2color(cmap)
+        else:
+            col_name2color = cmap
+
+        # Calculate bar plot parameters
+        x = sb_table.calc_bar_label_x_list(self.size)
+        width = (self.size / len(sb_table.row_names)) * width
+        vmax = sb_table.row_sum_vmax if vmax is None else vmax
+        heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
+
+        # Plot bars
+        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+            color = col_name2color[col_name]
+            self.bar(x, height, width, bottom, vmax=vmax, fc=color, **bar_kws)
+
+        # Plot bar labels
+        if show_label:
+            x_list = sb_table.calc_bar_label_x_list(self.size)
+            row_name2sum = sb_table.row_name2sum
+            for label, x in zip(sb_table.row_names, x_list):
+                # Calculate label r position
+                if label_pos == "top":
+                    bar_r_height = self.r_size * (row_name2sum[label] / vmax)
+                    r = min(self.r_lim) + bar_r_height + label_margin
+                    outer = True
+                elif label_pos == "bottom":
+                    r = min(self.r_lim) - label_margin
+                    outer = False
+                else:
+                    raise ValueError(f"{label_pos=} is invalid ('top' or 'bottom').")
+
+                # Set label text properties
+                if label_kws.get("orientation") is None:
+                    label_kws["orientation"] = "horizontal"
+                params = utils.plot.get_label_params_by_rad(
+                    self.x_to_rad(x), label_kws["orientation"], outer
+                )
+                label_kws.update(params)
+
+                self.text(label, x, r, adjust_rotation=False, **label_kws)
+
+        return sb_table
+
+    def stacked_barh(
+        self,
+        table_data: str | Path | pd.DataFrame | StackedBarTable,
+        *,
+        delimiter: str = "\t",
+        width: float = 0.6,
+        cmap: str | dict[str, str] = "tab10",
+        bar_kws: dict[str, Any] | None = None,
+    ) -> StackedBarTable:
+        """Plot horizontal stacked bar from table data
+
+        Parameters
+        ----------
+        table_data : str | Path | pd.DataFrame | StackedBarTable
+            Table file or Table DataFrame or StackedBarTable
+        delimiter : str, optional
+            Table file delimiter
+        width : float, optional
+            Bar width ratio (0.0 - 1.0)
+        cmap : str | dict[str, str], optional
+            Colormap assigned to each stacked bar.
+            User can set matplotlib's colormap (e.g. `tab10`, `Set3`) or
+            col_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
+        bar_kws : dict[str, Any] | None, optional
+            Patch properties for bar plot (e.g. `dict(ec="black, lw=0.2, ...)`)
+
+        Returns
+        -------
+        sb_table : StackedBarTable
+            Stacked bar table
+        """
+        bar_kws = {} if bar_kws is None else deepcopy(bar_kws)
+
+        if not 0.0 <= width <= 1.0:
+            raise ValueError(f"{width=} is invalid (0.0 <= width <= 1.0).")
+
+        # Load table data
+        if isinstance(table_data, StackedBarTable):
+            sb_table = table_data
+        else:
+            sb_table = StackedBarTable(table_data, delimiter=delimiter)
+
+        # Make column name & color dict
+        if isinstance(cmap, str):
+            col_name2color = sb_table.get_col_name2color(cmap)
+        else:
+            col_name2color = cmap
+
+        # Calculate bar plot parameters
+        r_lim_list = sb_table.calc_barh_r_lim_list(self.r_plot_lim, width)
+        heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
+
+        # Plot bars
+        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+            color = col_name2color[col_name]
+            for r_lim, h, b in zip(r_lim_list, height, bottom):
+                self.rect(b, b + h, r_lim=r_lim, fc=color, **bar_kws)
+
+        return sb_table
 
     def fill_between(
         self,
