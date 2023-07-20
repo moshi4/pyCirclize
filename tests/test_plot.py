@@ -7,7 +7,7 @@ import pandas as pd
 from Bio import Phylo
 
 from pycirclize import Circos
-from pycirclize.parser import Genbank, Gff
+from pycirclize.parser import Genbank, Gff, StackedBarTable
 from pycirclize.utils import (
     ColorCycler,
     load_eukaryote_example_dataset,
@@ -495,6 +495,61 @@ def test_track_bar_plot(fig_outfile: Path):
             hatch="//",
             vmax=vmax * 2,
         )
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
+def test_track_stacked_bar_plot(fig_outfile: Path):
+    """Test `track.stacked_bar()`"""
+    # Generate matrix data for stacked bar plot
+    row_num, col_num = 12, 6
+    matrix = np.random.randint(5, 20, (row_num, col_num))
+    row_names = [f"R{i}" for i in range(row_num)]
+    col_names = [f"group{i}" for i in range(col_num)]
+    table_df = pd.DataFrame(matrix, index=row_names, columns=col_names)
+
+    # Initialize Circos sector & track
+    circos = Circos(sectors=dict(bar=len(table_df.index)))
+    sector = circos.sectors[0]
+    track = sector.add_track((50, 100))
+
+    # Plot stacked bar
+    track.stacked_bar(
+        table_df,
+        width=0.6,
+        cmap="Set3",
+        bar_kws=dict(ec="black", lw=0.2),
+        label_pos="bottom",
+        label_kws=dict(size=10, orientation="horizontal"),
+    )
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
+def test_track_stacked_barh_plot(fig_outfile: Path):
+    """Test `track.stacked_barh()`"""
+    # Generate & load matrix data for horizontal stacked bar plot
+    row_names = list("ABCDEF")
+    col_names = ["group1", "group2", "group3", "group4", "group5", "group6"]
+    matrix = np.random.randint(5, 20, (len(row_names), len(col_names)))
+    table_df = pd.DataFrame(matrix, index=row_names, columns=col_names)
+    sb_table = StackedBarTable(table_df)
+
+    # Initialize Circos sector & track (0 <= range <= 270)
+    circos = Circos(sectors=dict(bar=sb_table.row_sum_vmax), start=0, end=270)
+    sector = circos.sectors[0]
+    track = sector.add_track((30, 100))
+    track.axis(fc="lightgrey", ec="black", alpha=0.5)
+
+    # Plot horizontal stacked bar & label & xticks
+    track.stacked_barh(sb_table.dataframe, cmap="tab10", width=0.6)
+    label_r_list = sb_table.calc_barh_label_r_list(track.r_plot_lim)
+    for label_r, row_name in zip(label_r_list, sb_table.row_names):
+        track.text(f"{row_name} ", x=0, r=label_r, ha="right")
+    track.xticks_by_interval(interval=5)
+    track.xticks_by_interval(interval=1, tick_length=1, show_label=False)
 
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
