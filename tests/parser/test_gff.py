@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from pycirclize.parser import Gff
 
 
@@ -18,9 +20,16 @@ def test_parse_complete_genome(prokaryote_testdata_dir: Path):
     assert gff.get_seqid2size() == {seqid: max_genome_size}
 
 
-def test_parse_contig_genomes(prokaryote_testdata_dir: Path):
+@pytest.mark.parametrize(
+    "gff_filename",
+    [
+        ("mycoplasma_alvi.gff.gz"),
+        ("mycoplasma_alvi_nocomment.gff.gz"),
+    ],
+)
+def test_parse_contig_genomes(prokaryote_testdata_dir: Path, gff_filename: str):
     """Test parse contig genomes"""
-    gff_file = prokaryote_testdata_dir / "mycoplasma_alvi.gff.gz"
+    gff_file = prokaryote_testdata_dir / gff_filename
     gff = Gff(gff_file)
     seqid2size = {
         "NZ_JNJU01000001.1": 264665,
