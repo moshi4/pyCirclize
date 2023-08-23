@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyCirclize"
-version = "0.5.0"
+version = "0.5.1"
 description = "Circular visualization in Python"
 authors = ["moshi4"]
 license = "MIT"
@@ -29,7 +29,17 @@ testpaths = ["tests"]
 # Lint Rules: https://beta.ruff.rs/docs/rules
 [tool.ruff]
 select = ["E", "F", "W", "I", "D", "B"]
-ignore = ["D100", "D101", "D104", "D105", "D205", "D400", "D403", "D415", "B905"]
+ignore = [
+    "D100",
+    "D101",
+    "D104",
+    "D105",
+    "D205",
+    "D400",
+    "D403",
+    "D415",
+    "B905",
+]
 src = ["src", "tests"]
 line-length = 88
 
@@ -50,7 +60,7 @@ ruff = ">=0.0.264"
 pytest-cov = ">=4.0.0"
 ipykernel = ">=6.13.0"
 mkdocs = ">=1.2"
-mkdocstrings = {extras = ["python"], version = ">=0.19.0"}
+mkdocstrings = { extras = ["python"], version = ">=0.19.0" }
 mkdocs-jupyter = ">=0.21.0"
 mkdocs-material = ">=8.2"
 
