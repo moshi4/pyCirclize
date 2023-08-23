@@ -133,13 +133,15 @@ class Gff:
         for seqid in seqid_list:
             start, end = None, None
             for line in gff_all_lines:
-                if line.startswith("##sequence-region") and seqid in line:
-                    if len(line.split()) == 4:
+                if line.startswith("##sequence-region"):
+                    # e.g. `##sequence-region NC_XXXXXX 1 10000` (seqid, start, end)
+                    if len(line.split()) == 4 and line.split()[1] == seqid:
                         start, end = line.split()[2:4]
                         start, end = int(start) - 1, int(end)
                         break
             if start is None or end is None:
-                start, end = 0, max([r.end for r in target_gff_records])
+                seqid_gff_records = [rec for rec in gff_records if rec.seqid == seqid]
+                start, end = 0, max([r.end for r in seqid_gff_records])
             seqid2start_end[seqid] = (start, end)
         seqid2size = {seqid: e - s for seqid, (s, e) in seqid2start_end.items()}
 
