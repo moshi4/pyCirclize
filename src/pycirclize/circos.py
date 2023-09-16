@@ -744,6 +744,9 @@ class Circos:
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
+        # Clear & close figure to suppress memory leak
+        fig.clear()
+        plt.close(fig)
 
     ############################################################
     # Private Method
