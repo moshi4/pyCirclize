@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import textwrap
+import warnings
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -149,6 +150,9 @@ class Sector:
         name = f"Track{len(self.tracks) + 1:02d}" if name is None else name
         if name in [t.name for t in self.tracks]:
             raise ValueError(f"{name=} track is already exists.")
+        if not 0 <= min(r_lim) <= max(r_lim) <= 100:
+            warn_msg = f"{r_lim=} is unexpected plot range (0 <= r <= 100)."
+            warnings.warn(warn_msg, stacklevel=1)
         track = Track(name, r_lim, r_pad_ratio, self)
         self._tracks.append(track)
         return track
