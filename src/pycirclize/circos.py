@@ -658,9 +658,9 @@ class Circos:
             norm = Normalize(vmin=vmin, vmax=vmax)
             Colorbar(
                 axin,
-                cmap=cmap,
+                cmap=cmap,  # type: ignore
                 norm=norm,
-                orientation=orientation,
+                orientation=orientation,  # type: ignore
                 **colorbar_kws,
             )
             axin.tick_params(**tick_kws)
@@ -708,7 +708,7 @@ class Circos:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
-        ax.add_collection(PatchCollection(patches, match_original=True))
+        ax.add_collection(PatchCollection(patches, match_original=True))  # type: ignore
 
         # Execute all plot functions
         for plot_func in self._get_all_plot_funcs():
@@ -737,9 +737,9 @@ class Circos:
         pad_inches : float, optional
             Padding inches
         """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
-            fname=savefile,
+        fig = self.plotfig(dpi=dpi)
+        fig.savefig(
+            fname=savefile,  # type: ignore
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",

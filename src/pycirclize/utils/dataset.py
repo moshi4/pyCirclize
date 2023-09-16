@@ -127,7 +127,7 @@ def load_eukaryote_example_dataset(
         else:
             eukaryote_files.append(file_path)
 
-    return *eukaryote_files, chr_links
+    return eukaryote_files[0], eukaryote_files[1], chr_links
 
 
 def load_example_image_file(filename: str) -> Path:

@@ -97,7 +97,7 @@ class Sector:
     @property
     def deg_lim(self) -> tuple[float, float]:
         """Sector degree limit"""
-        return tuple(map(math.degrees, self.rad_lim))
+        return (math.degrees(self.rad_lim[0]), math.degrees(self.rad_lim[1]))
 
     @property
     def clockwise(self) -> bool:
@@ -448,7 +448,7 @@ class Sector:
             bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
             axin.axis("off")
-            axin.imshow(im, **imshow_kws)
+            axin.imshow(im, **imshow_kws)  # type: ignore
 
             # Plot label
             if label is not None:

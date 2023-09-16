@@ -771,7 +771,7 @@ class Track:
         else:
             bottom = np.array([bottom])
         top = np.array(height) + bottom
-        vmax = max(top) if vmax is None else vmax
+        vmax = float(max(top)) if vmax is None else vmax
 
         # Check if bottom & top(height + bottom) is in valid min-max range
         self._check_value_min_max(bottom, vmin, vmax)
@@ -784,7 +784,14 @@ class Track:
         rad_width = self.rad_size * (width / self.size)
 
         def plot_bar(ax: PolarAxes) -> None:
-            ax.bar(rad, r_height, rad_width, r_bottom, align=align, **kwargs)
+            ax.bar(
+                rad,
+                r_height,
+                rad_width,
+                r_bottom,
+                align=align,  # type: ignore
+                **kwargs,
+            )
 
         self._plot_funcs.append(plot_bar)
 
@@ -1151,7 +1158,7 @@ class Track:
         utils.TreeUtil.check_node_name_dup(tree)
         # If not `use_branch_length` or not branch length exists
         # Convert tree to ultrametric tree
-        name2depth = {n.name: d for n, d in tree.depths().items()}
+        name2depth: dict[str, float] = {n.name: d for n, d in tree.depths().items()}
         max_tree_depth = max(name2depth.values())
         if not use_branch_length or max_tree_depth == 0:
             tree = utils.TreeUtil.to_ultrametric_tree(tree)
@@ -1166,17 +1173,17 @@ class Track:
         for idx, node in enumerate(tree.get_terminals()):
             x = self.start + (x_unit_size * idx) + (x_unit_size / 2)
             if outer:
-                r = min(self.r_plot_lim) + r_unit_size * name2depth[node.name]
+                r = min(self.r_plot_lim) + r_unit_size * name2depth[str(node.name)]
             else:
-                r = max(self.r_plot_lim) - r_unit_size * name2depth[node.name]
+                r = max(self.r_plot_lim) - r_unit_size * name2depth[str(node.name)]
             name2xr[node.name] = (x, r)
         # Calculate internal node (x, r) coordinate
         for node in tree.get_nonterminals(order="postorder"):
             x = sum([name2xr[n.name][0] for n in node.clades]) / len(node.clades)
             if outer:
-                r = min(self.r_plot_lim) + r_unit_size * name2depth[node.name]
+                r = min(self.r_plot_lim) + r_unit_size * name2depth[str(node.name)]
             else:
-                r = max(self.r_plot_lim) - r_unit_size * name2depth[node.name]
+                r = max(self.r_plot_lim) - r_unit_size * name2depth[str(node.name)]
             name2xr[node.name] = (x, r)
         # Plot tree by node (x, r) coordinate
         for node in tree.get_nonterminals():
@@ -1352,7 +1359,7 @@ class Track:
             https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
         """
         rad_lim = tuple(map(self.x_to_rad, x_lim, (True, True)))
-        self._patches.append(ArcLine(rad_lim, r_lim, **kwargs))
+        self._patches.append(ArcLine(rad_lim, r_lim, **kwargs))  # type: ignore
 
     def _check_value_min_max(
         self,
