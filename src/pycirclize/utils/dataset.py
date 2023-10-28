@@ -157,6 +157,35 @@ def load_example_image_file(filename: str) -> Path:
         raise FileNotFoundError(err_msg)
 
 
+def load_example_tree_file(filename: str) -> Path:
+    """Load example phylogenetic tree file
+
+    List of example tree filename
+
+    - `small_example.nwk` (7 species)
+    - `medium_example.nwk` (21 species)
+    - `large_example.nwk` (190 species)
+    - `vertebrates.nwk` (227 species)
+
+    Parameters
+    ----------
+    filename : str
+        Target filename
+
+    Returns
+    -------
+    tree_file : Path
+        Tree file (Newick format)
+    """
+    example_data_dir = Path(__file__).parent / "example_data" / "trees"
+    example_files = example_data_dir.glob("*.nwk")
+    available_filenames = [f.name for f in example_files]
+    if filename not in available_filenames:
+        raise ValueError(f"{filename=} is invalid.\n{available_filenames=}")
+    target_file = example_data_dir / filename
+    return target_file
+
+
 def fetch_genbank_by_accid(
     accid: str,
     gbk_outfile: str | Path | None = None,
