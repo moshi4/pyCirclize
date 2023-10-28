@@ -420,6 +420,7 @@ class Track:
         outer: bool = True,
         show_bottom_line: bool = False,
         show_label: bool = True,
+        show_endlabel: bool = True,
         label_size: float = 8,
         label_margin: float = 0.5,
         label_orientation: str = "horizontal",
@@ -445,6 +446,9 @@ class Track:
             If True, show bottom line.
         show_label : bool, optional
             If True, show label of xticks interval position.
+        show_endlabel : bool, optional
+            If False, no display end xtick label.
+            Used to prevent overlap of start-end xtick labels.
         label_size : float, optional
             Label size
         label_margin : float, optional
@@ -476,6 +480,9 @@ class Track:
         if show_label:
             map_func = str if label_formatter is None else label_formatter
             labels = list(map(map_func, x_list))
+            # No display end xtick label if 'show_endlabel' is False
+            if not show_endlabel:
+                labels[-1] = ""
 
         # Plot xticks by user-specified interval
         self.xticks(
