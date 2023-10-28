@@ -87,7 +87,7 @@ def load_eukaryote_example_dataset(
     Parameters
     ----------
     name : str, optional
-        Dataset name (`hg38` or `mm10`)
+        Dataset name (`hg38`|`hs1`|`mm10`|`mm39`)
     cache_dir : str | Path | None, optional
         Output cache directory (Default: `~/.cache/pycirclize/`)
     overwrite_cache : bool
@@ -101,7 +101,8 @@ def load_eukaryote_example_dataset(
     """
     # Check specified name dataset exists or not
     if name not in config.EUKARYOTE_DATASET:
-        raise ValueError(f"{name=} dataset not found.")
+        available_dataset = list(config.EUKARYOTE_DATASET.keys())
+        raise ValueError(f"{name=} dataset not found.\n{available_dataset=}")
 
     # Dataset cache local directory
     if cache_dir is None:

@@ -85,10 +85,20 @@ EUKARYOTE_DATASET = {
         "hg38_cytoband.tsv",
         "hg38_genomic_link.tsv",
     ],
+    "hs1": [
+        "hs1_chr.bed",
+        "hs1_cytoband.tsv",
+        "hs1_genomic_link.tsv",
+    ],
     "mm10": [
         "mm10_chr.bed",
         "mm10_cytoband.tsv",
         "mm10_genomic_link.tsv",
+    ],
+    "mm39": [
+        "mm39_chr.bed",
+        "mm39_cytoband.tsv",
+        "mm39_genomic_link.tsv",
     ],
 }
 
