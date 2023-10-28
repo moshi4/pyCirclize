@@ -146,7 +146,7 @@ def load_example_image_file(filename: str) -> Path:
     image_file_path : Path
         Image file path
     """
-    image_dir = Path(__file__).parent / "images"
+    image_dir = Path(__file__).parent / "example_data" / "images"
     image_filenames = [f.name for f in image_dir.glob("*.png")]
 
     if filename.lower() in image_filenames:
