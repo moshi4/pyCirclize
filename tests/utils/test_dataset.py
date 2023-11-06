@@ -7,6 +7,7 @@ from pycirclize.utils import (
     fetch_genbank_by_accid,
     load_eukaryote_example_dataset,
     load_example_image_file,
+    load_example_tree_file,
     load_prokaryote_example_file,
 )
 
@@ -76,3 +77,14 @@ def test_load_example_image_file():
     # 2. Exception scenario
     with pytest.raises(FileNotFoundError):
         load_example_image_file("noexists.png")
+
+
+def test_load_example_tree_file():
+    """Test `load_example_tree_file()`"""
+    # 1. Success case
+    tree_file = load_example_tree_file("alphabet.nwk")
+    assert tree_file.exists()
+
+    # 2. Failure case
+    with pytest.raises(FileNotFoundError):
+        load_example_tree_file("noexists.nwk")
