@@ -10,6 +10,7 @@ from typing import Any, Callable
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from Bio.Phylo.BaseTree import Tree
 from matplotlib.axes import Axes
 from matplotlib.collections import PatchCollection
 from matplotlib.colorbar import Colorbar
@@ -293,6 +294,81 @@ class Circos:
             circos.link(*link, **_link_kws)
 
         return circos
+
+    @staticmethod
+    def initialize_from_tree(
+        tree_data: str | Path | Tree,
+        *,
+        start: float = 0,
+        end: float = 360,
+        r_lim: tuple[float, float] = (50, 100),
+        format: str = "newick",
+        outer: bool = True,
+        align_leaf_label: bool = True,
+        ignore_branch_length: bool = False,
+        leaf_label_size: float = 12,
+        leaf_label_rmargin: float = 2.0,
+        line_kws: dict[str, Any] | None = None,
+        align_line_kws: dict[str, Any] | None = None,
+    ) -> tuple[Circos, TreeViz]:
+        """Initialize Circos instance from phylogenetic tree
+
+        Circos sector and track are auto-defined by phylogenetic tree
+
+        Parameters
+        ----------
+        tree_data : str | Path | Tree
+            Tree data (`File`|`File URL`|`Tree Object`|`Tree String`)
+        start : float, optional
+            Plot start degree (-360 <= start < end <= 360)
+        end : float, optional
+            Plot end degree (-360 <= start < end <= 360)
+        r_lim : tuple[float, float], optional
+            Tree track radius limit region (0 - 100)
+        format : str, optional
+            Tree format (`newick`|`phyloxml`|`nexus`|`nexml`|`cdao`)
+        outer : bool, optional
+            If True, plot tree on outer side. If False, plot tree on inner side.
+        align_leaf_label: bool, optional
+            If True, align leaf label.
+        ignore_branch_length : bool, optional
+            If True, ignore branch length for plotting tree.
+        leaf_label_size : float, optional
+            Leaf label size
+        leaf_label_rmargin : float, optional
+            Leaf label radius margin
+        line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        align_line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+
+        Returns
+        -------
+        circos, tv : tuple[Circos, TreeViz]
+            Circos instance initialized from tree, TreeViz instance
+        """
+        # Initialize circos sector with tree size
+        tree = TreeViz.load_tree(tree_data, format=format)
+        leaf_num = tree.count_terminals()
+        circos = Circos(dict(tree=leaf_num), start=start, end=end)
+        sector = circos.sectors[0]
+
+        # Plot tree on track
+        track = sector.add_track(r_lim)
+        tv = track.tree(
+            tree,
+            format=format,
+            outer=outer,
+            align_leaf_label=align_leaf_label,
+            ignore_branch_length=ignore_branch_length,
+            leaf_label_size=leaf_label_size,
+            leaf_label_rmargin=leaf_label_rmargin,
+            line_kws=line_kws,
+            align_line_kws=align_line_kws,
+        )
+        return circos, tv
 
     @staticmethod
     def initialize_from_bed(
