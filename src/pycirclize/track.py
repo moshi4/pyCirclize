@@ -3,14 +3,13 @@ from __future__ import annotations
 import math
 import textwrap
 from copy import deepcopy
-from io import StringIO
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
 import matplotlib as mpl
 import numpy as np
 import pandas as pd
-from Bio.Phylo.BaseTree import Clade, Tree
+from Bio.Phylo.BaseTree import Tree
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, Normalize
 from matplotlib.patches import Patch
@@ -19,6 +18,7 @@ from matplotlib.projections.polar import PolarAxes
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
 from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
+from pycirclize.tree import TreeViz
 
 if TYPE_CHECKING:
     # Avoid Sector <-> Track circular import error at runtime
@@ -60,6 +60,7 @@ class Track:
         # Plot data and functions
         self._patches: list[Patch] = []
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
+        self._trees: list[TreeViz] = []
 
     ############################################################
     # Property
@@ -1001,7 +1002,7 @@ class Track:
             y_all = list(y1) + list(y2)
         else:
             y_all = list(y1) + [y2]
-            y2 = [y2] * len(x)
+            y2 = [float(y2)] * len(x)
         vmin = min(y_all) if vmin is None else vmin
         vmax = max(y_all) if vmax is None else vmax
         self._check_value_min_max(y_all, vmin, vmax)
@@ -1104,19 +1105,17 @@ class Track:
 
     def tree(
         self,
-        treedata: str | Path | StringIO | Tree,
+        tree_data: str | Path | Tree,
         *,
         format: str = "newick",
         outer: bool = True,
-        use_branch_length: bool = False,
-        leaf_label_size: float = 0,
-        innode_label_size: float = 0,
-        leaf_label_margin: float = 0.5,
-        label_formatter: Callable[[Clade], str] | None = None,
-        node_color_list: list[tuple[list[str], str]] | None = None,
+        align_leaf_label: bool = True,
+        ignore_branch_length: bool = False,
+        leaf_label_size: float = 12,
+        leaf_label_rmargin: float = 2.0,
         line_kws: dict[str, Any] | None = None,
-        text_kws: dict[str, Any] | None = None,
-    ) -> None:
+        align_line_kws: dict[str, Any] | None = None,
+    ) -> TreeViz:
         """Plot tree
 
         It is recommended that the track(sector) size be the same as the number of
@@ -1124,110 +1123,42 @@ class Track:
 
         Parameters
         ----------
-        treedata : str | Path | StringIO | Tree
-            Phylogenetic tree data (`File-like object` or `Tree object`)
+        tree_data : str | Path | Tree
+            Tree data (`File`|`File URL`|`Tree Object`|`Tree String`)
         format : str, optional
-            Tree format (e.g. `newick`, `nexus`, `phyloxml`, ...)
+            Tree format (`newick`|`phyloxml`|`nexus`|`nexml`|`cdao`)
         outer : bool, optional
             If True, plot tree on outer side. If False, plot tree on inner side.
-        use_branch_length : bool, optional
-            If True, tree branch length is used for plot tree.
-            If False, plot tree with ultrametric tree style.
+        align_leaf_label: bool, optional
+            If True, align leaf label.
+        ignore_branch_length : bool, optional
+            If True, ignore branch length for plotting tree.
         leaf_label_size : float, optional
-            Leaf node label size. By default, `size=0` (No display).
-        innode_label_size : float, optional
-            Internal node label size. By default, `size=0` (No display).
-        leaf_label_margin : float, optional
-            leaf node label margin size (Radius unit)
-        label_formatter : Callable[[Clade], str] | None, optional
-            User-defined label format function.
-            (e.g. `lambda node: node.name.replace("_", " ")`)
-        node_color_list : list[tuple[list[str], str]] | None, optional
-            Tree node & color setting list.
-            If multi nodes are set, MRCA(Most Recent Common Ancestor) node of
-            target nodes is set.
-            (e.g. `[(["node1"], "red"), (["taxa1", "taxa2"], "blue"), ...]`)
+            Leaf label size
+        leaf_label_rmargin : float, optional
+            Leaf label radius margin
         line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(ec="red", lw=1, ls="dashed", ...)`)
+            Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        text_kws : dict[str, Any] | None, optional
-            Text properties (e.g. `dict(color="red", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        align_line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
-        node_color_list = [] if node_color_list is None else deepcopy(node_color_list)
-        line_kws = {} if line_kws is None else deepcopy(line_kws)
-        text_kws = {} if text_kws is None else deepcopy(text_kws)
+        tv = TreeViz(
+            tree_data,
+            format=format,
+            outer=outer,
+            align_leaf_label=align_leaf_label,
+            ignore_branch_length=ignore_branch_length,
+            leaf_label_size=leaf_label_size,
+            leaf_label_rmargin=leaf_label_rmargin,
+            line_kws=line_kws,
+            align_line_kws=align_line_kws,
+            track=self,
+        )
+        self._trees.append(tv)
 
-        # Load tree data, set node names, set node colors
-        tree = utils.TreeUtil.load_tree(treedata, format)
-        tree = utils.TreeUtil.set_unique_node_name(tree)
-        tree = utils.TreeUtil.set_node_color(tree, node_color_list)
-        utils.TreeUtil.check_node_name_dup(tree)
-        # If not `use_branch_length` or not branch length exists
-        # Convert tree to ultrametric tree
-        name2depth: dict[str, float] = {n.name: d for n, d in tree.depths().items()}
-        max_tree_depth = max(name2depth.values())
-        if not use_branch_length or max_tree_depth == 0:
-            tree = utils.TreeUtil.to_ultrametric_tree(tree)
-            name2depth = {n.name: d for n, d in tree.depths().items()}
-            max_tree_depth = max(name2depth.values())
-        # Calculate x, r unit size of depth
-        x_unit_size = self.size / tree.count_terminals()
-        r_unit_size = self.r_plot_size / max_tree_depth
-        # Calculate leaf node (x, r) coordinate
-        name2xr: dict[Any, tuple[float, float]] = {}
-        node: Clade
-        for idx, node in enumerate(tree.get_terminals()):
-            x = self.start + (x_unit_size * idx) + (x_unit_size / 2)
-            if outer:
-                r = min(self.r_plot_lim) + r_unit_size * name2depth[str(node.name)]
-            else:
-                r = max(self.r_plot_lim) - r_unit_size * name2depth[str(node.name)]
-            name2xr[node.name] = (x, r)
-        # Calculate internal node (x, r) coordinate
-        for node in tree.get_nonterminals(order="postorder"):
-            x = sum([name2xr[n.name][0] for n in node.clades]) / len(node.clades)
-            if outer:
-                r = min(self.r_plot_lim) + r_unit_size * name2depth[str(node.name)]
-            else:
-                r = max(self.r_plot_lim) - r_unit_size * name2depth[str(node.name)]
-            name2xr[node.name] = (x, r)
-        # Plot tree by node (x, r) coordinate
-        for node in tree.get_nonterminals():
-            parent_x, parent_r = name2xr[node.name]
-            child_node: Clade
-            for child_node in node.clades:
-                child_x, child_r = name2xr[child_node.name]
-                # Set node color if exists
-                _line_kws = deepcopy(line_kws)
-                if child_node.color is not None:
-                    _line_kws.update(dict(color=child_node.color))
-                # Plot horizontal line
-                h_line_points = (parent_x, child_x), (parent_r, parent_r)
-                self._simpleline(*h_line_points, **_line_kws)
-                # Plot vertical line
-                v_line_points = (child_x, child_x), (parent_r, child_r)
-                self._simpleline(*v_line_points, **_line_kws)
-        # Plot label if required
-        for node in tree.find_clades():
-            label = str(node.name) if label_formatter is None else label_formatter(node)
-            x, r = name2xr[node.name]
-            _text_kws = deepcopy(text_kws)
-            if node.is_terminal() and leaf_label_size > 0:
-                orientation = "vertical"
-                r = r + leaf_label_margin if outer else r - leaf_label_margin
-                _text_kws.update(dict(size=leaf_label_size))
-                if node.color is not None:
-                    _text_kws.update(dict(color=node.color))
-            elif not node.is_terminal() and innode_label_size > 0:
-                orientation = "horizontal"
-                _text_kws.update(dict(size=innode_label_size))
-            else:
-                continue
-            rad = self.x_to_rad(x)
-            params = utils.plot.get_label_params_by_rad(rad, orientation, outer)
-            _text_kws.update(params)
-            self.text(label, x, r, orientation=orientation, **_text_kws)
+        return tv
 
     def genomic_features(
         self,

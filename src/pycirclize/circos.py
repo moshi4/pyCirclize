@@ -23,6 +23,7 @@ from pycirclize.parser import Bed, Matrix
 from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve, Line
 from pycirclize.sector import Sector
 from pycirclize.track import Track
+from pycirclize.tree import TreeViz
 
 
 class Circos:
@@ -699,6 +700,11 @@ class Circos:
             fig = ax.get_figure()
         self._initialize_polar_axes(ax)
 
+        # Plot trees (add 'patches' & 'plot functions')
+        for tv in self._get_all_treeviz_list():
+            tv._plot_tree_line()
+            tv._plot_tree_label()
+
         # Plot all patches
         patches = []
         for patch in self._get_all_patches():
@@ -840,3 +846,13 @@ class Circos:
         track_plot_funcs = list(itertools.chain(*[t.plot_funcs for t in self.tracks]))
         all_plot_funcs = circos_plot_funcs + sector_plot_funcs + track_plot_funcs
         return all_plot_funcs
+
+    def _get_all_treeviz_list(self) -> list[TreeViz]:
+        """Get all tree visualization instance list from tracks
+
+        Returns
+        -------
+        all_treeviz_list : list[TreeViz]
+            All tree visualization instance list
+        """
+        return list(itertools.chain(*[t._trees for t in self.tracks]))

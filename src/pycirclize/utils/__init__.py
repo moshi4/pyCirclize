@@ -7,7 +7,6 @@ from pycirclize.utils.dataset import (
     load_prokaryote_example_file,
 )
 from pycirclize.utils.helper import ColorCycler, calc_group_spaces
-from pycirclize.utils.tree import TreeUtil
 
 __all__ = [
     "plot",
@@ -18,5 +17,4 @@ __all__ = [
     "load_example_tree_file",
     "ColorCycler",
     "calc_group_spaces",
-    "TreeUtil",
 ]
