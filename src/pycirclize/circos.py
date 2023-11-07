@@ -55,7 +55,7 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sectors_start_pos : dict[str, int] | dict[str, float] | None, optional
+        sector2start_pos : dict[str, int] | dict[str, float] | None, optional
             Sector name & start position dict. By default, `start_pos=0`.
         sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
@@ -407,14 +407,14 @@ class Circos:
         sector2clockwise = {} if sector2clockwise is None else sector2clockwise
         records = Bed(bed_file).records
         sectors = {rec.chr: rec.size for rec in records}
-        sectors_start_pos = {rec.chr: rec.start for rec in records}
+        sector2start_pos = {rec.chr: rec.start for rec in records}
         return Circos(
             sectors,
             start,
             end,
             space=space,
             endspace=endspace,
-            sectors_start_pos=sectors_start_pos,
+            sector2start_pos=sector2start_pos,
             sector2clockwise=sector2clockwise,
         )
 
