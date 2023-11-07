@@ -38,7 +38,7 @@ class Circos:
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sectors_start_pos: dict[str, int] | dict[str, float] | None = None,
+        sector2start_pos: dict[str, int] | dict[str, float] | None = None,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
@@ -62,7 +62,7 @@ class Circos:
         show_axis_for_debug : bool, optional
             Show axis for position check debugging (Developer option)
         """
-        sectors_start_pos = {} if sectors_start_pos is None else sectors_start_pos
+        sector2start_pos = {} if sector2start_pos is None else sector2start_pos
         sector2clockwise = {} if sector2clockwise is None else sector2clockwise
 
         # Check start-end degree range
@@ -102,7 +102,7 @@ class Circos:
             rad_size = math.radians(deg_size)
             rad_lim = (rad_pos, rad_pos + rad_size)
             rad_pos += rad_size + math.radians(space_list[idx])
-            start_pos = sectors_start_pos.get(sector_name, 0)
+            start_pos = sector2start_pos.get(sector_name, 0)
             clockwise = sector2clockwise.get(sector_name, True)
             sector = Sector(sector_name, sector_size, rad_lim, start_pos, clockwise)
             self._sectors.append(sector)
