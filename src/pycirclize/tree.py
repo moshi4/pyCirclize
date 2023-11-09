@@ -36,6 +36,8 @@ class TreeViz:
         ignore_branch_length: bool = False,
         leaf_label_size: float = 12,
         leaf_label_rmargin: float = 2.0,
+        reverse: bool = False,
+        ladderize: bool = False,
         line_kws: dict[str, Any] | None = None,
         align_line_kws: dict[str, Any] | None = None,
         track: Track,
@@ -57,6 +59,10 @@ class TreeViz:
             Leaf label size
         leaf_label_rmargin : float, optional
             Leaf label radius margin
+        reverse : bool, optional
+            If True, reverse tree
+        ladderize : bool, optional
+            If True, ladderize tree
         line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -74,6 +80,11 @@ class TreeViz:
         max_tree_depth = max(tree.depths().values())
         if ignore_branch_length or max_tree_depth == 0:
             tree = self._to_ultrametric_tree(tree)
+        if ladderize:
+            tree.ladderize()
+        if reverse:
+            for clade in tree.find_clades():
+                clade.clades = clade.clades[::-1]
         self._tree = tree
 
         # Set plot parameters

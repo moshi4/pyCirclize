@@ -1113,6 +1113,8 @@ class Track:
         ignore_branch_length: bool = False,
         leaf_label_size: float = 12,
         leaf_label_rmargin: float = 2.0,
+        reverse: bool = False,
+        ladderize: bool = False,
         line_kws: dict[str, Any] | None = None,
         align_line_kws: dict[str, Any] | None = None,
     ) -> TreeViz:
@@ -1137,6 +1139,10 @@ class Track:
             Leaf label size
         leaf_label_rmargin : float, optional
             Leaf label radius margin
+        reverse : bool, optional
+            If True, reverse tree
+        ladderize : bool, optional
+            If True, ladderize tree
         line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -1152,6 +1158,8 @@ class Track:
             ignore_branch_length=ignore_branch_length,
             leaf_label_size=leaf_label_size,
             leaf_label_rmargin=leaf_label_rmargin,
+            reverse=reverse,
+            ladderize=ladderize,
             line_kws=line_kws,
             align_line_kws=align_line_kws,
             track=self,
