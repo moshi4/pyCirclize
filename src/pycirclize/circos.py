@@ -412,7 +412,6 @@ class Circos:
         circos : Circos
             Circos instance initialized from BED file
         """
-        sector2clockwise = {} if sector2clockwise is None else sector2clockwise
         records = Bed(bed_file).records
         sectors = {rec.chr: rec.size for rec in records}
         sector2start_pos = {rec.chr: rec.start for rec in records}
