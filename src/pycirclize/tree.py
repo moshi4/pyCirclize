@@ -121,6 +121,11 @@ class TreeViz:
         return self._tree
 
     @cached_property
+    def leaf_num(self) -> int:
+        """Leaf number"""
+        return len(self.leaf_labels)
+
+    @cached_property
     def leaf_labels(self) -> list[str]:
         """Leaf labels"""
         return [str(n.name) for n in self.tree.get_terminals()]
