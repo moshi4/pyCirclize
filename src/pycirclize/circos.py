@@ -353,7 +353,7 @@ class Circos:
         Returns
         -------
         circos, tv : tuple[Circos, TreeViz]
-            Circos instance initialized from tree, TreeViz instance
+            Circos & TreeViz instances initialized from tree
         """
         # Initialize circos sector with tree size
         tree = TreeViz.load_tree(tree_data, format=format)
@@ -575,9 +575,9 @@ class Circos:
 
         Parameters
         ----------
-        r : float, tuple[float, float]
+        r : float | tuple[float, float]
             Line radius position (0 - 100). If r is float, (r, r) is set.
-        deg_lim : tuple[float, float]
+        deg_lim : tuple[float, float] | None, optional
             Degree limit region (-360 - 360). If None, `circos.deg_lim` is set.
         arc : bool, optional
             If True, plot arc style line for polar projection.

@@ -204,7 +204,7 @@ class TreeViz:
         query : str | list[str] | tuple[str]
             Search query node name(s) for highlight. If multiple node names are set,
             MRCA(Most Recent Common Ancester) node is set.
-        color : str | None, optional
+        color : str, optional
             Highlight color
         alpha : float, optional
             Highlight color alpha(transparancy) value

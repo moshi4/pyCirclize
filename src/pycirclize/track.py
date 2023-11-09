@@ -209,9 +209,9 @@ class Track:
         ----------
         text : str
             Text content
-        x : float | None
+        x : float | None, optional
             X position. If None, track center x position is set.
-        r : float | None
+        r : float | None, optional
             Radius position. If None, track center radius position is set.
         adjust_rotation : bool, optional
             If True, text rotation is auto set based on `x` and `orientation` params.
@@ -1149,6 +1149,11 @@ class Track:
         align_line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+
+        Returns
+        -------
+        tv : TreeViz
+            TreeViz instance
         """
         tv = TreeViz(
             tree_data,

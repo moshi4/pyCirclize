@@ -252,7 +252,7 @@ class Sector:
         ----------
         text : str
             Text content
-        x: float, optional
+        x: float | None, optional
             X position. If None, sector center x is set.
         r : float, optional
             Radius position. By default, outer position `r=105` is set.
@@ -299,11 +299,11 @@ class Sector:
 
         Parameters
         ----------
-        r : float, tuple[float, float]
+        r : float | tuple[float, float]
             Line radius position (0 - 100). If r is float, (r, r) is set.
-        start : float, optional
+        start : float | None, optional
             Start position (x coordinate). If None, `sector.start` is set.
-        end : float, optional
+        end : float | None, optional
             End position (x coordinate). If None, `sector.end` is set.
         arc : bool, optional
             If True, plot arc style line for polar projection.
@@ -330,11 +330,11 @@ class Sector:
 
         Parameters
         ----------
-        start : float, optional
+        start : float | None, optional
             Start position (x coordinate). If None, `sector.start` is set.
-        end : float, optional
+        end : float | None, optional
             End position (x coordinate). If None, `sector.end` is set.
-        r_lim : tuple[float, float] | None
+        r_lim : tuple[float, float] | None, optional
             Radius limit region. If None, (0, 100) is set.
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
