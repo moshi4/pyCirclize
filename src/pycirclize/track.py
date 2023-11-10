@@ -1019,7 +1019,7 @@ class Track:
 
     def heatmap(
         self,
-        data: np.ndarray,
+        data: list | np.ndarray,
         *,
         vmin: float | None = None,
         vmax: float | None = None,
@@ -1034,8 +1034,8 @@ class Track:
 
         Parameters
         ----------
-        data : np.ndarray
-            Numpy 2d array matrix values
+        data : list | np.ndarray
+            Numerical list, numpy 1d or 2d array
         vmin : float | None, optional
             Min value for heatmap plot. If None, `np.min(data)` is set.
         vmax : float | None, optional
@@ -1060,6 +1060,13 @@ class Track:
         """
         rect_kws = {} if rect_kws is None else deepcopy(rect_kws)
         text_kws = {} if text_kws is None else deepcopy(text_kws)
+
+        # Check whether array is 1d or 2d (If 1d, reshape 2d)
+        data = np.array(data)
+        if data.ndim == 1:
+            data = data.reshape((1, -1))
+        elif data.ndim != 2:
+            raise ValueError(f"{data=} is not 1d or 2d array!!")
 
         # Set default value for None properties
         vmin = np.min(data) if vmin is None else vmin
