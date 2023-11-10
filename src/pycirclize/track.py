@@ -1025,6 +1025,7 @@ class Track:
         vmax: float | None = None,
         start: float | None = None,
         end: float | None = None,
+        width: float | None = None,
         cmap: str | Colormap = "bwr",
         show_value: bool = False,
         rect_kws: dict[str, Any] | None = None,
@@ -1046,6 +1047,12 @@ class Track:
         end : float | None, optional
             End position for heatmap plot (x coordinate).
             If None, `track.end` is set.
+        width : float | None, optional
+            Heatmap rectangle x width size.
+            Normally heatmap plots squares of equal width. In some cases,
+            it is necessary to reduce the width of only the last column data square.
+            At that time, width can be set under the following conditions.
+            `(col_num - 1) * width < end - start < col_num * width`
         cmap : str | Colormap, optional
             Colormap (e.g. `viridis`, `Spectral`, `Reds`, `Greys`)
             <https://matplotlib.org/stable/tutorials/colors/colormaps.html>
@@ -1073,22 +1080,30 @@ class Track:
         vmax = np.max(data) if vmax is None else vmax
         start = self.start if start is None else start
         end = self.end if end is None else end
-
-        # Calculate radius & x position range list of heatmap rectangle
-        data_row_num, data_col_num = data.shape
-        unit_r_size = self.r_plot_size / data_row_num
-        unit_x_size = (end - start) / data_col_num
         self._check_value_min_max(data, vmin, vmax)
 
+        # Calculate radius & x position range list of heatmap rectangle
+        row_num, col_num = data.shape
+        unit_r_size = self.r_plot_size / row_num
+        unit_x_size = (end - start) / col_num
+        if width is not None:
+            if (col_num - 1) * width < end - start < col_num * width:
+                unit_x_size = width
+            else:
+                raise ValueError(f"{width=} is invalid ({start=}, {end=})")
+
         r_range_list: list[tuple[float, float]] = []
-        for i in range(data_row_num):
+        for i in range(row_num):
             max_range = max(self.r_plot_lim) - (unit_r_size * i)
             min_range = max_range - unit_r_size
             r_range_list.append((min_range, max_range))
         x_range_list: list[tuple[float, float]] = []
-        for i in range(data_col_num):
+        for i in range(col_num):
             min_range = start + (unit_x_size * i)
             max_range = min_range + unit_x_size
+            # Avoid max_range exceeds `track.end` value
+            if max_range > self.end:
+                max_range = self.end
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
