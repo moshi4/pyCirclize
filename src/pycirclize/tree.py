@@ -189,6 +189,30 @@ class TreeViz:
         else:
             raise ValueError(f"{data=} is invalid input tree data!!")
 
+    def search_target_node_name(
+        self,
+        query: str | list[str] | tuple[str],
+    ) -> str:
+        """Search target node name from query
+
+        Parameters
+        ----------
+        query : str | list[str] | tuple[str]
+            Search query node name(s). If multiple node names are set,
+            MRCA(Most Recent Common Ancester) node is set.
+
+        Returns
+        -------
+        target_node_name : str
+            Target node name
+        """
+        self._check_node_name_exist(query)
+        if isinstance(query, (list, tuple)):
+            target_node_name = self.tree.common_ancestor(*query).name
+        else:
+            target_node_name = query
+        return target_node_name
+
     def highlight(
         self,
         query: str | list[str] | tuple[str],
@@ -213,7 +237,7 @@ class TreeViz:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Get target rectangle for highlight
-        target_node_name = self._search_target_node_name(query)
+        target_node_name = self.search_target_node_name(query)
         rect = self.name2rect[target_node_name]
 
         # Set default kwargs
@@ -253,7 +277,7 @@ class TreeViz:
             Axes.scatter properties (e.g. `fc="lime", ec="black", lw=0.5, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.scatter.html>
         """
-        target_node_name = self._search_target_node_name(query)
+        target_node_name = self.search_target_node_name(query)
 
         # Set markers (x, r) coordinates (include descendent nodes)
         x: list[float] = []
@@ -287,7 +311,7 @@ class TreeViz:
             Text properties (e.g. `color="red", size=15, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
-        self._search_target_node_name(target_node_label)
+        self.search_target_node_name(target_node_label)
         self._node2label_props[target_node_label].update(kwargs)
 
     def set_node_line_props(
@@ -315,7 +339,7 @@ class TreeViz:
             Patch properties (e.g. `color="blue", lw=2.0, ls="dashed", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
         """
-        target_node_name = self._search_target_node_name(query)
+        target_node_name = self.search_target_node_name(query)
 
         clade: Clade = next(self.tree.find_clades(target_node_name))
         if descendent:
@@ -417,30 +441,6 @@ class TreeViz:
         if err_msg != "":
             err_msg += "\nTreeViz cannot handle tree with duplicate node names!!"
             raise ValueError("\n" + err_msg)
-
-    def _search_target_node_name(
-        self,
-        query: str | list[str] | tuple[str],
-    ) -> str:
-        """Search target node name from query
-
-        Parameters
-        ----------
-        query : str | list[str] | tuple[str]
-            Search query node name(s). If multiple node names are set,
-            MRCA(Most Recent Common Ancester) node is set.
-
-        Returns
-        -------
-        target_node_name : str
-            Target node name
-        """
-        self._check_node_name_exist(query)
-        if isinstance(query, (list, tuple)):
-            target_node_name = self.tree.common_ancestor(*query).name
-        else:
-            target_node_name = query
-        return target_node_name
 
     def _check_node_name_exist(
         self,
