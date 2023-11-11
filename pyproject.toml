@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyCirclize"
-version = "0.5.1"
+version = "1.0.0"
 description = "Circular visualization in Python"
 authors = ["moshi4"]
 license = "MIT"
