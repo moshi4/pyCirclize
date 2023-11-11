@@ -10,6 +10,7 @@ from typing import Any, Callable
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from Bio.Phylo.BaseTree import Tree
 from matplotlib.axes import Axes
 from matplotlib.collections import PatchCollection
 from matplotlib.colorbar import Colorbar
@@ -23,6 +24,7 @@ from pycirclize.parser import Bed, Matrix
 from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve, Line
 from pycirclize.sector import Sector
 from pycirclize.track import Track
+from pycirclize.tree import TreeViz
 
 
 class Circos:
@@ -36,7 +38,7 @@ class Circos:
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sectors_start_pos: dict[str, int] | dict[str, float] | None = None,
+        sector2start_pos: dict[str, int] | dict[str, float] | None = None,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
@@ -53,14 +55,14 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sectors_start_pos : dict[str, int] | dict[str, float] | None, optional
+        sector2start_pos : dict[str, int] | dict[str, float] | None, optional
             Sector name & start position dict. By default, `start_pos=0`.
         sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
         show_axis_for_debug : bool, optional
             Show axis for position check debugging (Developer option)
         """
-        sectors_start_pos = {} if sectors_start_pos is None else sectors_start_pos
+        sector2start_pos = {} if sector2start_pos is None else sector2start_pos
         sector2clockwise = {} if sector2clockwise is None else sector2clockwise
 
         # Check start-end degree range
@@ -100,7 +102,7 @@ class Circos:
             rad_size = math.radians(deg_size)
             rad_lim = (rad_pos, rad_pos + rad_size)
             rad_pos += rad_size + math.radians(space_list[idx])
-            start_pos = sectors_start_pos.get(sector_name, 0)
+            start_pos = sector2start_pos.get(sector_name, 0)
             clockwise = sector2clockwise.get(sector_name, True)
             sector = Sector(sector_name, sector_size, rad_lim, start_pos, clockwise)
             self._sectors.append(sector)
@@ -294,6 +296,89 @@ class Circos:
         return circos
 
     @staticmethod
+    def initialize_from_tree(
+        tree_data: str | Path | Tree,
+        *,
+        start: float = 0,
+        end: float = 360,
+        r_lim: tuple[float, float] = (50, 100),
+        format: str = "newick",
+        outer: bool = True,
+        align_leaf_label: bool = True,
+        ignore_branch_length: bool = False,
+        leaf_label_size: float = 12,
+        leaf_label_rmargin: float = 2.0,
+        reverse: bool = False,
+        ladderize: bool = False,
+        line_kws: dict[str, Any] | None = None,
+        align_line_kws: dict[str, Any] | None = None,
+    ) -> tuple[Circos, TreeViz]:
+        """Initialize Circos instance from phylogenetic tree
+
+        Circos sector and track are auto-defined by phylogenetic tree
+
+        Parameters
+        ----------
+        tree_data : str | Path | Tree
+            Tree data (`File`|`File URL`|`Tree Object`|`Tree String`)
+        start : float, optional
+            Plot start degree (-360 <= start < end <= 360)
+        end : float, optional
+            Plot end degree (-360 <= start < end <= 360)
+        r_lim : tuple[float, float], optional
+            Tree track radius limit region (0 - 100)
+        format : str, optional
+            Tree format (`newick`|`phyloxml`|`nexus`|`nexml`|`cdao`)
+        outer : bool, optional
+            If True, plot tree on outer side. If False, plot tree on inner side.
+        align_leaf_label: bool, optional
+            If True, align leaf label.
+        ignore_branch_length : bool, optional
+            If True, ignore branch length for plotting tree.
+        leaf_label_size : float, optional
+            Leaf label size
+        leaf_label_rmargin : float, optional
+            Leaf label radius margin
+        reverse : bool, optional
+            If True, reverse tree
+        ladderize : bool, optional
+            If True, ladderize tree
+        line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        align_line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+
+        Returns
+        -------
+        circos, tv : tuple[Circos, TreeViz]
+            Circos & TreeViz instances initialized from tree
+        """
+        # Initialize circos sector with tree size
+        tree = TreeViz.load_tree(tree_data, format=format)
+        leaf_num = tree.count_terminals()
+        circos = Circos(dict(tree=leaf_num), start=start, end=end)
+        sector = circos.sectors[0]
+
+        # Plot tree on track
+        track = sector.add_track(r_lim)
+        tv = track.tree(
+            tree,
+            format=format,
+            outer=outer,
+            align_leaf_label=align_leaf_label,
+            ignore_branch_length=ignore_branch_length,
+            leaf_label_size=leaf_label_size,
+            leaf_label_rmargin=leaf_label_rmargin,
+            reverse=reverse,
+            ladderize=ladderize,
+            line_kws=line_kws,
+            align_line_kws=align_line_kws,
+        )
+        return circos, tv
+
+    @staticmethod
     def initialize_from_bed(
         bed_file: str | Path,
         start: float = 0,
@@ -327,17 +412,16 @@ class Circos:
         circos : Circos
             Circos instance initialized from BED file
         """
-        sector2clockwise = {} if sector2clockwise is None else sector2clockwise
         records = Bed(bed_file).records
         sectors = {rec.chr: rec.size for rec in records}
-        sectors_start_pos = {rec.chr: rec.start for rec in records}
+        sector2start_pos = {rec.chr: rec.start for rec in records}
         return Circos(
             sectors,
             start,
             end,
             space=space,
             endspace=endspace,
-            sectors_start_pos=sectors_start_pos,
+            sector2start_pos=sector2start_pos,
             sector2clockwise=sector2clockwise,
         )
 
@@ -490,9 +574,9 @@ class Circos:
 
         Parameters
         ----------
-        r : float, tuple[float, float]
+        r : float | tuple[float, float]
             Line radius position (0 - 100). If r is float, (r, r) is set.
-        deg_lim : tuple[float, float]
+        deg_lim : tuple[float, float] | None, optional
             Degree limit region (-360 - 360). If None, `circos.deg_lim` is set.
         arc : bool, optional
             If True, plot arc style line for polar projection.
@@ -658,9 +742,9 @@ class Circos:
             norm = Normalize(vmin=vmin, vmax=vmax)
             Colorbar(
                 axin,
-                cmap=cmap,
+                cmap=cmap,  # type: ignore
                 norm=norm,
-                orientation=orientation,
+                orientation=orientation,  # type: ignore
                 **colorbar_kws,
             )
             axin.tick_params(**tick_kws)
@@ -699,6 +783,11 @@ class Circos:
             fig = ax.get_figure()
         self._initialize_polar_axes(ax)
 
+        # Plot trees (add 'patches' & 'plot functions')
+        for tv in self._get_all_treeviz_list():
+            tv._plot_tree_line()
+            tv._plot_tree_label()
+
         # Plot all patches
         patches = []
         for patch in self._get_all_patches():
@@ -708,7 +797,7 @@ class Circos:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
-        ax.add_collection(PatchCollection(patches, match_original=True))
+        ax.add_collection(PatchCollection(patches, match_original=True))  # type: ignore
 
         # Execute all plot functions
         for plot_func in self._get_all_plot_funcs():
@@ -737,13 +826,16 @@ class Circos:
         pad_inches : float, optional
             Padding inches
         """
-        figure = self.plotfig(dpi=dpi)
-        figure.savefig(
-            fname=savefile,
+        fig = self.plotfig(dpi=dpi)
+        fig.savefig(
+            fname=savefile,  # type: ignore
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
         )
+        # Clear & close figure to suppress memory leak
+        fig.clear()
+        plt.close(fig)
 
     ############################################################
     # Private Method
@@ -837,3 +929,13 @@ class Circos:
         track_plot_funcs = list(itertools.chain(*[t.plot_funcs for t in self.tracks]))
         all_plot_funcs = circos_plot_funcs + sector_plot_funcs + track_plot_funcs
         return all_plot_funcs
+
+    def _get_all_treeviz_list(self) -> list[TreeViz]:
+        """Get all tree visualization instance list from tracks
+
+        Returns
+        -------
+        all_treeviz_list : list[TreeViz]
+            All tree visualization instance list
+        """
+        return list(itertools.chain(*[t._trees for t in self.tracks]))

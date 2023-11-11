@@ -12,6 +12,7 @@ from pycirclize.utils import (
     ColorCycler,
     load_eukaryote_example_dataset,
     load_example_image_file,
+    load_example_tree_file,
     load_prokaryote_example_file,
 )
 
@@ -141,6 +142,27 @@ def test_cytoband_plot(fig_outfile: Path, hg38_testdata_dir: Path):
     circos.add_cytoband_tracks((95, 100), cytoband_file)
 
     # Plot and check fig file exists
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
+def test_phylogenetic_tree_plot(fig_outfile: Path):
+    """Test phylogenetic tree plot"""
+    tree_file = load_example_tree_file("alphabet.nwk")
+    circos, tv = Circos.initialize_from_tree(tree_file)
+
+    tv.highlight("A", color="red")
+    tv.highlight(["D", "E", "F"], color="blue")
+
+    tv.marker(["G", "H"], color="green")
+    tv.marker(["J", "K"], color="magenta", descendent=False)
+
+    tv.set_node_label_props("A", color="red")
+
+    tv.set_node_line_props(["P", "O", "N"], color="orange")
+    tv.set_node_line_props(["S", "R"], color="lime", descendent=False)
+    tv.set_node_line_props(["X", "Y", "Z"], color="purple", apply_label_color=True)
+
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 

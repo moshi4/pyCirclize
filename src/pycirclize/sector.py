@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import textwrap
+import warnings
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -80,6 +81,11 @@ class Sector:
         return self._start_pos + self._size
 
     @property
+    def center(self) -> float:
+        """Sector center position (x coordinate)"""
+        return (self.start + self.end) / 2
+
+    @property
     def rad_size(self) -> float:
         """Sector radian size"""
         return max(self.rad_lim) - min(self.rad_lim)
@@ -97,7 +103,7 @@ class Sector:
     @property
     def deg_lim(self) -> tuple[float, float]:
         """Sector degree limit"""
-        return tuple(map(math.degrees, self.rad_lim))
+        return (math.degrees(self.rad_lim[0]), math.degrees(self.rad_lim[1]))
 
     @property
     def clockwise(self) -> bool:
@@ -149,6 +155,9 @@ class Sector:
         name = f"Track{len(self.tracks) + 1:02d}" if name is None else name
         if name in [t.name for t in self.tracks]:
             raise ValueError(f"{name=} track is already exists.")
+        if not 0 <= min(r_lim) <= max(r_lim) <= 100:
+            warn_msg = f"{r_lim=} is unexpected plot range (0 <= r <= 100)."
+            warnings.warn(warn_msg, stacklevel=1)
         track = Track(name, r_lim, r_pad_ratio, self)
         self._tracks.append(track)
         return track
@@ -248,7 +257,7 @@ class Sector:
         ----------
         text : str
             Text content
-        x: float, optional
+        x: float | None, optional
             X position. If None, sector center x is set.
         r : float, optional
             Radius position. By default, outer position `r=105` is set.
@@ -264,7 +273,7 @@ class Sector:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # If value is None, center position is set.
-        x = (self.start + self.end) / 2 if x is None else x
+        x = self.center if x is None else x
         rad = self.x_to_rad(x, ignore_range_error)
 
         if adjust_rotation:
@@ -295,11 +304,11 @@ class Sector:
 
         Parameters
         ----------
-        r : float, tuple[float, float]
+        r : float | tuple[float, float]
             Line radius position (0 - 100). If r is float, (r, r) is set.
-        start : float, optional
+        start : float | None, optional
             Start position (x coordinate). If None, `sector.start` is set.
-        end : float, optional
+        end : float | None, optional
             End position (x coordinate). If None, `sector.end` is set.
         arc : bool, optional
             If True, plot arc style line for polar projection.
@@ -326,11 +335,11 @@ class Sector:
 
         Parameters
         ----------
-        start : float, optional
+        start : float | None, optional
             Start position (x coordinate). If None, `sector.start` is set.
-        end : float, optional
+        end : float | None, optional
             End position (x coordinate). If None, `sector.end` is set.
-        r_lim : tuple[float, float] | None
+        r_lim : tuple[float, float] | None, optional
             Radius limit region. If None, (0, 100) is set.
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
@@ -416,7 +425,7 @@ class Sector:
             im = ImageOps.expand(im, border=border_width, fill="black")
 
         # Rotate image
-        x = (self.start + self.end) / 2 if x is None else x
+        x = self.center if x is None else x
         rad = self.x_to_rad(x)
         if isinstance(rotation, (int, float)):
             im = im.rotate(rotation, expand=True)
@@ -448,7 +457,7 @@ class Sector:
             bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
             axin.axis("off")
-            axin.imshow(im, **imshow_kws)
+            axin.imshow(im, **imshow_kws)  # type: ignore
 
             # Plot label
             if label is not None:

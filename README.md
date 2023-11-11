@@ -173,6 +173,55 @@ circos.savefig("example03.png")
 
 ![example03.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example03.png)  
 
+### 4. Phylogenetic Tree
+
+```python
+from pycirclize import Circos
+from pycirclize.utils import load_example_tree_file, ColorCycler
+from matplotlib.lines import Line2D
+
+# Initialize Circos from phylogenetic tree
+tree_file = load_example_tree_file("large_example.nwk")
+circos, tv = Circos.initialize_from_tree(
+    tree_file,
+    r_lim=(30, 100),
+    leaf_label_size=5,
+    line_kws=dict(color="lightgrey", lw=1.0),
+)
+
+# Define group-species dict for tree annotation
+# In this example, set minimum species list to specify group's MRCA node
+group_name2species_list = dict(
+    Monotremata=["Tachyglossus_aculeatus", "Ornithorhynchus_anatinus"],
+    Marsupialia=["Monodelphis_domestica", "Vombatus_ursinus"],
+    Xenarthra=["Choloepus_didactylus", "Dasypus_novemcinctus"],
+    Afrotheria=["Trichechus_manatus_latirostris", "Chrysochloris_asiatica"],
+    Euarchontes=["Galeopterus_variegatus", "Theropithecus_gelada"],
+    Glires=["Oryctolagus_cuniculus", "Microtus_oregoni"],
+    Laurasiatheria=["Talpa_occidentalis", "Mirounga_leonina"],
+)
+
+# Set tree line color & label color
+ColorCycler.set_cmap("tab10")
+group_name2color = {name: ColorCycler() for name in group_name2species_list.keys()}
+for group_name, species_list in group_name2species_list.items():
+    color = group_name2color[group_name]
+    tv.set_node_line_props(species_list, color=color, apply_label_color=True)
+
+# Plot figure & set legend on center
+fig = circos.plotfig()
+_ = circos.ax.legend(
+    handles=[Line2D([], [], label=n, color=c) for n, c in group_name2color.items()],
+    labelcolor=group_name2color.values(),
+    fontsize=6,
+    loc="center",
+    bbox_to_anchor=(0.5, 0.5),
+)
+fig.savefig("example04.png")
+```
+
+![example04.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example04.png)  
+
 ## Not Implemented Features
 
 List of features implemented in other Circos plotting tools but not yet implemented in pyCirclize.

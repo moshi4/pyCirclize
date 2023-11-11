@@ -20,6 +20,7 @@ nav:
       - Circos: api-docs/circos.md
       - Sector: api-docs/sector.md
       - Track: api-docs/track.md
+      - TreeViz: api-docs/treeviz.md
       - utils: api-docs/utils.md
 
 theme:

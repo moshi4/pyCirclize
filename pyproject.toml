@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyCirclize"
-version = "0.5.1"
+version = "1.0.0"
 description = "Circular visualization in Python"
 authors = ["moshi4"]
 license = "MIT"
@@ -36,6 +36,7 @@ ignore = [
     "D105",
     "D205",
     "D400",
+    "D401",
     "D403",
     "D415",
     "B905",

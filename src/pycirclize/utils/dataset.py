@@ -87,7 +87,7 @@ def load_eukaryote_example_dataset(
     Parameters
     ----------
     name : str, optional
-        Dataset name (`hg38` or `mm10`)
+        Dataset name (`hg38`|`hs1`|`mm10`|`mm39`)
     cache_dir : str | Path | None, optional
         Output cache directory (Default: `~/.cache/pycirclize/`)
     overwrite_cache : bool
@@ -101,7 +101,8 @@ def load_eukaryote_example_dataset(
     """
     # Check specified name dataset exists or not
     if name not in config.EUKARYOTE_DATASET:
-        raise ValueError(f"{name=} dataset not found.")
+        available_dataset = list(config.EUKARYOTE_DATASET.keys())
+        raise ValueError(f"{name=} dataset not found.\n{available_dataset=}")
 
     # Dataset cache local directory
     if cache_dir is None:
@@ -127,7 +128,7 @@ def load_eukaryote_example_dataset(
         else:
             eukaryote_files.append(file_path)
 
-    return *eukaryote_files, chr_links
+    return eukaryote_files[0], eukaryote_files[1], chr_links
 
 
 def load_example_image_file(filename: str) -> Path:
@@ -145,7 +146,7 @@ def load_example_image_file(filename: str) -> Path:
     image_file_path : Path
         Image file path
     """
-    image_dir = Path(__file__).parent / "images"
+    image_dir = Path(__file__).parent / "example_data" / "images"
     image_filenames = [f.name for f in image_dir.glob("*.png")]
 
     if filename.lower() in image_filenames:
@@ -154,6 +155,35 @@ def load_example_image_file(filename: str) -> Path:
         err_msg = f"{filename=} is not found.\n"
         err_msg += f"Available filenames = {image_filenames}"
         raise FileNotFoundError(err_msg)
+
+
+def load_example_tree_file(filename: str) -> Path:
+    """Load example phylogenetic tree file
+
+    List of example tree filename
+
+    - `small_example.nwk` (7 species)
+    - `medium_example.nwk` (21 species)
+    - `large_example.nwk` (190 species)
+    - `alphabet.nwk` (26 species)
+
+    Parameters
+    ----------
+    filename : str
+        Target filename
+
+    Returns
+    -------
+    tree_file : Path
+        Tree file (Newick format)
+    """
+    example_data_dir = Path(__file__).parent / "example_data" / "trees"
+    example_files = example_data_dir.glob("*.nwk")
+    available_filenames = [f.name for f in example_files]
+    if filename not in available_filenames:
+        raise FileNotFoundError(f"{filename=} is invalid.\n{available_filenames=}")
+    target_file = example_data_dir / filename
+    return target_file
 
 
 def fetch_genbank_by_accid(

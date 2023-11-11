@@ -164,7 +164,7 @@ class Matrix:
 
         Parameters
         ----------
-        order : str | list[str] | None, optional
+        order : str | list[str], optional
             Sort order of matrix for plotting Chord Diagram.
             If `asc`|`desc`, sort in ascending(or descending) order by node size.
             If node name list is set, sort in user specified node order.

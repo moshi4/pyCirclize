@@ -208,6 +208,10 @@ class Gff:
     def get_seqid2size(self) -> dict[str, int]:
         """Get seqid & complete/contig/scaffold genome size dict
 
+        By default, size is defined by `##sequence-region` pragma of target seqid.
+        If `##sequence-region` is not found, size is defined by max coordinate size in
+        target seqid features. This may differ from actual genome size.
+
         Returns
         -------
         seqid2size : dict[str, int]

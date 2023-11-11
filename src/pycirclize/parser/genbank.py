@@ -31,7 +31,7 @@ class Genbank:
         gbk_source : str | Path | TextIOWrapper
             Genbank file or source
             (`*.gz`, `*.bz2`, `*.zip` compressed file can be readable)
-        name : str | None
+        name : str | None, optional
             name (If None, `file name` or `record name` is set)
         reverse : bool, optional
             If True, reverse complement genome is used
