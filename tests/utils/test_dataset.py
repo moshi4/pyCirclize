@@ -1,10 +1,8 @@
-from pathlib import Path
 from urllib.request import urlopen
 
 import pytest
 
 from pycirclize.utils import (
-    fetch_genbank_by_accid,
     load_eukaryote_example_dataset,
     load_example_image_file,
     load_example_tree_file,
@@ -51,21 +49,6 @@ def test_load_eukaryote_example_dataset():
     bed_file, cytoband_file, _ = load_eukaryote_example_dataset("hg38")
     assert bed_file.exists()
     assert cytoband_file.exists()
-
-
-@pytest.mark.skipif(
-    condition=not check_network_conn(),
-    reason="No network connection.",
-)
-def test_fetch_genbank_by_accid(tmp_path: Path):
-    """Test `fetch_genbank_by_accid()`"""
-    accid = "JX128258.1"
-    # Case1. Download as textio
-    _ = fetch_genbank_by_accid(accid)
-    # Case2. Download as file
-    gbk_outfile = tmp_path / "out.gbk"
-    fetch_genbank_by_accid(accid, gbk_outfile=gbk_outfile)
-    assert gbk_outfile.exists()
 
 
 def test_load_example_image_file():
