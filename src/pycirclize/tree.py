@@ -213,6 +213,32 @@ class TreeViz:
             target_node_name = query
         return target_node_name
 
+    def get_target_xlim(
+        self,
+        query: str | list[str] | tuple[str],
+    ) -> tuple[float, float]:
+        """Get target node x limit by query
+
+        Parameters
+        ----------
+        query : str | list[str] | tuple[str]
+            Search query node name(s) for getting x limit.
+            If multiple node names are set,
+            MRCA(Most Recent Common Ancester) node is set.
+
+        Returns
+        -------
+        xlim : tuple[float, float]
+            X limit tuple
+        """
+        target_node_name = self.search_target_node_name(query)
+        target_rect = self.name2rect[target_node_name]
+        target_xlim = (
+            target_rect.get_x(),
+            target_rect.get_x() + target_rect.get_width(),
+        )
+        return target_xlim
+
     def highlight(
         self,
         query: str | list[str] | tuple[str],
