@@ -87,6 +87,11 @@ class Track:
         return self._end
 
     @property
+    def center(self) -> float:
+        """Track center position (x coordinate)"""
+        return (self.start + self.end) / 2
+
+    @property
     def r_size(self) -> float:
         """Track radius size"""
         return max(self.r_lim) - min(self.r_lim)
@@ -95,6 +100,11 @@ class Track:
     def r_lim(self) -> tuple[float, float]:
         """Track radius limit"""
         return self._r_lim
+
+    @property
+    def r_center(self) -> float:
+        """Track center radius"""
+        return sum(self.r_lim) / 2
 
     @property
     def r_plot_size(self) -> float:
@@ -226,8 +236,8 @@ class Track:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # If value is None, center position is set.
-        x = (self.start + self.end) / 2 if x is None else x
-        r = sum(self.r_lim) / 2 if r is None else r
+        x = self.center if x is None else x
+        r = self.r_center if r is None else r
 
         rad = self.x_to_rad(x, ignore_range_error)
         if adjust_rotation:

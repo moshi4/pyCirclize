@@ -31,8 +31,10 @@ def test_track_property(track: Track):
     assert track.size == 1000
     assert track.start == 0
     assert track.end == 1000
+    assert track.center == 500
     assert track.r_size == 10
     assert track.r_lim == (90, 100)
+    assert track.r_center == 95
     assert track.r_plot_size == 9
     assert track.r_plot_lim == (90.5, 99.5)
     assert track.rad_size == math.pi

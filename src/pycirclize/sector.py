@@ -81,6 +81,11 @@ class Sector:
         return self._start_pos + self._size
 
     @property
+    def center(self) -> float:
+        """Sector center position (x coordinate)"""
+        return (self.start + self.end) / 2
+
+    @property
     def rad_size(self) -> float:
         """Sector radian size"""
         return max(self.rad_lim) - min(self.rad_lim)
@@ -268,7 +273,7 @@ class Sector:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         """
         # If value is None, center position is set.
-        x = (self.start + self.end) / 2 if x is None else x
+        x = self.center if x is None else x
         rad = self.x_to_rad(x, ignore_range_error)
 
         if adjust_rotation:
@@ -420,7 +425,7 @@ class Sector:
             im = ImageOps.expand(im, border=border_width, fill="black")
 
         # Rotate image
-        x = (self.start + self.end) / 2 if x is None else x
+        x = self.center if x is None else x
         rad = self.x_to_rad(x)
         if isinstance(rotation, (int, float)):
             im = im.rotate(rotation, expand=True)

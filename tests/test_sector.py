@@ -21,6 +21,7 @@ def test_property():
     assert sector_case1.size == size
     assert sector_case1.start == 0
     assert sector_case1.end == size
+    assert sector_case1.center == 500
     assert sector_case1.rad_size == math.pi
     assert sector_case1.rad_lim == rad_lim
     assert sector_case1.deg_size == 180
@@ -35,6 +36,7 @@ def test_property():
     assert sector_case2.size == size
     assert sector_case2.start == start_pos
     assert sector_case2.end == start_pos + size
+    assert sector_case2.center == 600
 
 
 def test_add_track(sector: Sector):
