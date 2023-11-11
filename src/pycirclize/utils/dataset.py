@@ -165,7 +165,6 @@ def load_example_tree_file(filename: str) -> Path:
     - `small_example.nwk` (7 species)
     - `medium_example.nwk` (21 species)
     - `large_example.nwk` (190 species)
-    - `vertebrates.nwk` (227 species)
     - `alphabet.nwk` (26 species)
 
     Parameters
