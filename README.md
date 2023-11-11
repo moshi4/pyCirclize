@@ -173,7 +173,7 @@ circos.savefig("example03.png")
 
 ![example03.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example03.png)  
 
-## 4. Phylogenetic Tree
+### 4. Phylogenetic Tree
 
 ```python
 from pycirclize import Circos
