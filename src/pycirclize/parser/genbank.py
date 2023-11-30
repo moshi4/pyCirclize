@@ -169,8 +169,12 @@ class Genbank:
         seq = self.genome_seq if seq is None else seq
         if window_size is None:
             window_size = int(len(seq) / 500)
+            if window_size == 0:
+                window_size = int(len(seq)/2)
         if step_size is None:
             step_size = int(len(seq) / 1000)
+            if step_size == 0:
+                step_size == int(len(seq)/2)
         pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
         for pos in pos_list:
             window_start_pos = pos - int(window_size / 2)
