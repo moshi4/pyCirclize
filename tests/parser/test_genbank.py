@@ -55,6 +55,12 @@ def test_calc_gc(prokaryote_testdata_dir: Path):
     gbk.calc_gc_skew()
     gbk.calc_gc_content()
 
+    # Set user specified short sequence (< 1000)
+    # Check if zero length error of window_size & step_size is not occured
+    seq = "ATGC" * 100
+    gbk.calc_gc_skew(seq=seq)
+    gbk.calc_gc_content(seq=seq)
+
 
 def test_write_cds_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
     """Test `gbk.write_cds_fasta()` (only check properly output file)"""

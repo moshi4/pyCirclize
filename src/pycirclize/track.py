@@ -1149,6 +1149,7 @@ class Track:
         ladderize: bool = False,
         line_kws: dict[str, Any] | None = None,
         align_line_kws: dict[str, Any] | None = None,
+        label_formatter: Callable[[str], str] | None = None,
     ) -> TreeViz:
         """Plot tree
 
@@ -1181,6 +1182,10 @@ class Track:
         align_line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        label_formatter : Callable[[str], str] | None, optional
+            User-defined label text format function to change plot label text content.
+            For example, if you want to change underscore of the label to space,
+            set `lambda t: t.replace("_", " ")`.
 
         Returns
         -------
@@ -1199,6 +1204,7 @@ class Track:
             ladderize=ladderize,
             line_kws=line_kws,
             align_line_kws=align_line_kws,
+            label_formatter=label_formatter,
             track=self,
         )
         self._trees.append(tv)
@@ -1207,7 +1213,7 @@ class Track:
 
     def genomic_features(
         self,
-        features: list[SeqFeature],
+        features: SeqFeature | list[SeqFeature],
         *,
         plotstyle: str = "box",
         r_lim: tuple[float, float] | None = None,
@@ -1218,8 +1224,8 @@ class Track:
 
         Parameters
         ----------
-        features : list[SeqFeature]
-            Biopython's SeqFeature list
+        features : SeqFeature | list[SeqFeature]
+            Biopython's SeqFeature or SeqFeature list
         plotstyle : str, optional
             Plot style (`box` or `arrow`)
         r_lim : tuple[float, float] | None, optional
@@ -1230,6 +1236,9 @@ class Track:
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
+        if isinstance(features, SeqFeature):
+            features = [features]
+
         if r_lim is None:
             r_lim = self.r_plot_lim
         else:
