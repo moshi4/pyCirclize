@@ -311,6 +311,7 @@ class Circos:
         reverse: bool = False,
         ladderize: bool = False,
         line_kws: dict[str, Any] | None = None,
+        label_formatter: Callable[[str], str] | None = None,
         align_line_kws: dict[str, Any] | None = None,
     ) -> tuple[Circos, TreeViz]:
         """Initialize Circos instance from phylogenetic tree
@@ -349,6 +350,10 @@ class Circos:
         align_line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        label_formatter : Callable[[str], str] | None, optional
+            User-defined label text format function to change plot label text content.
+            For example, if you want to change underscore of the label to space,
+            set `lambda t: t.replace("_", " ")`.
 
         Returns
         -------
@@ -374,6 +379,7 @@ class Circos:
             reverse=reverse,
             ladderize=ladderize,
             line_kws=line_kws,
+            label_formatter=label_formatter,
             align_line_kws=align_line_kws,
         )
         return circos, tv

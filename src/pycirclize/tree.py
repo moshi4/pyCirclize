@@ -6,7 +6,7 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -40,6 +40,7 @@ class TreeViz:
         ladderize: bool = False,
         line_kws: dict[str, Any] | None = None,
         align_line_kws: dict[str, Any] | None = None,
+        label_formatter: Callable[[str], str] | None = None,
         track: Track,
     ):
         """
@@ -69,6 +70,10 @@ class TreeViz:
         align_line_kws : dict[str, Any] | None, optional
             Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        label_formatter : Callable[[str], str] | None, optional
+            User-defined label text format function to change plot label text content.
+            For example, if you want to change underscore of the label to space,
+            set `lambda t: t.replace("_", " ")`.
         track : Track
             Track for tree visualization
         """
@@ -105,6 +110,8 @@ class TreeViz:
 
         self._node2label_props: dict[str, dict[str, Any]] = defaultdict(lambda: {})
         self._node2line_props: dict[str, dict[str, Any]] = defaultdict(lambda: {})
+
+        self._label_formatter: Callable[[str], str] | None = label_formatter
 
     ############################################################
     # Properties
@@ -617,6 +624,9 @@ class TreeViz:
             _text_kws.update(params)
             _text_kws.update(self._node2label_props[label])
 
+            # Apply label text format function if defined
+            if self._label_formatter is not None:
+                label = self._label_formatter(label)
             # Plot label if text size > 0
             if float(_text_kws["size"]) > 0:
                 self.track.text(label, x, r, **_text_kws)  # type: ignore
