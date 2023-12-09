@@ -38,7 +38,7 @@ class Line(PathPatch):
 
         # Set line path
         verts = list(zip(rad_lim, r_lim))
-        super().__init__(Path(verts), **kwargs)
+        super().__init__(Path(verts), **kwargs)  # type: ignore
 
 
 class ArcLine(PathPatch):
@@ -84,7 +84,7 @@ class ArcLine(PathPatch):
 
         # Set line path
         verts = list(zip(arc_rads, arc_r_list))
-        super().__init__(Path(verts), **kwargs)
+        super().__init__(Path(verts), **kwargs)  # type: ignore
 
 
 class ArcRectangle(PathPatch):
@@ -117,7 +117,7 @@ class ArcRectangle(PathPatch):
         bottom_arc_path = list(zip(arc_rads, [min_r] * len(arc_rads)))
         upper_arc_path = list(zip(arc_rads[::-1], [max_r] * len(arc_rads)))
         arc_rect_path = Path(
-            bottom_arc_path + upper_arc_path + [bottom_arc_path[0]],
+            bottom_arc_path + upper_arc_path + [bottom_arc_path[0]],  # type: ignore
             closed=True,
         )
         super().__init__(arc_rect_path, **kwargs)
@@ -188,7 +188,7 @@ class ArcArrow(PathPatch):
         bottom_shaft_arc_path = list(zip(shaft_arc_rads, bottom_shaft_r_list))
         upper_shaft_arc_path = list(zip(shaft_arc_rads[::-1], upper_shaft_r_list))
         arc_arrow_path = Path(
-            bottom_shaft_arc_path + [p2, p3, p4, p5, p6] + upper_shaft_arc_path + [p1],
+            bottom_shaft_arc_path + [p2, p3, p4, p5, p6] + upper_shaft_arc_path + [p1],  # type: ignore
             closed=True,
         )
         super().__init__(arc_arrow_path, **kwargs)
@@ -335,5 +335,5 @@ class BezierCurve(PathPatch):
             raise ValueError(err_msg)
 
         verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
-        bezier_curve_path = Path(verts, codes, closed=True)
+        bezier_curve_path = Path(verts, codes, closed=True)  # type: ignore
         super().__init__(bezier_curve_path, **kwargs)
