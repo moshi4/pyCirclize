@@ -25,9 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: |
-          pip install .
-          pip install pytest pytest-cov ruff
+        run: pip install -e . pytest pytest-cov ruff
 
       - name: Run ruff format check
         run: ruff format --check --diff
