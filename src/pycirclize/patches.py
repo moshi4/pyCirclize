@@ -337,3 +337,98 @@ class BezierCurve(PathPatch):
         verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
         bezier_curve_path = Path(verts, codes, closed=True)  # type: ignore
         super().__init__(bezier_curve_path, **kwargs)
+
+
+class BezierCurveArrowLine(PathPatch):
+    """Bezier Curve Arrow Line PathPatch"""
+
+    def __init__(
+        self,
+        rad1: float,
+        r1: float,
+        rad2: float,
+        r2: float,
+        height_ratio: float = 0.5,
+        direction: int = 0,
+        arrow_height: float = 3.0,
+        arrow_width: float = 1.0,
+        **kwargs,
+    ):
+        """
+        Parameters
+        ----------
+        rad1 : float
+            Radian position1
+        r1 : float
+            Radius position1
+        rad2 : float
+            Radian position2
+        r2 : float
+            Radius position2
+        height_ratio : float, optional
+            Bezier curve height ratio parameter
+        direction : int, optional
+            `0`: No edge shape (Default)
+            `1`: Directional(1 -> 2) arrow edge shape
+            `-1`: Directional(1 <- 2) arrow edge shape
+            `2`: Bidirectional arrow edge shape
+        arrow_height : float, optional
+            Arrow height size (Radius unit)
+        arrow_width : float, optional
+            Arrow width size (Degree unit)
+        **kwargs : dict, optional
+            Patch properties (e.g. `lw=1.0, hatch="//", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        """
+        kwargs.update(fill=False)
+        kwargs.setdefault("lw", 0.5)
+
+        def bezier_paths(
+            rad1: float,
+            rad2: float,
+            r1: float,
+            r2: float,
+            height_ratio: float = 0.5,
+        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+            if height_ratio >= 0.5:
+                # Example1: height_ratio: 0.50 => r_ctl_pos: 0
+                # Example2: height_ratio: 0.75 => r_ctl_pos: 25
+                # Example3: height_ratio: 1.00 => r_ctl_pos: 50
+                r_ctl_pos = config.MAX_R * (height_ratio - 0.5)
+                rad_ctl_pos = (rad1 + rad2) / 2 + math.pi
+            else:
+                # Example1: height_ratio: 0.25 => r_ctl_pos: 25
+                # Example2: height_ratio: 0.00 => r_ctl_pos: 50
+                r_ctl_pos = config.MAX_R * (0.5 - height_ratio)
+                rad_ctl_pos = (rad1 + rad2) / 2
+            return [
+                (Path.LINETO, (rad1, r1)),
+                (Path.CURVE3, (rad_ctl_pos, r_ctl_pos)),
+                (Path.LINETO, (rad2, r2)),
+            ]
+
+        def arrow_line_paths(
+            rad_pos: float,
+            r_pos: float,
+            arrow_rad_width: float,
+            arrow_r_height: float,
+        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+            return [
+                (Path.LINETO, (rad_pos + arrow_rad_width / 2, r_pos - arrow_r_height)),
+                (Path.LINETO, (rad_pos, r_pos)),
+                (Path.LINETO, (rad_pos - arrow_rad_width / 2, r_pos - arrow_r_height)),
+            ]
+
+        arrow_rad_width = np.radians(arrow_width)
+        path_data: list[tuple[Path.code_type, tuple[float, float]]] = []
+        path_data.append((Path.MOVETO, (rad1, r1)))
+        if direction in (config.Direction.REVERSE, config.Direction.BIDIRECTIONAL):
+            path_data.extend(arrow_line_paths(rad1, r1, arrow_rad_width, arrow_height))
+        path_data.extend(bezier_paths(rad1, rad2, r1, r2, height_ratio))
+        path_data.append((Path.LINETO, (rad2, r2)))
+        if direction in (config.Direction.FORWARD, config.Direction.BIDIRECTIONAL):
+            path_data.extend(arrow_line_paths(rad2, r2, arrow_rad_width, arrow_height))
+
+        verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
+        bezier_arrow_line_path = Path(verts, codes, closed=True)  # type: ignore
+        super().__init__(bezier_arrow_line_path, **kwargs)
