@@ -25,8 +25,8 @@ from pycirclize.parser import Bed, Matrix
 from pycirclize.patches import (
     ArcLine,
     ArcRectangle,
-    BezierCurve,
-    BezierCurveArrowLine,
+    BezierCurveLine,
+    BezierCurveLink,
     Line,
 )
 from pycirclize.sector import Sector
@@ -700,7 +700,7 @@ class Circos:
                 rad_start2, rad_end2 = rad_end2, rad_start2
 
         # Create bezier curve path patch
-        bezier_curve = BezierCurve(
+        bezier_curve_link = BezierCurveLink(
             rad_start1,
             rad_end1,
             r1,
@@ -712,7 +712,7 @@ class Circos:
             arrow_length_ratio,
             **kwargs,
         )
-        self._patches.append(bezier_curve)
+        self._patches.append(bezier_curve_link)
 
     def link_line(
         self,
@@ -769,7 +769,7 @@ class Circos:
 
         kwargs.update(color=color)
 
-        bezier_curve_arrow_line = BezierCurveArrowLine(
+        bezier_curve_line = BezierCurveLine(
             rad_pos1,
             r1,
             rad_pos2,
@@ -780,7 +780,7 @@ class Circos:
             arrow_width,
             **kwargs,
         )
-        self._patches.append(bezier_curve_arrow_line)
+        self._patches.append(bezier_curve_line)
 
     def colorbar(
         self,

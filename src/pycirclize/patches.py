@@ -194,8 +194,8 @@ class ArcArrow(PathPatch):
         super().__init__(arc_arrow_path, **kwargs)
 
 
-class BezierCurve(PathPatch):
-    """Bezier Curve PathPatch"""
+class BezierCurveLink(PathPatch):
+    """Bezier Curve Link PathPatch"""
 
     def __init__(
         self,
@@ -339,8 +339,8 @@ class BezierCurve(PathPatch):
         super().__init__(bezier_curve_path, **kwargs)
 
 
-class BezierCurveArrowLine(PathPatch):
-    """Bezier Curve Arrow Line PathPatch"""
+class BezierCurveLine(PathPatch):
+    """Bezier Curve Line PathPatch"""
 
     def __init__(
         self,
