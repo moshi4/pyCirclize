@@ -14,6 +14,7 @@
 - [API Usage](#api-usage)
 - [Code Example](#code-example)
 - [Not Implemented Features](#not-implemented-features)
+- [Star History](#star-history)
 
 ## Overview
 
@@ -231,3 +232,7 @@ I may implement them when I feel like it.
 - Plot boxplot
 - Plot violin
 - Label position auto adjustment
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=moshi4/pyCirclize&type=Date)](https://star-history.com/#moshi4/pyCirclize&Date)
