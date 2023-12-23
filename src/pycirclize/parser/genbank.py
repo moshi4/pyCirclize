@@ -139,7 +139,7 @@ class Genbank:
             gc_content = SeqUtils.gc_fraction(self.genome_seq) * 100
         except AttributeError:
             # For backward compatibility, biopython <= 1.79
-            gc_content = SeqUtils.GC(self.genome_seq)
+            gc_content = SeqUtils.GC(self.genome_seq)  # type: ignore
         return gc_content
 
     def calc_gc_skew(
@@ -234,7 +234,7 @@ class Genbank:
                 gc_content = SeqUtils.gc_fraction(subseq) * 100
             except AttributeError:
                 # For backward compatibility, biopython <= 1.79
-                gc_content = SeqUtils.GC(subseq)
+                gc_content = SeqUtils.GC(subseq)  # type: ignore
             gc_content_list.append(gc_content)
 
         return (np.array(pos_list), np.array(gc_content_list))
@@ -247,7 +247,7 @@ class Genbank:
         seqid2seq : dict[str, int]
             seqid & genome sequence dict
         """
-        return {rec.id: rec.seq for rec in self.records}
+        return {str(rec.id): rec.seq for rec in self.records}
 
     def get_seqid2size(self) -> dict[str, int]:
         """Get seqid & complete/contig/scaffold genome size dict
@@ -288,11 +288,12 @@ class Genbank:
         for rec in self.records:
             feat: SeqFeature
             for feat in rec.features:
+                strand = feat.location.strand
                 if feature_type is not None and feat.type != feature_type:
                     continue
-                if target_strand is not None and feat.strand != target_strand:
+                if target_strand is not None and strand != target_strand:
                     continue
-                if feat.strand == -1:
+                if strand == -1:
                     start = self._to_int(feat.location.parts[-1].start)
                     end = self._to_int(feat.location.parts[0].end)
                 else:
@@ -308,7 +309,7 @@ class Genbank:
                 ):
                     seqid2features[rec.id].append(
                         SeqFeature(
-                            location=FeatureLocation(start, end, feat.strand),
+                            location=FeatureLocation(start, end, strand),
                             type=feat.type,
                             qualifiers=feat.qualifiers,
                         ),
@@ -362,7 +363,8 @@ class Genbank:
                         translation = f.qualifiers.get("translation", [None])[0]
                         if translation is None:
                             continue
-                if f.strand == -1:
+                strand = f.location.strand
+                if strand == -1:
                     # Handle rare case (complement & join)
                     # Found in NC_00913 protein_id=NP_417367.1
                     start = self._to_int(f.location.parts[-1].start) + base_len
@@ -388,7 +390,7 @@ class Genbank:
                         # Ignore out of range features
                         continue
                 # Extract only target strand feature
-                if target_strand is not None and f.strand != target_strand:
+                if target_strand is not None and strand != target_strand:
                     continue
                 # Fix start & end position by min_range
                 if fix_position:
@@ -397,7 +399,7 @@ class Genbank:
 
                 extract_features.append(
                     SeqFeature(
-                        location=FeatureLocation(start, end, f.strand),
+                        location=FeatureLocation(start, end, strand),
                         type=f.type,
                         qualifiers=f.qualifiers,
                     ),
@@ -437,7 +439,7 @@ class Genbank:
 
             start = self._to_int(feature.location.start)
             end = self._to_int(feature.location.end)
-            strand = -1 if feature.strand == -1 else 1
+            strand = -1 if feature.location.strand == -1 else 1
 
             location_id = f"|{start}_{end}_{strand}|"
             if protein_id is None:
@@ -448,7 +450,7 @@ class Genbank:
             if seqtype == "protein":
                 seq = Seq(translation)
             elif seqtype == "nucleotide":
-                seq = Seq(feature.location.extract(self.genome_seq))
+                seq = Seq(feature.location.extract(self.genome_seq))  # type: ignore
             else:
                 raise ValueError(f"{seqtype=} is invalid.")
 

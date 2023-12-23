@@ -1261,7 +1261,7 @@ class Track:
             except ValueError:
                 print(f"Failed to parse feature's start-end position.\n{feature}")
                 continue
-            if feature.strand == -1:
+            if feature.location.strand == -1:
                 start, end = end, start
             if plotstyle == "box":
                 self.rect(start, end, r_lim=r_lim, **kwargs)
