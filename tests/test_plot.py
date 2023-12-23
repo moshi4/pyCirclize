@@ -97,6 +97,25 @@ def test_circos_link_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
+def test_circos_link_line_plot(fig_outfile: Path):
+    """Test `circos.link_line()`"""
+    sectors = {"A": 10, "B": 20, "C": 15}
+    name2color = {"A": "red", "B": "blue", "C": "green"}
+    circos = Circos(sectors, space=5)
+    for sector in circos.sectors:
+        track = sector.add_track((95, 100))
+        track.axis(fc=name2color[sector.name])
+
+    # Plot link lines in various style
+    circos.link_line(("A", 0), ("A", 5))
+    circos.link_line(("A", 5), ("B", 5), direction=1, lw=2, ls="dotted")
+    circos.link_line(("B", 20), ("C", 0), r1=80, r2=90, direction=-1, color="blue")
+    circos.link_line(("C", 5), ("C", 15), direction=2, arrow_height=6, arrow_width=4)
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
 def test_circos_colorbar_plot(fig_outfile: Path):
     """Test `circos.colorbar()`"""
     circos = Circos(sectors=dict(data=100), start=90)

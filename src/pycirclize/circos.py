@@ -21,7 +21,13 @@ from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
 from pycirclize.parser import Bed, Matrix
-from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve, Line
+from pycirclize.patches import (
+    ArcLine,
+    ArcRectangle,
+    BezierCurve,
+    BezierCurveArrowLine,
+    Line,
+)
 from pycirclize.sector import Sector
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
@@ -706,6 +712,74 @@ class Circos:
             **kwargs,
         )
         self._patches.append(bezier_curve)
+
+    def link_line(
+        self,
+        sector_pos1: tuple[str, float],
+        sector_pos2: tuple[str, float],
+        r1: float | None = None,
+        r2: float | None = None,
+        *,
+        color: str = "black",
+        height_ratio: float = 0.5,
+        direction: int = 0,
+        arrow_height: float = 3.0,
+        arrow_width: float = 2.0,
+        **kwargs,
+    ) -> None:
+        """Plot link line to specified position within or between sectors
+
+        Parameters
+        ----------
+        sector_pos1 : tuple[str, float]
+            Link sector position1 (name, position)
+        sector_pos2 : tuple[str, float]
+            Link sector position2 (name, position)
+        r1 : float | None, optional
+            Link radius end position for sector_pos1.
+            If None, lowest radius position of track in target sector is set.
+        r2 : float | None, optional
+            Link radius end position for sector_pos2.
+            If None, lowest radius position of track in target sector is set.
+        color : str, optional
+            Link color
+        height_ratio : float, optional
+            Bezier curve height ratio
+        direction : int, optional
+            `0`: No direction edge shape (Default)
+            `1`: Forward direction arrow edge shape (pos1 -> pos2)
+            `-1`: Reverse direction arrow edge shape (pos1 <- pos2)
+            `2`: Bidirectional arrow edge shape (pos1 <-> pos2)
+        arrow_height: float, optional
+            Arrow height size (Radius unit)
+        arrow_width: float, optional
+            Arrow width size (Degree unit)
+        **kwargs : dict, optional
+            Patch properties (e.g. `lw=1.0, ls="dotted", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        """
+        # Set data for plot link
+        name1, pos1 = sector_pos1
+        name2, pos2 = sector_pos2
+        sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
+        r1 = sector1.get_lowest_r() if r1 is None else r1
+        r2 = sector2.get_lowest_r() if r2 is None else r2
+        rad_pos1, rad_pos2 = sector1.x_to_rad(pos1), sector2.x_to_rad(pos2)
+
+        kwargs.update(color=color)
+
+        bezier_curve_arrow_line = BezierCurveArrowLine(
+            rad_pos1,
+            r1,
+            rad_pos2,
+            r2,
+            height_ratio,
+            direction,
+            arrow_height,
+            arrow_width,
+            **kwargs,
+        )
+        self._patches.append(bezier_curve_arrow_line)
 
     def colorbar(
         self,
