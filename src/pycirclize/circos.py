@@ -4,6 +4,7 @@ import itertools
 import math
 import textwrap
 from collections import defaultdict
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -38,20 +39,20 @@ class Circos:
 
     def __init__(
         self,
-        sectors: dict[str, int] | dict[str, float],
+        sectors: Mapping[str, int | float],
         start: float = 0,
         end: float = 360,
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sector2start_pos: dict[str, int] | dict[str, float] | None = None,
+        sector2start_pos: Mapping[str, int | float] | None = None,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
         """
         Parameters
         ----------
-        sectors : dict[str, int] | dict[str, float]
+        sectors : Mapping[str, int | float]
             Sector name & size dict
         start : float, optional
             Plot start degree (`-360 <= start < end <= 360`)
@@ -61,7 +62,7 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sector2start_pos : dict[str, int] | dict[str, float] | None, optional
+        sector2start_pos : Mapping[str, int | float] | None, optional
             Sector name & start position dict. By default, `start_pos=0`.
         sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
@@ -883,7 +884,7 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig  # type: ignore
+        return fig
 
     def savefig(
         self,
@@ -961,7 +962,7 @@ class Circos:
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
-        return fig, ax  # type: ignore
+        return fig, ax
 
     def _initialize_polar_axes(self, ax: PolarAxes) -> None:
         """Initialize polar axes params
