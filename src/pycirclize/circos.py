@@ -733,17 +733,17 @@ class Circos:
         Parameters
         ----------
         sector_pos1 : tuple[str, float]
-            Link sector position1 (name, position)
+            Link line sector position1 (name, position)
         sector_pos2 : tuple[str, float]
-            Link sector position2 (name, position)
+            Link line sector position2 (name, position)
         r1 : float | None, optional
-            Link radius end position for sector_pos1.
+            Link line radius end position for sector_pos1.
             If None, lowest radius position of track in target sector is set.
         r2 : float | None, optional
-            Link radius end position for sector_pos2.
+            Link line radius end position for sector_pos2.
             If None, lowest radius position of track in target sector is set.
         color : str, optional
-            Link color
+            Link line color
         height_ratio : float, optional
             Bezier curve height ratio
         direction : int, optional
@@ -751,12 +751,12 @@ class Circos:
             `1`: Forward direction arrow edge shape (pos1 -> pos2)
             `-1`: Reverse direction arrow edge shape (pos1 <- pos2)
             `2`: Bidirectional arrow edge shape (pos1 <-> pos2)
-        arrow_height: float, optional
+        arrow_height : float, optional
             Arrow height size (Radius unit)
-        arrow_width: float, optional
+        arrow_width : float, optional
             Arrow width size (Degree unit)
         **kwargs : dict, optional
-            Patch properties (e.g. `lw=1.0, ls="dotted", ...`)
+            Patch properties (e.g. `lw=1.0, ls="dashed", ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
         # Set data for plot link

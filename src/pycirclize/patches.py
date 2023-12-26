@@ -413,17 +413,18 @@ class BezierCurveLine(PathPatch):
             arrow_rad_width: float,
             arrow_r_height: float,
         ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+            arrow_r_pos = r_pos - arrow_r_height
             return [
-                (Path.LINETO, (rad_pos + arrow_rad_width / 2, r_pos - arrow_r_height)),
+                (Path.MOVETO, (rad_pos + (arrow_rad_width / 2), arrow_r_pos)),
                 (Path.LINETO, (rad_pos, r_pos)),
-                (Path.LINETO, (rad_pos - arrow_rad_width / 2, r_pos - arrow_r_height)),
+                (Path.LINETO, (rad_pos - (arrow_rad_width / 2), arrow_r_pos)),
             ]
 
         arrow_rad_width = np.radians(arrow_width)
         path_data: list[tuple[Path.code_type, tuple[float, float]]] = []
-        path_data.append((Path.MOVETO, (rad1, r1)))
         if direction in (config.Direction.REVERSE, config.Direction.BIDIRECTIONAL):
             path_data.extend(arrow_line_paths(rad1, r1, arrow_rad_width, arrow_height))
+        path_data.append((Path.MOVETO, (rad1, r1)))
         path_data.extend(bezier_paths(rad1, rad2, r1, r2, height_ratio))
         path_data.append((Path.LINETO, (rad2, r2)))
         if direction in (config.Direction.FORWARD, config.Direction.BIDIRECTIONAL):
