@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 from Bio import SeqIO, SeqUtils
-from Bio.SeqFeature import FeatureLocation, Seq, SeqFeature
+from Bio.SeqFeature import Seq, SeqFeature, SimpleLocation
 from Bio.SeqRecord import SeqRecord
 
 
@@ -309,7 +309,7 @@ class Genbank:
                 ):
                     seqid2features[rec.id].append(
                         SeqFeature(
-                            location=FeatureLocation(start, end, strand),
+                            location=SimpleLocation(start, end, strand),
                             type=feat.type,
                             qualifiers=feat.qualifiers,
                         ),
@@ -399,7 +399,7 @@ class Genbank:
 
                 extract_features.append(
                     SeqFeature(
-                        location=FeatureLocation(start, end, strand),
+                        location=SimpleLocation(start, end, strand),
                         type=f.type,
                         qualifiers=f.qualifiers,
                     ),
