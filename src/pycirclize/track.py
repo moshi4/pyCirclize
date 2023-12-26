@@ -740,7 +740,7 @@ class Track:
         r = [self._y_to_r(v, vmin, vmax) for v in y]
 
         def plot_scatter(ax: PolarAxes) -> None:
-            ax.scatter(rad, r, **kwargs)
+            ax.scatter(rad, r, **kwargs)  # type:ignore
 
         self._plot_funcs.append(plot_scatter)
 
@@ -803,7 +803,7 @@ class Track:
 
         def plot_bar(ax: PolarAxes) -> None:
             ax.bar(
-                rad,
+                rad,  # type: ignore
                 r_height,
                 rad_width,
                 r_bottom,
@@ -1117,7 +1117,7 @@ class Track:
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
-        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]
+        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]  # type: ignore
         norm = Normalize(vmin=vmin, vmax=vmax)
         for row_idx, row in enumerate(data):
             for col_idx, v in enumerate(row):
@@ -1261,7 +1261,7 @@ class Track:
             except ValueError:
                 print(f"Failed to parse feature's start-end position.\n{feature}")
                 continue
-            if feature.strand == -1:
+            if feature.location.strand == -1:
                 start, end = end, start
             if plotstyle == "box":
                 self.rect(start, end, r_lim=r_lim, **kwargs)

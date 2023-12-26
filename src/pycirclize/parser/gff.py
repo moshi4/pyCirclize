@@ -9,7 +9,7 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, TextIO
 
-from Bio.SeqFeature import CompoundLocation, FeatureLocation, SeqFeature
+from Bio.SeqFeature import CompoundLocation, SeqFeature, SimpleLocation
 
 
 class Gff:
@@ -392,15 +392,15 @@ class GffRecord:
             qualifiers=self.attrs,
         )
 
-    def to_feature_location(self) -> FeatureLocation:
-        """Convert GffRecord to FeatureLocation
+    def to_feature_location(self) -> SimpleLocation:
+        """Convert GffRecord to SimpleLocation
 
         Returns
         -------
-        feature_location : FeatureLocation
-            Feature location
+        location : SimpleLocation
+            Location
         """
-        return FeatureLocation(self.start, self.end, self.strand)
+        return SimpleLocation(self.start, self.end, self.strand)
 
     def to_gff_line(self) -> str:
         """Convert GffRecord to GFF record line

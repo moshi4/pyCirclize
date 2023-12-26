@@ -4,6 +4,7 @@ import itertools
 import math
 import textwrap
 from collections import defaultdict
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -21,7 +22,13 @@ from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
 from pycirclize.parser import Bed, Matrix
-from pycirclize.patches import ArcLine, ArcRectangle, BezierCurve, Line
+from pycirclize.patches import (
+    ArcLine,
+    ArcRectangle,
+    BezierCurveLine,
+    BezierCurveLink,
+    Line,
+)
 from pycirclize.sector import Sector
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
@@ -32,20 +39,20 @@ class Circos:
 
     def __init__(
         self,
-        sectors: dict[str, int] | dict[str, float],
+        sectors: Mapping[str, int | float],
         start: float = 0,
         end: float = 360,
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sector2start_pos: dict[str, int] | dict[str, float] | None = None,
+        sector2start_pos: Mapping[str, int | float] | None = None,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
         """
         Parameters
         ----------
-        sectors : dict[str, int] | dict[str, float]
+        sectors : Mapping[str, int | float]
             Sector name & size dict
         start : float, optional
             Plot start degree (`-360 <= start < end <= 360`)
@@ -55,7 +62,7 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sector2start_pos : dict[str, int] | dict[str, float] | None, optional
+        sector2start_pos : Mapping[str, int | float] | None, optional
             Sector name & start position dict. By default, `start_pos=0`.
         sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
@@ -693,7 +700,7 @@ class Circos:
                 rad_start2, rad_end2 = rad_end2, rad_start2
 
         # Create bezier curve path patch
-        bezier_curve = BezierCurve(
+        bezier_curve_link = BezierCurveLink(
             rad_start1,
             rad_end1,
             r1,
@@ -705,7 +712,75 @@ class Circos:
             arrow_length_ratio,
             **kwargs,
         )
-        self._patches.append(bezier_curve)
+        self._patches.append(bezier_curve_link)
+
+    def link_line(
+        self,
+        sector_pos1: tuple[str, float],
+        sector_pos2: tuple[str, float],
+        r1: float | None = None,
+        r2: float | None = None,
+        *,
+        color: str = "black",
+        height_ratio: float = 0.5,
+        direction: int = 0,
+        arrow_height: float = 3.0,
+        arrow_width: float = 2.0,
+        **kwargs,
+    ) -> None:
+        """Plot link line to specified position within or between sectors
+
+        Parameters
+        ----------
+        sector_pos1 : tuple[str, float]
+            Link line sector position1 (name, position)
+        sector_pos2 : tuple[str, float]
+            Link line sector position2 (name, position)
+        r1 : float | None, optional
+            Link line radius end position for sector_pos1.
+            If None, lowest radius position of track in target sector is set.
+        r2 : float | None, optional
+            Link line radius end position for sector_pos2.
+            If None, lowest radius position of track in target sector is set.
+        color : str, optional
+            Link line color
+        height_ratio : float, optional
+            Bezier curve height ratio
+        direction : int, optional
+            `0`: No direction edge shape (Default)
+            `1`: Forward direction arrow edge shape (pos1 -> pos2)
+            `-1`: Reverse direction arrow edge shape (pos1 <- pos2)
+            `2`: Bidirectional arrow edge shape (pos1 <-> pos2)
+        arrow_height : float, optional
+            Arrow height size (Radius unit)
+        arrow_width : float, optional
+            Arrow width size (Degree unit)
+        **kwargs : dict, optional
+            Patch properties (e.g. `lw=1.0, ls="dashed", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        """
+        # Set data for plot link
+        name1, pos1 = sector_pos1
+        name2, pos2 = sector_pos2
+        sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
+        r1 = sector1.get_lowest_r() if r1 is None else r1
+        r2 = sector2.get_lowest_r() if r2 is None else r2
+        rad_pos1, rad_pos2 = sector1.x_to_rad(pos1), sector2.x_to_rad(pos2)
+
+        kwargs.update(color=color)
+
+        bezier_curve_line = BezierCurveLine(
+            rad_pos1,
+            r1,
+            rad_pos2,
+            r2,
+            height_ratio,
+            direction,
+            arrow_height,
+            arrow_width,
+            **kwargs,
+        )
+        self._patches.append(bezier_curve_line)
 
     def colorbar(
         self,
@@ -809,7 +884,7 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig  # type: ignore
+        return fig
 
     def savefig(
         self,
@@ -887,7 +962,7 @@ class Circos:
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
-        return fig, ax  # type: ignore
+        return fig, ax
 
     def _initialize_polar_axes(self, ax: PolarAxes) -> None:
         """Initialize polar axes params
