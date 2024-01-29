@@ -182,6 +182,8 @@ def test_phylogenetic_tree_plot(fig_outfile: Path):
     tv.set_node_line_props(["S", "R"], color="lime", descendent=False)
     tv.set_node_line_props(["X", "Y", "Z"], color="purple", apply_label_color=True)
 
+    tv.show_confidence()
+
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 

@@ -246,6 +246,49 @@ class TreeViz:
         )
         return target_xlim
 
+    def show_confidence(
+        self,
+        *,
+        size: float = 8,
+        orientation: str = "vertical",
+        label_formatter: Callable[[float], str] | None = None,
+        **kwargs,
+    ) -> None:
+        """Show confidence value on each internal node of the phylogenetic tree
+
+        Parameters
+        ----------
+        size : float, optional
+            Text size
+        orientation : str, optional
+            Text orientation (`horizontal` or `vertical`)
+        label_formatter : Callable[[float], str] | None, optional
+            User-defined function for label format.
+        **kwargs : dict, optional
+            Text properties (e.g. `color="red", ...`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        """
+        node: Clade
+        for node in self.tree.get_nonterminals():
+            # Ignore if confidence value is None
+            confidence = node.confidence
+            if confidence is None:
+                continue
+
+            # Format confidence label
+            if label_formatter:
+                label = label_formatter(float(confidence))
+            elif str(confidence).isdigit():
+                label = str(confidence)
+            else:
+                label = f"{float(confidence):.2f}"
+
+            # Get target node x, r coordinate
+            x, r = self.name2xr[str(node.name)]
+
+            kwargs.update(size=size, orientation=orientation)
+            self.track.parent_sector.text(label, x, r + 1.0, **kwargs)
+
     def highlight(
         self,
         query: str | list[str] | tuple[str],
