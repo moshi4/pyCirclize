@@ -1321,7 +1321,8 @@ class Track:
                 all_arc_rad.extend([rad1, rad2])
                 all_arc_r.extend([r1, r2])
             else:
-                step = config.ARC_RADIAN_STEP
+                # To obtain finely chopped coordinates, step is reduced by a tenth
+                step = config.ARC_RADIAN_STEP / 10
                 if rad1 > rad2:
                     step *= -1
                 arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
