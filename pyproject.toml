@@ -23,7 +23,7 @@ include = ["tests"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=src --tb=line --cov-report=xml --cov-report=term"
+addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.ruff]
