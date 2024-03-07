@@ -837,6 +837,7 @@ class Circos:
         dpi: int = 100,
         *,
         ax: PolarAxes | None = None,
+        figsize: tuple[float, float] = (8, 8),
     ) -> Figure:
         """Plot figure
 
@@ -846,6 +847,8 @@ class Circos:
             Figure DPI
         ax : PolarAxes | None
             If None, figure and axes are newly created.
+        figsize : tuple[float, float], optional
+            Figure size
 
         Returns
         -------
@@ -854,7 +857,7 @@ class Circos:
         """
         if ax is None:
             # Initialize Figure & PolarAxes
-            fig, ax = self._initialize_figure(dpi=dpi)
+            fig, ax = self._initialize_figure(figsize=figsize, dpi=dpi)
         else:
             # Check PolarAxes or not
             if not isinstance(ax, PolarAxes):
@@ -891,6 +894,7 @@ class Circos:
         savefile: str | Path,
         *,
         dpi: int = 100,
+        figsize: tuple[float, float] = (8, 8),
         pad_inches: float = 0.5,
     ) -> None:
         """Save figure to file
@@ -904,10 +908,12 @@ class Circos:
             Save file (`*.png`|`*.jpg`|`*.svg`|`*.pdf`)
         dpi : int, optional
             DPI
+        figsize : tuple[float, float], optional
+            Figure size
         pad_inches : float, optional
             Padding inches
         """
-        fig = self.plotfig(dpi=dpi)
+        fig = self.plotfig(dpi=dpi, figsize=figsize)
         fig.savefig(
             fname=savefile,  # type: ignore
             dpi=dpi,
