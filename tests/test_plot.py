@@ -144,6 +144,13 @@ def test_circos_colorbar_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
+def test_radar_chart_plot(fig_outfile: Path, tsv_radar_table_file: Path):
+    """Test radar chart plot"""
+    circos = Circos.radar_chart(tsv_radar_table_file, vmax=100, marker_size=6)
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+
 def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
     """Test chord diagram plot"""
     circos = Circos.initialize_from_matrix(tsv_matrix_file)

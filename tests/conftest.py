@@ -63,6 +63,20 @@ def fromto_table_df() -> pd.DataFrame:
 
 
 @pytest.fixture
+def radar_table_df() -> pd.DataFrame:
+    """Pandas radar table dataframe"""
+    return pd.DataFrame(
+        data=[
+            [80, 80, 80, 80, 80, 80],
+            [90, 95, 95, 30, 30, 80],
+            [60, 20, 20, 100, 90, 50],
+        ],
+        index=["Hero", "Warrior", "Wizard"],
+        columns=["HP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"],
+    )
+
+
+@pytest.fixture
 def csv_matrix_file(matrix_df: pd.DataFrame, tmp_path: Path) -> Path:
     """CSV matrix file fixture"""
     csv_matrix_file = tmp_path / "matrix.csv"
@@ -76,3 +90,11 @@ def tsv_matrix_file(matrix_df: pd.DataFrame, tmp_path: Path) -> Path:
     tsv_matrix_file = tmp_path / "matrix.tsv"
     matrix_df.to_csv(tsv_matrix_file, sep="\t")
     return tsv_matrix_file
+
+
+@pytest.fixture
+def tsv_radar_table_file(radar_table_df: pd.DataFrame, tmp_path: Path) -> Path:
+    """TSV radar table file fixture"""
+    tsv_radar_table_file = tmp_path / "radar_table.tsv"
+    radar_table_df.to_csv(tsv_radar_table_file, sep="\t")
+    return tsv_radar_table_file

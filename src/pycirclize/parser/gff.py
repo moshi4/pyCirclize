@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import bz2
 import gzip
+import warnings
 import zipfile
 from collections import defaultdict
 from dataclasses import dataclass
@@ -18,10 +19,11 @@ class Gff:
     def __init__(
         self,
         gff_file: str | Path,
+        *,
         name: str | None = None,
         target_seqid: str | None = None,
-        min_range: int | None = None,
-        max_range: int | None = None,
+        min_range: None = None,
+        max_range: None = None,
     ):
         """
         Parameters
@@ -32,24 +34,215 @@ class Gff:
             name (If None, `file name` is set)
         target_seqid : str | None, optional
             Target seqid to be extracted. If None, only first seqid record is extracted.
-        min_range : int | None, optional
-            Min range to be extracted.
-            If None, appropriate value is taken from GFF records.
-        max_range : int | None, optional
-            Max range to be extracted.
-            If None, appropriate value is taken from GFF records.
+        min_range : None, optional
+            No longer used. Left for backward compatibility.
+        max_range : None, optional
+            No longer used. Left for backward compatibility.
         """
         self._gff_file = Path(gff_file)
         self._name = name
         self._records, start, end = self._parse_gff(gff_file, target_seqid)
-        self.min_range = start if min_range is None else min_range
-        self.max_range = end if max_range is None else max_range
         self._seq_region = (start, end)
 
-        if not 0 <= self.min_range <= self.max_range:
-            err_msg = "Range must be '0 <= min_range <= max_range' "
-            err_msg += f"({self.min_range=}, {self.max_range=})"
-            raise ValueError(err_msg)
+        if min_range or max_range:
+            warnings.warn("min_range & max_range is no longer used in Gff parser.")
+
+    ############################################################
+    # Property
+    ############################################################
+
+    @property
+    def name(self) -> str:
+        """Name"""
+        if self._name is not None:
+            return self._name
+        if self._gff_file.suffix in (".gz", ".bz2", ".zip"):
+            return self._gff_file.with_suffix("").with_suffix("").name
+        else:
+            return self._gff_file.with_suffix("").name
+
+    @property
+    def seq_region(self) -> tuple[int, int]:
+        """GFF sequence-region start & end tuple
+
+        If `##sequence-region` pragma is not found, seq_region=`(0, max_coords_value)`
+        """
+        return self._seq_region
+
+    @property
+    def records(self) -> list[GffRecord]:
+        """GFF records (only target seqid)"""
+        return self._records
+
+    @property
+    def all_records(self) -> list[GffRecord]:
+        """All GFF records"""
+        return self._all_records
+
+    @property
+    def target_seqid(self) -> str:
+        """Target seqid"""
+        return self._target_seqid
+
+    @property
+    def seqid_list(self) -> list[str]:
+        """seqid list"""
+        return self._seqid_list
+
+    @property
+    def genome_length(self) -> int:
+        """Genome length (target seqid record)"""
+        return max(self.seq_region)
+
+    @property
+    def range_size(self) -> int:
+        """Same as `self.genome_length` (Left for backward compatibility)"""
+        return self.genome_length
+
+    @property
+    def full_genome_length(self) -> int:
+        """Full genome length (concatenate all records)"""
+        return sum(list(self.get_seqid2size().values()))
+
+    ############################################################
+    # Public Method
+    ############################################################
+
+    def get_seqid2size(self) -> dict[str, int]:
+        """Get seqid & complete/contig/scaffold genome size dict
+
+        By default, size is defined by `##sequence-region` pragma of target seqid.
+        If `##sequence-region` is not found, size is defined by max coordinate size in
+        target seqid features. This may differ from actual genome size.
+
+        Returns
+        -------
+        seqid2size : dict[str, int]
+            seqid & genome size dict
+        """
+        return self._seqid2size
+
+    def get_seqid2features(
+        self,
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+    ) -> dict[str, list[SeqFeature]]:
+        """Get seqid & features in target seqid genome dict
+
+        Parameters
+        ----------
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+
+        Returns
+        -------
+        seqid2features : dict[str, list[SeqFeature]]
+            seqid & features dict
+        """
+        gff_records = GffRecord.filter_records(
+            self.all_records,
+            feature_type=feature_type,
+            target_strand=target_strand,
+        )
+        seqid2features: dict[str, list[SeqFeature]] = {}
+        for seqid in self.seqid_list:
+            seqid2features[seqid] = []
+        for rec in gff_records:
+            seqid2features[rec.seqid].append(rec.to_seq_feature())
+        return seqid2features
+
+    def extract_features(
+        self,
+        feature_type: str | None = "CDS",
+        target_strand: int | None = None,
+        target_range: tuple[int, int] | None = None,
+    ) -> list[SeqFeature]:
+        """Extract features
+
+        Parameters
+        ----------
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        target_range : tuple[int, int] | None, optional
+            Extract target range. If None, extract regardless of range.
+
+        Returns
+        -------
+        features : list[SeqFeature]
+            Feature list
+        """
+        gff_records = GffRecord.filter_records(
+            self.records,
+            feature_type=feature_type,
+            target_strand=target_strand,
+            target_range=target_range,
+        )
+        return [rec.to_seq_feature() for rec in gff_records]
+
+    def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
+        """Extract exon structure features
+
+        Extract exons based on `parent feature` and `exon` ID-Parent relation
+
+        Parameters
+        ----------
+        feature_type : str, optional
+            Feature type (e.g. `mRNA`, `ncRNA` , etc...)
+
+        Returns
+        -------
+        features : list[SeqFeature]
+            Feature list
+        """
+        # Extract exon features by mRNA-exon relation
+        parent_id = None
+        parent_id2record: dict[str, GffRecord] = {}
+        parent_id2exons: dict[str, list[GffRecord]] = defaultdict(list)
+        for rec in self._records:
+            if rec.type == feature_type:
+                parent_id = rec.attrs.get("ID", [None])[0]
+                if parent_id is None:
+                    continue
+                parent_id2record[parent_id] = rec
+            if rec.type == "exon":
+                if parent_id is not None and parent_id == rec.attrs["Parent"][0]:
+                    parent_id2exons[parent_id].append(rec)
+
+        # Set exon features
+        exon_features: list[SeqFeature] = []
+        for parent_id in parent_id2record.keys():
+            parent_record = parent_id2record[parent_id]
+            exons = parent_id2exons[parent_id]
+
+            parent_feature = parent_record.to_seq_feature()
+            if len(exons) == 1:
+                exon_feature = parent_feature
+            elif len(exons) >= 2:
+                exons = sorted(exons, key=lambda e: e.start)
+                locs = [e.to_feature_location() for e in exons]
+                exon_feature = SeqFeature(
+                    location=CompoundLocation(locs),
+                    type=parent_feature.type,
+                    id=parent_feature.id,
+                    qualifiers=parent_feature.qualifiers,
+                )
+            else:
+                # If no exon exists, skip feature extraction
+                continue
+
+            exon_features.append(exon_feature)
+
+        return exon_features
+
+    ############################################################
+    # Private Method
+    ############################################################
 
     def _parse_gff(
         self,
@@ -153,201 +346,6 @@ class Gff:
 
         return target_gff_records, *seqid2start_end[target_seqid]
 
-    @property
-    def name(self) -> str:
-        """Name"""
-        if self._name is not None:
-            return self._name
-        if self._gff_file.suffix in (".gz", ".bz2", ".zip"):
-            return self._gff_file.with_suffix("").with_suffix("").name
-        else:
-            return self._gff_file.with_suffix("").name
-
-    @property
-    def seq_region(self) -> tuple[int, int]:
-        """GFF sequence-region start & end tuple
-
-        If `##sequence-region` pragma is not found, seq_region=`(0, max_coords_value)`
-        """
-        return self._seq_region
-
-    @property
-    def records(self) -> list[GffRecord]:
-        """GFF records (target seqid only)"""
-        return self._records
-
-    @property
-    def all_records(self) -> list[GffRecord]:
-        """All GFF records"""
-        return self._all_records
-
-    @property
-    def records_within_range(self) -> list[GffRecord]:
-        """GFF records within min-max range"""
-        target_gff_records: list[GffRecord] = []
-        for rec in self.records:
-            if rec.is_within_range(self.min_range, self.max_range):
-                target_gff_records.append(rec)
-        return target_gff_records
-
-    @property
-    def range_size(self) -> int:
-        """Range size (`max_range - min_range`)"""
-        return self.max_range - self.min_range
-
-    @property
-    def target_seqid(self) -> str:
-        """Target seqid"""
-        return self._target_seqid
-
-    @property
-    def seqid_list(self) -> list[str]:
-        """seqid list"""
-        return self._seqid_list
-
-    def get_seqid2size(self) -> dict[str, int]:
-        """Get seqid & complete/contig/scaffold genome size dict
-
-        By default, size is defined by `##sequence-region` pragma of target seqid.
-        If `##sequence-region` is not found, size is defined by max coordinate size in
-        target seqid features. This may differ from actual genome size.
-
-        Returns
-        -------
-        seqid2size : dict[str, int]
-            seqid & genome size dict
-        """
-        return self._seqid2size
-
-    def get_seqid2features(
-        self,
-        feature_type: str | None = "CDS",
-        target_strand: int | None = None,
-        pseudogene: bool | None = False,
-    ) -> dict[str, list[SeqFeature]]:
-        """Get seqid & features in target seqid genome dict
-
-        Parameters
-        ----------
-        feature_type : str | None, optional
-            Feature type (`CDS`, `gene`, `mRNA`, etc...)
-            If None, extract regardless of feature type.
-        target_strand : int | None, optional
-            Extract target strand. If None, extract regardless of strand.
-        pseudogene : bool | None, optional
-            If True, `pseudo=`, `pseudogene=` tagged record only extract.
-            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
-            If None, extract regardless of pseudogene tag.
-
-        Returns
-        -------
-        seqid2features : dict[str, list[SeqFeature]]
-            seqid & features dict
-        """
-        gff_records = GffRecord.filter_records(
-            self.all_records,
-            feature_type=feature_type,
-            target_strand=target_strand,
-            pseudogene=pseudogene,
-        )
-        seqid2features: dict[str, list[SeqFeature]] = {}
-        for seqid in self.seqid_list:
-            seqid2features[seqid] = []
-        for rec in gff_records:
-            seqid2features[rec.seqid].append(rec.to_seq_feature())
-        return seqid2features
-
-    def extract_features(
-        self,
-        feature_type: str | None = "CDS",
-        target_strand: int | None = None,
-        pseudogene: bool | None = False,
-    ) -> list[SeqFeature]:
-        """Extract features within min-max range
-
-        Parameters
-        ----------
-        feature_type : str | None, optional
-            Feature type (`CDS`, `gene`, `mRNA`, etc...)
-            If None, extract regardless of feature type.
-        target_strand : int | None, optional
-            Extract target strand. If None, extract regardless of strand.
-        pseudogene : bool | None, optional
-            If True, `pseudo=`, `pseudogene=` tagged record only extract.
-            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
-            If None, extract all regardless of pseudogene tag.
-
-        Returns
-        -------
-        features : list[SeqFeature]
-            Feature list
-        """
-        gff_records = GffRecord.filter_records(
-            self.records_within_range,
-            feature_type=feature_type,
-            target_strand=target_strand,
-            pseudogene=pseudogene,
-        )
-        return [rec.to_seq_feature() for rec in gff_records]
-
-    def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
-        """Extract exon structure features within min-max range
-
-        Extract exons based on `parent feature` and `exon` ID-Parent relation
-
-        Parameters
-        ----------
-        feature_type : str, optional
-            Feature type (e.g. `mRNA`, `ncRNA` , etc...)
-
-        Returns
-        -------
-        features : list[SeqFeature]
-            Feature list
-        """
-        # Extract exon features by mRNA-exon relation
-        parent_id = None
-        parent_id2record: dict[str, GffRecord] = {}
-        parent_id2exons: dict[str, list[GffRecord]] = defaultdict(list)
-        for rec in self.records_within_range:
-            if rec.type == feature_type:
-                parent_id = rec.attrs.get("ID", [None])[0]
-                if parent_id is None:
-                    continue
-                parent_id2record[parent_id] = rec
-            if rec.type == "exon":
-                if parent_id is not None and parent_id == rec.attrs["Parent"][0]:
-                    parent_id2exons[parent_id].append(rec)
-
-        # Set exon features
-        exon_features: list[SeqFeature] = []
-        for parent_id in parent_id2record.keys():
-            parent_record = parent_id2record[parent_id]
-            exons = parent_id2exons[parent_id]
-
-            parent_feature = parent_record.to_seq_feature()
-            if len(exons) == 1:
-                exon_feature = parent_feature
-            elif len(exons) >= 2:
-                exons = sorted(exons, key=lambda e: e.start)
-                locs = [e.to_feature_location() for e in exons]
-                exon_feature = SeqFeature(
-                    location=CompoundLocation(locs),
-                    type=parent_feature.type,
-                    id=parent_feature.id,
-                    qualifiers=parent_feature.qualifiers,
-                )
-            else:
-                # If no exon exists, skip feature extraction
-                continue
-
-            exon_features.append(exon_feature)
-
-        return exon_features
-
-    def __str__(self):
-        return f"{self.name} ({self.min_range:,} - {self.max_range:,} bp)"
-
 
 @dataclass
 class GffRecord:
@@ -356,7 +354,7 @@ class GffRecord:
     seqid: str
     source: str
     type: str
-    start: int
+    start: int  # 1-based coordinate
     end: int
     score: float | None
     strand: int
@@ -384,7 +382,7 @@ class GffRecord:
             return False
 
     def to_seq_feature(self) -> SeqFeature:
-        """Convert GffRecord to SeqFeature"""
+        """Convert GffRecord to SeqFeature (1-based to 0-based coordinate)"""
         return SeqFeature(
             location=self.to_feature_location(),
             type=self.type,
@@ -393,14 +391,14 @@ class GffRecord:
         )
 
     def to_feature_location(self) -> SimpleLocation:
-        """Convert GffRecord to SimpleLocation
+        """Convert GffRecord to SimpleLocation (1-based to 0-based coordinate)
 
         Returns
         -------
-        location : SimpleLocation
-            Location
+        feature_location : SimpleLocation
+            Simple location
         """
-        return SimpleLocation(self.start, self.end, self.strand)
+        return SimpleLocation(self.start - 1, self.end, self.strand)
 
     def to_gff_line(self) -> str:
         """Convert GffRecord to GFF record line
@@ -408,14 +406,14 @@ class GffRecord:
         Returns
         -------
         gff_line : str
-            GFF record line (1-based coordinates)
+            GFF record line
         """
         return "\t".join(
             (
                 self.seqid,
                 self.source,
                 self.type,
-                str(self.start + 1),
+                str(self.start),
                 str(self.end),
                 "." if self.score is None else str(self.score),
                 "-" if self.strand == -1 else "+",
@@ -450,16 +448,16 @@ class GffRecord:
         Parameters
         ----------
         gff_line : str
-            GFF record line (1-based coordinates)
+            GFF record line
 
         Returns
         -------
         gff_record : GffRecord
-            GFF record (0-based coordinates)
+            GFF record
         """
         gff_elms: list[Any] = gff_line.split("\t")[0:9]
         # start, end
-        gff_elms[3], gff_elms[4] = int(gff_elms[3]) - 1, int(gff_elms[4])
+        gff_elms[3], gff_elms[4] = int(gff_elms[3]), int(gff_elms[4])
         # score
         gff_elms[5] = None if gff_elms[5] in (".", "") else float(gff_elms[5])
         # strand
@@ -487,9 +485,9 @@ class GffRecord:
         gff_records: list[GffRecord],
         feature_type: str | None = "CDS",
         target_strand: int | None = None,
-        pseudogene: bool | None = False,
+        target_range: tuple[int, int] | None = None,
     ) -> list[GffRecord]:
-        """Filter GFF records (feature_type, strand, pseudogene)
+        """Filter GFF records by feature_type, strand, range
 
         Parameters
         ----------
@@ -499,10 +497,8 @@ class GffRecord:
             Feature type (`CDS`, `gene`, `mRNA`, etc...). If None, no filter.
         target_strand : int | None, optional
             Target strand. If None, no filter.
-        pseudogene : bool | None, optional
-            If True, `pseudo=`, `pseudogene=` tagged record only filter.
-            If False, `pseudo=`, `pseudogene=` not tagged record only filter.
-            If None, no filter.
+        target_range : tuple[int, int] | None, optional
+            Target range. If None, no filter.
 
         Returns
         -------
@@ -515,11 +511,9 @@ class GffRecord:
                 continue
             if target_strand is not None and rec.strand != target_strand:
                 continue
-            has_pseudo_attr = "pseudo" in rec.attrs or "pseudogene" in rec.attrs
-            if (
-                pseudogene is None
-                or (pseudogene is True and has_pseudo_attr)
-                or (pseudogene is False and not has_pseudo_attr)
-            ):
-                filter_gff_records.append(rec)
+            if target_range is not None:
+                min_range, max_range = min(target_range), max(target_range)
+                if not min_range <= rec.start <= rec.end <= max_range:
+                    continue
+            filter_gff_records.append(rec)
         return filter_gff_records

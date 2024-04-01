@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from pycirclize.parser import StackedBarTable
+from pycirclize.parser import RadarTable, StackedBarTable
 
 
 class TestStackedBarTable:
@@ -95,3 +95,29 @@ class TestStackedBarTable:
         """Test `calc_barh_r_lim_list()`"""
         r_lim_list = sb_table.calc_barh_r_lim_list(track_r_lim, width)
         assert r_lim_list == expected_r_lim_list
+
+
+class TestRaderTable:
+    """Test RadarTable Class"""
+
+    @pytest.fixture
+    def radar_table(self):
+        """Initialize radar table fixture"""
+        table_df = pd.DataFrame(
+            data=[
+                [80, 80, 80, 80, 80, 80],
+                [90, 95, 95, 30, 30, 80],
+                [60, 20, 20, 100, 90, 50],
+            ],
+            index=["Hero", "Warrior", "Wizard"],
+            columns=["HP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"],
+        )
+        return RadarTable(table_df)
+
+    def test_row_name2values(self, radar_table: RadarTable):
+        """Test `row_name2values()`"""
+        assert radar_table.row_name2values == dict(
+            Hero=[80, 80, 80, 80, 80, 80],
+            Warrior=[90, 95, 95, 30, 30, 80],
+            Wizard=[60, 20, 20, 100, 90, 50],
+        )

@@ -13,6 +13,7 @@ nav:
   - Getting Started: getting_started.ipynb
   - Plot API Example: plot_api_example.ipynb
   - Chord Diagram: chord_diagram.ipynb
+  - Radar Chart: radar_chart.ipynb
   - Circos Plot (Genomics): circos_plot.ipynb
   - Phylogenetic Tree: phylogenetic_tree.ipynb
   - Plot Tips: plot_tips.ipynb

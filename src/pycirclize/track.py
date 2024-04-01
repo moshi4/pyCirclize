@@ -987,6 +987,7 @@ class Track:
         *,
         vmin: float = 0,
         vmax: float | None = None,
+        arc: bool = True,
         **kwargs,
     ) -> None:
         """Fill the area between two horizontal(y1, y2) curves
@@ -1003,6 +1004,9 @@ class Track:
             Y min value
         vmax : float | None, optional
             Y max value. If None, `max(y1 + y2)` is set.
+        arc : bool, optional
+            If True, plot arc style line for polar projection.
+            If False, simply plot linear style line.
         **kwargs : dict, optional
             Axes.fill_between properties (e.g. `fc="red", ec="black", lw=0.1, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.fill_between.html>
@@ -1018,12 +1022,15 @@ class Track:
         self._check_value_min_max(y_all, vmin, vmax)
 
         r2 = [self._y_to_r(v, vmin, vmax) for v in y2]
-        arc_rad, arc_r2 = self._to_arc_radr(rad, r2)
         r = [self._y_to_r(v, vmin, vmax) for v in y1]
-        _, arc_r = self._to_arc_radr(rad, r)
+        if arc:
+            plot_rad, plot_r2 = self._to_arc_radr(rad, r2)
+            _, plot_r = self._to_arc_radr(rad, r)
+        else:
+            plot_rad, plot_r, plot_r2 = rad, r, r2
 
         def plot_fill_between(ax: PolarAxes) -> None:
-            ax.fill_between(arc_rad, arc_r, arc_r2, **kwargs)  # type: ignore
+            ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)  # type: ignore
 
         self._plot_funcs.append(plot_fill_between)
 
