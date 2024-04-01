@@ -7,11 +7,8 @@ import pandas as pd
 from pycirclize.utils import ColorCycler
 
 
-class StackedBarTable:
-    """Table Parser Class
-
-    Basically used for plotting stacked bar chart
-    """
+class Table:
+    """Table Parser Base Class"""
 
     def __init__(
         self,
@@ -28,7 +25,7 @@ class StackedBarTable:
             Table file delimiter. By default, `tab` delimiter.
         """
         if isinstance(table_data, (str, Path)):
-            table_data = pd.read_csv(table_data, sep=delimiter)
+            table_data = pd.read_csv(table_data, sep=delimiter, index_col=0)
         self._dataframe = table_data
 
     @property
@@ -55,6 +52,48 @@ class StackedBarTable:
     def col_num(self) -> int:
         """Table column count number"""
         return len(self.dataframe.columns)
+
+    def get_col_name2color(self, cmap: str = "tab10") -> dict[str, str]:
+        """Get column name & color dict
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Colormap (e.g. `tab10`, `Set3`)
+
+        Returns
+        -------
+        col_name2color : dict[str, str]
+            Column name & color dict
+        """
+        ColorCycler.set_cmap(cmap)
+        return {n: ColorCycler.get_color() for n in self.col_names}
+
+    def get_row_name2color(self, cmap: str = "tab10") -> dict[str, str]:
+        """Get row name & color dict
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Colormap (e.g. `tab10`, `Set3`)
+
+        Returns
+        -------
+        col_name2color : dict[str, str]
+            Column name & color dict
+        """
+        ColorCycler.set_cmap(cmap)
+        return {n: ColorCycler.get_color() for n in self.row_names}
+
+    def __str__(self):
+        return str(self.dataframe)
+
+
+class StackedBarTable(Table):
+    """Table Parser Class
+
+    Basically used for plotting stacked bar chart
+    """
 
     @property
     def row_sum_vmax(self) -> float:
@@ -84,22 +123,6 @@ class StackedBarTable:
                 row_name2stack_value[row_name] += value
             bottoms.append(bottom)
         return bottoms
-
-    def get_col_name2color(self, cmap: str = "tab10") -> dict[str, str]:
-        """Get column name & color dict
-
-        Parameters
-        ----------
-        cmap : str, optional
-            Colormap (e.g. `tab10`, `Set3`)
-
-        Returns
-        -------
-        col_name2color : dict[str, str]
-            Column name & color dict
-        """
-        ColorCycler.set_cmap(cmap)
-        return {n: ColorCycler.get_color() for n in self.col_names}
 
     def calc_bar_label_x_list(
         self,
@@ -173,5 +196,14 @@ class StackedBarTable:
             bar_r_lim_list.append((r_bottom, r_top))
         return bar_r_lim_list
 
-    def __str__(self):
-        return str(self.dataframe)
+
+class RadarTable(Table):
+    """Radar Table Parser Class"""
+
+    @property
+    def row_name2values(self) -> dict[str, list[float]]:
+        """Row name & values"""
+        row_name2values = {}
+        for row_name in self.row_names:
+            row_name2values[row_name] = list(self.dataframe.loc[row_name])
+        return row_name2values

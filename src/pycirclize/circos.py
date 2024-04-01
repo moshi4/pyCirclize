@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from Bio.Phylo.BaseTree import Tree
 from matplotlib.axes import Axes
@@ -21,7 +22,7 @@ from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
-from pycirclize.parser import Bed, Matrix
+from pycirclize.parser import Bed, Matrix, RadarTable
 from pycirclize.patches import (
     ArcLine,
     ArcRectangle,
@@ -173,6 +174,154 @@ class Circos:
     ############################################################
     # Public Method
     ############################################################
+
+    @staticmethod
+    def radar_chart(
+        table: str | Path | pd.DataFrame | RadarTable,
+        *,
+        r_lim: tuple[float, float] = (0, 100),
+        vmax: float = 100,
+        fill: bool = True,
+        marker_size: int = 0,
+        bg_color: str | None = "#eeeeee80",
+        circular: bool = False,
+        cmap: str | dict[str, str] = "Set2",
+        show_grid_label: bool = True,
+        grid_interval_ratio: float | None = 0.2,
+        grid_line_kws: dict[str, Any] | None = None,
+        grid_label_kws: dict[str, Any] | None = None,
+        grid_label_formatter: Callable[[float], str] | None = None,
+        label_kws_handler: Callable[[str], dict[str, Any]] | None = None,
+        line_kws_handler: Callable[[str], dict[str, Any]] | None = None,
+        marker_kws_handler: Callable[[str], dict[str, Any]] | None = None,
+    ) -> Circos:
+        """Plot radar chart
+
+        Parameters
+        ----------
+        table : str | Path | pd.DataFrame | RadarTable
+            Table file or Table dataframe or RadarTable instance
+        r_lim : tuple[float, float], optional
+            Radar chart radius limit region (0 - 100)
+        vmax : float, optional
+            Max value
+        fill : bool, optional
+            If True, fill color of radar chart.
+        marker_size : int, optional
+            Marker size
+        bg_color : str | None, optional
+            Background color
+        circular : bool, optional
+            If True, plot with circular style.
+        cmap : str | dict[str, str], optional
+            Colormap assigned to each target row(index) in table.
+            User can set matplotlib's colormap (e.g. `tab10`, `Set2`) or
+            target_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
+        show_grid_label : bool, optional
+            If True, show grid label.
+        grid_interval_ratio : float | None, optional
+            Grid interval ratio (0.0 - 1.0)
+        grid_line_kws : dict[str, Any] | None, optional
+            Keyword arguments passed to `track.line()` method
+            (e.g. `dict(color="black", ls="dotted", lw=1.0, ...)`)
+        grid_label_kws : dict[str, Any] | None, optional
+            Keyword arguments passed to `track.text()` method
+            (e.g. `dict(size=12, color="red", ...)`)
+        grid_label_formatter : Callable[[float], str] | None, optional
+            User-defined function to format grid label (e.g. `lambda v: f"{v:.1f}%"`).
+        label_kws_handler : Callable[[str], dict[str, Any]] | None, optional
+            Handler function for keyword arguments passed to `track.text()` method.
+            Handler function takes each column name of table as an argument.
+        line_kws_handler : Callable[[str], dict[str, Any]] | None, optional
+            Handler function for keyword arguments passed to `track.line()` method.
+            Handler function takes each row(index) name of table as an argument.
+        marker_kws_handler : Callable[[str], dict[str, Any]] | None, optional
+            Handler function for keyword arguments passed to `track.scatter()` method.
+            Handler function takes each row(index) name of table as an argument.
+
+        Returns
+        -------
+        circos : Circos
+            Circos instance initialized for radar chart
+        """
+        # Setup default properties
+        grid_line_kws = {} if grid_line_kws is None else deepcopy(grid_line_kws)
+        for k, v in dict(color="grey", ls="dashed", lw=0.5).items():
+            grid_line_kws.setdefault(k, v)
+
+        grid_label_kws = {} if grid_label_kws is None else deepcopy(grid_label_kws)
+        for k, v in dict(color="dimgrey", size=10, ha="left", va="top").items():
+            grid_label_kws.setdefault(k, v)
+
+        # Initialize circos for radar chart
+        radar_table = table if isinstance(table, RadarTable) else RadarTable(table)
+        circos = Circos(dict(radar=radar_table.col_num))
+        sector = circos.sectors[0]
+        track = sector.add_track(r_lim)
+        x = np.arange(radar_table.col_num + 1)
+
+        # Plot background color
+        if bg_color:
+            track.fill_between(x, [vmax] * len(x), arc=circular, color=bg_color)
+
+        # Plot grid line
+        if grid_interval_ratio:
+            if not 0 < grid_interval_ratio <= 1.0:
+                raise ValueError(f"{grid_interval_ratio=} is invalid.")
+            # Plot horizontal grid line & label
+            stop, step = vmax + (vmax / 1000), vmax * grid_interval_ratio
+            for v in np.arange(0, stop, step):
+                track.line(x, [v] * len(x), vmax=vmax, arc=circular, **grid_line_kws)
+                if show_grid_label:
+                    r = track._y_to_r(v, 0, vmax)
+                    # Format grid label
+                    if grid_label_formatter:
+                        text = grid_label_formatter(v)
+                    else:
+                        v = float(f"{v:.9f}")  # Correct rounding error
+                        text = f"{v:.0f}" if math.isclose(int(v), float(v)) else str(v)
+                    track.text(text, 0, r, **grid_label_kws)
+            # Plot vertical grid line
+            for p in x[:-1]:
+                track.line([p, p], [0, vmax], vmax=vmax, **grid_line_kws)
+
+        # Plot radar charts
+        if isinstance(cmap, str):
+            row_name2color = radar_table.get_row_name2color(cmap)
+        else:
+            row_name2color = cmap
+        for row_name, values in radar_table.row_name2values.items():
+            y = values + [values[0]]
+            color = row_name2color[row_name]
+            line_kws = line_kws_handler(row_name) if line_kws_handler else {}
+            line_kws.setdefault("lw", 1.0)
+            line_kws.setdefault("label", row_name)
+            track.line(x, y, vmax=vmax, arc=False, color=color, **line_kws)
+            if marker_size > 0:
+                marker_kws = marker_kws_handler(row_name) if marker_kws_handler else {}
+                marker_kws.setdefault("marker", "o")
+                marker_kws.setdefault("zorder", 2)
+                marker_kws.update(s=marker_size**2)
+                track.scatter(x, y, vmax=vmax, color=color, **marker_kws)
+            if fill:
+                track.fill_between(x, y, vmax=vmax, arc=False, color=color, alpha=0.5)
+
+        # Plot column names
+        for idx, col_name in enumerate(radar_table.col_names):
+            deg = 360 * (idx / sector.size)
+            label_kws = label_kws_handler(col_name) if label_kws_handler else {}
+            label_kws.setdefault("size", 12)
+            if math.isclose(deg, 0):
+                label_kws.update(va="bottom")
+            elif math.isclose(deg, 180):
+                label_kws.update(va="top")
+            elif 0 < deg < 180:
+                label_kws.update(ha="left")
+            elif 180 < deg < 360:
+                label_kws.update(ha="right")
+            track.text(col_name, idx, r=105, adjust_rotation=False, **label_kws)
+
+        return circos
 
     @staticmethod
     def initialize_from_matrix(
