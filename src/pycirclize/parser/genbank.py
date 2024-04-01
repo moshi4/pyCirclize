@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import bz2
 import gzip
+import warnings
 import zipfile
 from collections import defaultdict
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from Bio import SeqIO, SeqUtils
@@ -19,127 +19,106 @@ class Genbank:
 
     def __init__(
         self,
-        gbk_source: str | Path | TextIOWrapper,
+        gbk_source: str | Path | TextIOWrapper | list[SeqRecord],
+        *,
         name: str | None = None,
-        reverse: bool = False,
-        min_range: int | None = None,
-        max_range: int | None = None,
+        min_range: None = None,
+        max_range: None = None,
     ):
         """
         Parameters
         ----------
-        gbk_source : str | Path | TextIOWrapper
+        gbk_source : str | Path | TextIOWrapper | list[SeqRecord]
             Genbank file or source
             (`*.gz`, `*.bz2`, `*.zip` compressed file can be readable)
         name : str | None, optional
             name (If None, `file name` or `record name` is set)
-        reverse : bool, optional
-            If True, reverse complement genome is used
-        min_range : int | None, optional
-            Min range to be extracted (Default: `0`)
-        max_range : int | None, optional
-            Max range to be extracted (Default: `genome length`)
+        min_range : None, optional
+            No longer used. Left for backward compatibility.
+        max_range : None, optional
+            No longer used. Left for backward compatibility.
         """
         self._gbk_source = gbk_source
-        self._name = name
-        self._records = self._parse_gbk_source(gbk_source)
-        self.reverse = reverse
-        self.min_range = 0 if min_range is None else min_range
-        self.max_range = self.full_genome_length if max_range is None else max_range
+        if isinstance(gbk_source, (str, Path, StringIO, TextIOWrapper)):
+            self._records = self._parse_gbk_source(gbk_source)
+        else:
+            self._records = gbk_source
 
-        if not 0 <= self.min_range <= self.max_range <= self.full_genome_length:
-            err_msg = f"min_range={min_range}, max_range={max_range} is invalid. \n"
-            err_msg += "Range must be "
-            err_msg += f"'0 <= min_range <= max_range <= {self.full_genome_length}'"
-            raise ValueError(err_msg)
+        # Set genbank name
+        if name is not None:
+            self._name = name
+        elif isinstance(self._gbk_source, (str, Path)):
+            gbk_file = Path(self._gbk_source)
+            if gbk_file.suffix in (".gz", ".bz2", ".zip"):
+                self._name = gbk_file.with_suffix("").with_suffix("").name
+            else:
+                self._name = gbk_file.with_suffix("").name
+        elif isinstance(self._gbk_source, (StringIO, TextIOWrapper)):
+            self._name = self._records[0].name
+        else:
+            raise NotImplementedError("Failed to get name.")
 
-    def _parse_gbk_source(
-        self, gbk_source: str | Path | TextIOWrapper
-    ) -> list[SeqRecord]:
-        """Parse genbank source
+        if min_range or max_range:
+            warnings.warn("min_range & max_range is no longer used in Genbank parser.")
 
-        Parameters
-        ----------
-        gbk_source : str | Path | TextIOWrapper
-            Genbank file or source
-
-        Returns
-        -------
-        list[SeqRecord]
-            Genbank SeqRecords
-        """
-        # Parse compressed file
-        if isinstance(gbk_source, (str, Path)):
-            if Path(gbk_source).suffix == ".gz":
-                with gzip.open(gbk_source, mode="rt") as f:
-                    return list(SeqIO.parse(f, "genbank"))
-            elif Path(gbk_source).suffix == ".bz2":
-                with bz2.open(gbk_source, mode="rt") as f:
-                    return list(SeqIO.parse(f, "genbank"))
-            elif Path(gbk_source).suffix == ".zip":
-                with zipfile.ZipFile(gbk_source) as zip:
-                    with zip.open(zip.namelist()[0]) as f:
-                        return list(SeqIO.parse(TextIOWrapper(f), "genbank"))
-        # Parse no compressed file or TextIOWrapper
-        return list(SeqIO.parse(gbk_source, "genbank"))
+    ############################################################
+    # Property
+    ############################################################
 
     @property
     def name(self) -> str:
         """Name"""
-        if self._name is not None:
-            return self._name
-        if isinstance(self._gbk_source, (str, Path)):
-            gbk_file = Path(self._gbk_source)
-            if gbk_file.suffix in (".gz", ".bz2", ".zip"):
-                return gbk_file.with_suffix("").with_suffix("").name
-            else:
-                return gbk_file.with_suffix("").name
-        elif isinstance(self._gbk_source, (StringIO, TextIOWrapper)):
-            return self._records[0].name
-        else:
-            raise NotImplementedError()
+        return self._name
 
     @property
     def records(self) -> list[SeqRecord]:
         """Genbank records"""
-        if self.reverse:
-            return list(reversed([r.reverse_complement() for r in self._records]))
-        else:
-            return self._records
+        return self._records
 
     @property
-    def full_genome_length(self) -> int:
-        """Full genome sequence length"""
-        return len(self.full_genome_seq)
+    def genome_seq(self) -> str:
+        """Genome sequence (only first record)"""
+        return str(self.records[0].seq)
 
     @property
     def genome_length(self) -> int:
-        """Range genome sequence length (Same as `range_size`)"""
+        """Genome length (only first record)"""
         return len(self.genome_seq)
 
     @property
     def range_size(self) -> int:
-        """Range size (`max_range - min_range`)"""
-        return self.max_range - self.min_range
+        """Same as `self.genome_length` (Left for backward compatibility)"""
+        return self.genome_length
 
     @property
     def full_genome_seq(self) -> str:
-        """Full genome sequence"""
+        """Full genome sequence (concatenate all records)"""
         return "".join(str(r.seq) for r in self.records)
 
     @property
-    def genome_seq(self) -> str:
-        """Range genome sequence"""
-        seq = "".join(str(r.seq) for r in self.records)
-        return seq[self.min_range : self.max_range]
+    def full_genome_length(self) -> int:
+        """Full genome length (concatenate all records)"""
+        return len(self.full_genome_seq)
 
-    def calc_genome_gc_content(self) -> float:
-        """Calculate genome GC content"""
-        try:
-            gc_content = SeqUtils.gc_fraction(self.genome_seq) * 100
-        except AttributeError:
-            # For backward compatibility, biopython <= 1.79
-            gc_content = SeqUtils.GC(self.genome_seq)  # type: ignore
+    ############################################################
+    # Public Method
+    ############################################################
+
+    def calc_genome_gc_content(self, seq: str | None = None) -> float:
+        """Calculate genome GC content
+
+        Parameters
+        ----------
+        seq : str | None, optional
+            Sequence for GC content calculation (Default: `self.genome_seq`)
+
+        Returns
+        -------
+        gc_content : float
+            GC content
+        """
+        seq = self.genome_seq if seq is None else seq
+        gc_content = SeqUtils.gc_fraction(seq) * 100
         return gc_content
 
     def calc_gc_skew(
@@ -207,7 +186,7 @@ class Genbank:
         step_size : int | None, optional
             Step size (Default: `genome_size / 1000`)
         seq : str | None, optional
-            Sequence for GCskew calculation (Default: `self.genome_seq`)
+            Sequence for GC content calculation (Default: `self.genome_seq`)
 
         Returns
         -------
@@ -230,11 +209,7 @@ class Genbank:
             window_end_pos = len(seq) if window_end_pos > len(seq) else window_end_pos
 
             subseq = seq[window_start_pos:window_end_pos]
-            try:
-                gc_content = SeqUtils.gc_fraction(subseq) * 100
-            except AttributeError:
-                # For backward compatibility, biopython <= 1.79
-                gc_content = SeqUtils.GC(subseq)  # type: ignore
+            gc_content = SeqUtils.gc_fraction(subseq) * 100
             gc_content_list.append(gc_content)
 
         return (np.array(pos_list), np.array(gc_content_list))
@@ -263,7 +238,6 @@ class Genbank:
         self,
         feature_type: str | None = "CDS",
         target_strand: int | None = None,
-        pseudogene: bool | None = False,
     ) -> dict[str, list[SeqFeature]]:
         """Get seqid & features in target seqid genome dict
 
@@ -274,10 +248,6 @@ class Genbank:
             If None, extract regardless of feature type.
         target_strand : int | None, optional
             Extract target strand. If None, extract regardless of strand.
-        pseudogene : bool | None, optional
-            If True, `pseudo=`, `pseudogene=` tagged record only extract.
-            If False, `pseudo=`, `pseudogene=` not tagged record only extract.
-            If None, extract regardless of pseudogene tag.
 
         Returns
         -------
@@ -286,183 +256,101 @@ class Genbank:
         """
         seqid2features = defaultdict(list)
         for rec in self.records:
-            feat: SeqFeature
-            for feat in rec.features:
-                strand = feat.location.strand
-                if feature_type is not None and feat.type != feature_type:
+            feature: SeqFeature
+            for feature in rec.features:
+                strand = feature.location.strand
+                if feature_type is not None and feature.type != feature_type:
                     continue
                 if target_strand is not None and strand != target_strand:
                     continue
-                if strand == -1:
-                    start = self._to_int(feat.location.parts[-1].start)
-                    end = self._to_int(feat.location.parts[0].end)
-                else:
-                    start = self._to_int(feat.location.parts[0].start)
-                    end = self._to_int(feat.location.parts[-1].end)
-
-                qual = feat.qualifiers
-                has_pseudo_qual = "pseudo" in qual or "pseudogene" in qual
-                if (
-                    pseudogene is None
-                    or (pseudogene is True and has_pseudo_qual)
-                    or (pseudogene is False and not has_pseudo_qual)
-                ):
-                    seqid2features[rec.id].append(
-                        SeqFeature(
-                            location=SimpleLocation(start, end, strand),
-                            type=feat.type,
-                            qualifiers=feat.qualifiers,
-                        ),
-                    )
+                # Exclude feature which straddle genome start position
+                if self._is_straddle_feature(feature):
+                    continue
+                start = int(feature.location.start)  # type: ignore
+                end = int(feature.location.end)  # type: ignore
+                seqid2features[rec.id].append(
+                    SeqFeature(
+                        location=SimpleLocation(start, end, strand),
+                        type=feature.type,
+                        qualifiers=feature.qualifiers,
+                    ),
+                )
         return seqid2features
 
     def extract_features(
         self,
-        feature_type: str = "CDS",
+        feature_type: str | None = "CDS",
         target_strand: int | None = None,
-        fix_position: bool = False,
-        allow_partial: bool = False,
-        pseudogene: bool = False,
+        target_range: tuple[int, int] | None = None,
     ) -> list[SeqFeature]:
-        """Extract features within min-max range
+        """Extract features (only first record)
 
         Parameters
         ----------
-        feature_type : str, optional
-            Extract feature type
+        feature_type : str | None, optional
+            Feature type (`CDS`, `gene`, `mRNA`, etc...)
+            If None, extract regardless of feature type.
         target_strand : int | None, optional
-            Extract target strand
-        fix_position : bool, optional
-            If True, fix feature start & end position by specified min_range parameter
-            (fixed_start = start - min_range, fixed_end = end - min_range)
-        allow_partial : bool, optional
-            If True, allow extraction of features that are partially included in range
-        pseudogene : bool, optional
-            If True and `feature_type='CDS'`, only extract CDS features with
-            `/pseudo` or `/pseudogene` qualifiers.
+            Extract target strand. If None, extract regardless of strand.
+        target_range : tuple[int, int] | None, optional
+            Extract target range. If None, extract regardless of range.
 
         Returns
         -------
         features : list[SeqFeature]
             Extracted features
         """
-        extract_features = []
-        min_range, max_range = self.min_range, self.max_range
-        base_len = 0
-        for record in self.records:
-            features = [f for f in record.features if f.type == feature_type]
-            for f in features:
-                if feature_type == "CDS":
-                    if pseudogene:
-                        # Only extract pseudogene
-                        qual = f.qualifiers
-                        if "pseudo" not in qual and "pseudogene" not in qual:
-                            continue
-                    else:
-                        # Exclude pseudogene (no translated gene)
-                        translation = f.qualifiers.get("translation", [None])[0]
-                        if translation is None:
-                            continue
-                strand = f.location.strand
-                if strand == -1:
-                    # Handle rare case (complement & join)
-                    # Found in NC_00913 protein_id=NP_417367.1
-                    start = self._to_int(f.location.parts[-1].start) + base_len
-                    end = self._to_int(f.location.parts[0].end) + base_len
-                else:
-                    start = self._to_int(f.location.parts[0].start) + base_len
-                    end = self._to_int(f.location.parts[-1].end) + base_len
-                # Restrict features in range
-                if allow_partial:
-                    if (
-                        not min_range <= start <= max_range
-                        and not min_range <= end <= max_range
-                    ):
-                        # Ignore completely out of range features
-                        continue
-                    # If partially within range, fix position to within range
-                    if start <= min_range <= end <= max_range:
-                        start = min_range
-                    if min_range <= start <= max_range <= end:
-                        end = max_range
-                else:
-                    if not min_range <= start <= end <= max_range:
-                        # Ignore out of range features
-                        continue
-                # Extract only target strand feature
-                if target_strand is not None and strand != target_strand:
-                    continue
-                # Fix start & end position by min_range
-                if fix_position:
-                    start -= min_range
-                    end -= min_range
+        seqid2features = self.get_seqid2features(feature_type, target_strand)
+        first_record_features = list(seqid2features.values())[0]
+        if target_range:
+            target_features = []
+            for feature in first_record_features:
+                start = int(feature.location.start)  # type: ignore
+                end = int(feature.location.end)  # type: ignore
+                if min(target_range) <= start <= end <= max(target_range):
+                    target_features.append(feature)
+            return target_features
+        else:
+            return first_record_features
 
-                extract_features.append(
-                    SeqFeature(
-                        location=SimpleLocation(start, end, strand),
-                        type=f.type,
-                        qualifiers=f.qualifiers,
-                    ),
-                )
-            base_len += len(record.seq)
-
-        return extract_features
-
-    def write_cds_fasta(
-        self,
-        fasta_outfile: str | Path,
-        seqtype: str = "protein",
-        fix_position: bool = False,
-        allow_partial: bool = False,
-    ):
-        """Write CDS protein features fasta file
+    def write_cds_fasta(self, outfile: str | Path) -> None:
+        """Write CDS fasta file
 
         Parameters
         ----------
-        fasta_outfile : str | Path
-            CDS fasta file
-        seqtype : str, optional
-            Sequence type (`protein`|`nucleotide`)
-        fix_position : bool, optional
-            If True, fix feature start & end position by specified min_range parameter
-            (fixed_start = start - min_range, fixed_end = end - min_range)
-        allow_partial : bool, optional
-            If True, features that are partially included in range are also extracted
+        outfile : str | Path
+            Output CDS fasta file
         """
-        features = self.extract_features("CDS", None, fix_position, allow_partial)
-        cds_seq_records: list[SeqRecord] = []
-        for idx, feature in enumerate(features, 1):
-            qualifiers = feature.qualifiers
-            protein_id = qualifiers.get("protein_id", [None])[0]
-            product = qualifiers.get("product", [""])[0]
-            translation = qualifiers.get("translation", [None])[0]
-
-            start = self._to_int(feature.location.start)
-            end = self._to_int(feature.location.end)
-            strand = -1 if feature.location.strand == -1 else 1
-
-            location_id = f"|{start}_{end}_{strand}|"
-            if protein_id is None:
-                seq_id = f"GENE{idx:06d}{location_id}"
-            else:
-                seq_id = f"GENE{idx:06d}_{protein_id}{location_id}"
-
-            if seqtype == "protein":
+        cds_records: list[SeqRecord] = []
+        counter = 0
+        seqid2cds_features = self.get_seqid2features(feature_type="CDS")
+        for seqid, cds_features in seqid2cds_features.items():
+            for cds_feature in cds_features:
+                # Ignore no translation feature
+                translation = cds_feature.qualifiers.get("translation", [None])[0]
+                if translation is None:
+                    continue
+                # Get feature location
+                start = int(cds_feature.location.start)  # type: ignore
+                end = int(cds_feature.location.end)  # type: ignore
+                strand = -1 if cds_feature.location.strand == -1 else 1
+                # Set feature id
+                location_id = f"|{seqid}|{start}_{end}_{strand}|"
+                protein_id = cds_feature.qualifiers.get("protein_id", [None])[0]
+                if protein_id is None:
+                    feature_id = f"GENE{counter:06d}{location_id}"
+                else:
+                    feature_id = f"GENE{counter:06d}_{protein_id}{location_id}"
+                counter += 1
+                # Add SeqRecord of CDS feature
                 seq = Seq(translation)
-            elif seqtype == "nucleotide":
-                seq = Seq(feature.location.extract(self.genome_seq))  # type: ignore
-            else:
-                raise ValueError(f"{seqtype=} is invalid.")
+                product = cds_feature.qualifiers.get("product", [""])[0]
+                seq_record = SeqRecord(seq, feature_id, description=product)
+                cds_records.append(seq_record)
+        # Write CDS file
+        SeqIO.write(cds_records, outfile, "fasta-2line")
 
-            cds_seq_record = SeqRecord(seq=seq, id=seq_id, description=product)
-            cds_seq_records.append(cds_seq_record)
-
-        SeqIO.write(cds_seq_records, fasta_outfile, "fasta-2line")
-
-    def write_genome_fasta(
-        self,
-        outfile: str | Path,
-    ) -> None:
+    def write_genome_fasta(self, outfile: str | Path) -> None:
         """Write genome fasta file
 
         Parameters
@@ -470,18 +358,68 @@ class Genbank:
         outfile : str | Path
             Output genome fasta file
         """
-        write_seq = self.genome_seq
         with open(outfile, "w") as f:
-            f.write(f">{self.name}\n{write_seq}\n")
+            for seqid, seq in self.get_seqid2seq().items():
+                f.write(f">{seqid}\n{seq}\n")
 
-    def _to_int(self, value: Any) -> int:
-        """Convert to int (Required for AbstractPosition|ExactPosition)"""
-        return int(str(value).replace("<", "").replace(">", ""))
+    ############################################################
+    # Private Method
+    ############################################################
+
+    def _parse_gbk_source(
+        self, gbk_source: str | Path | TextIOWrapper
+    ) -> list[SeqRecord]:
+        """Parse genbank source
+
+        Parameters
+        ----------
+        gbk_source : str | Path | TextIOWrapper
+            Genbank file or source
+
+        Returns
+        -------
+        list[SeqRecord]
+            Genbank SeqRecords
+        """
+        # Parse compressed file
+        if isinstance(gbk_source, (str, Path)):
+            if Path(gbk_source).suffix == ".gz":
+                with gzip.open(gbk_source, mode="rt") as f:
+                    return list(SeqIO.parse(f, "genbank"))
+            elif Path(gbk_source).suffix == ".bz2":
+                with bz2.open(gbk_source, mode="rt") as f:
+                    return list(SeqIO.parse(f, "genbank"))
+            elif Path(gbk_source).suffix == ".zip":
+                with zipfile.ZipFile(gbk_source) as zip:
+                    with zip.open(zip.namelist()[0]) as f:
+                        return list(SeqIO.parse(TextIOWrapper(f), "genbank"))
+        # Parse no compressed file or TextIOWrapper
+        return list(SeqIO.parse(gbk_source, "genbank"))
+
+    def _is_straddle_feature(self, feature: SeqFeature) -> bool:
+        """Check target feature straddle genome start position or not
+
+        Parameters
+        ----------
+        feature : SeqFeature
+            Target feature
+
+        Returns
+        -------
+        result : bool
+            Check result
+        """
+        strand = feature.location.strand
+        if strand == -1:
+            start = int(feature.location.parts[-1].start)  # type: ignore
+            end = int(feature.location.parts[0].end)  # type: ignore
+        else:
+            start = int(feature.location.parts[0].start)  # type: ignore
+            end = int(feature.location.parts[-1].end)  # type: ignore
+        return True if start > end else False
 
     def __str__(self):
-        name = str(self._gbk_source)
-        min_max_range = f"{self.min_range:,} - {self.max_range:,} bp"
-        if self.reverse:
-            return f"{name} ({min_max_range}) [Reverse Complement]"
-        else:
-            return f"{name} ({min_max_range})"
+        text = f"{self.name}: {len(self.records)} records\n"
+        for num, (seqid, size) in enumerate(self.get_seqid2size().items(), 1):
+            text += f"{num:02d}. {seqid} ({size:,} bp)\n"
+        return text

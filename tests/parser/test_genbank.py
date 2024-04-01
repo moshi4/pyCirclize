@@ -13,8 +13,6 @@ def test_parse_complete_genome(prokaryote_testdata_dir: Path):
     assert gbk.range_size == max_genome_size
     assert gbk.genome_length == max_genome_size
     assert gbk.full_genome_length == max_genome_size
-    assert gbk.min_range == 0
-    assert gbk.max_range == max_genome_size
     assert gbk.get_seqid2size() == {seqid: max_genome_size}
 
 
@@ -31,19 +29,17 @@ def test_parse_contig_genomes(prokaryote_testdata_dir: Path):
         "NZ_JNJU01000008.1": 2683,
         "NZ_JNJU01000009.1": 1108,
     }
-    total_genome_size = sum(list(seqid2size.values()))
+    size_list = list(seqid2size.values())
 
     assert gbk.name == "mycoplasma_alvi"
-    assert gbk.range_size == total_genome_size
-    assert gbk.min_range == 0
-    assert gbk.max_range == total_genome_size
+    assert gbk.range_size == size_list[0]
     assert gbk.get_seqid2size() == seqid2size
 
-    seqid2cds_features = gbk.get_seqid2features(pseudogene=None)
+    seqid2cds_features = gbk.get_seqid2features()
     first_contig_cds_features = list(seqid2cds_features.values())[0]
     assert len(first_contig_cds_features) == 204
 
-    seqid2trna_features = gbk.get_seqid2features("tRNA", pseudogene=None)
+    seqid2trna_features = gbk.get_seqid2features("tRNA")
     first_contig_trna_features = list(seqid2trna_features.values())[0]
     assert len(first_contig_trna_features) == 12
 
