@@ -46,6 +46,7 @@ API usage is described in each of the following sections in the [document](https
 - [Getting Started](https://moshi4.github.io/pyCirclize/getting_started/)
 - [Plot API Example](https://moshi4.github.io/pyCirclize/plot_api_example/)
 - [Chord Diagram](https://moshi4.github.io/pyCirclize/chord_diagram/)
+- [Radar Chart](https://moshi4.github.io/pyCirclize/radar_chart/)
 - [Circos Plot (Genomics)](https://moshi4.github.io/pyCirclize/circos_plot/)
 - [Phylogenetic Tree](https://moshi4.github.io/pyCirclize/phylogenetic_tree/)
 - [Plot Tips](https://moshi4.github.io/pyCirclize/plot_tips/)
@@ -125,8 +126,8 @@ r_cds_track.genomic_features(r_cds_feats, plotstyle="arrow", fc="skyblue", lw=0.
 # Plot 'gene' qualifier label if exists
 labels, label_pos_list = [], []
 for feat in gbk.extract_features("CDS"):
-    start = int(str(feat.location.start))
-    end = int(str(feat.location.end))
+    start = int(feat.location.start)
+    end = int(feat.location.end)
     label_pos = (start + end) / 2
     gene_name = feat.qualifiers.get("gene", [None])[0]
     if gene_name is not None:
@@ -223,6 +224,39 @@ fig.savefig("example04.png")
 
 ![example04.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example04.png)  
 
+### 5. Radar Chart
+
+```python
+from pycirclize import Circos
+import pandas as pd
+
+# Create RPG jobs parameter dataframe (3 jobs, 7 parameters)
+df = pd.DataFrame(
+    data=[
+        [80, 80, 80, 80, 80, 80, 80],
+        [90, 20, 95, 95, 30, 30, 80],
+        [60, 90, 20, 20, 100, 90, 50],
+    ],
+    index=["Hero", "Warrior", "Wizard"],
+    columns=["HP", "MP", "ATK", "DEF", "SP.ATK", "SP.DEF", "SPD"],
+)
+
+# Initialize Circos instance for radar chart plot
+circos = Circos.radar_chart(
+    df,
+    vmax=100,
+    marker_size=6,
+    grid_interval_ratio=0.2,
+)
+
+# Plot figure & set legend on upper right
+fig = circos.plotfig()
+_ = circos.ax.legend(loc="upper right", fontsize=10)
+fig.savefig("example05.png")
+```
+
+![example05.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example05.png)  
+
 ## Not Implemented Features
 
 List of features implemented in other Circos plotting tools but not yet implemented in pyCirclize.
@@ -231,7 +265,8 @@ I may implement them when I feel like it.
 - Plot histogram
 - Plot boxplot
 - Plot violin
-- Label position auto adjustment
+- Plot curved text
+- Adjust overlap label position
 
 ## Star History
 
