@@ -451,6 +451,8 @@ class Circos:
 
         return circos
 
+    chord_diagram = initialize_from_matrix
+
     @staticmethod
     def initialize_from_tree(
         tree_data: str | Path | Tree,
