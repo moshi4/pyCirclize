@@ -14,7 +14,7 @@ def sector() -> Sector:
 
 def test_property():
     """Test sector property"""
-    # Case1: start_pos = 0 (Default)
+    # Case1: Set int size
     name, size, rad_lim = "test", 1000, (0, math.pi)
     sector_case1 = Sector(name, size, rad_lim)
     assert sector_case1.name == name
@@ -30,12 +30,12 @@ def test_property():
     assert sector_case1.patches == []
     assert sector_case1.plot_funcs == []
 
-    # Case2: start_pos != 0
-    name, size, rad_lim, start_pos = "test", 1000, (0, math.pi), 100
-    sector_case2 = Sector(name, size, rad_lim, start_pos)
-    assert sector_case2.size == size
-    assert sector_case2.start == start_pos
-    assert sector_case2.end == start_pos + size
+    # Case2: Set tuple[float, float] range
+    name, range, rad_lim = "test", (100, 1100), (0, math.pi)
+    sector_case2 = Sector(name, range, rad_lim)
+    assert sector_case2.size == range[1] - range[0]
+    assert sector_case2.start == range[0]
+    assert sector_case2.end == range[1]
     assert sector_case2.center == 600
 
 
@@ -73,7 +73,7 @@ def test_get_lowest_r(sector: Sector):
 
 def test_x_to_pad():
     """Test `x_to_pad()`"""
-    # Case1: start_pos = 0
+    # Case1: Set int size
     sector = Sector("test", 1000, (0, math.pi))
     assert sector.x_to_rad(0) == 0
     assert sector.x_to_rad(250) == math.pi / 4
@@ -82,8 +82,8 @@ def test_x_to_pad():
     with pytest.raises(ValueError):
         sector.x_to_rad(sector.end + 1)
 
-    # Case2: start_pos != 0
-    sector = Sector("test", 1000, (0, math.pi), start_pos=100)
+    # Case2: Set tuple[float, float] range
+    sector = Sector("test", (100, 1100), (0, math.pi))
     assert sector.x_to_rad(350) == math.pi / 4
     assert sector.x_to_rad(600) == math.pi / 2
     assert sector.x_to_rad(1100) == math.pi

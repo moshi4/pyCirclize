@@ -11,6 +11,10 @@ def test_circos_init():
     assert [s.name for s in circos.sectors] == ["A", "B", "C"]
     assert [s.size for s in circos.sectors] == [10, 20, 15]
 
+    circos = Circos(dict(D=10, E=(10, 20), F=(30, 50), G=100))
+    assert [s.name for s in circos.sectors] == ["D", "E", "F", "G"]
+    assert [s.size for s in circos.sectors] == [10, 10, 20, 100]
+
 
 @pytest.mark.parametrize(
     "start, end",

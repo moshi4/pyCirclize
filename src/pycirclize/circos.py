@@ -40,21 +40,20 @@ class Circos:
 
     def __init__(
         self,
-        sectors: Mapping[str, int | float],
+        sectors: Mapping[str, int | float | tuple[float, float]],
         start: float = 0,
         end: float = 360,
         *,
         space: float | list[float] = 0,
         endspace: bool = True,
-        sector2start_pos: Mapping[str, int | float] | None = None,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
     ):
         """
         Parameters
         ----------
-        sectors : Mapping[str, int | float]
-            Sector name & size dict
+        sectors : Mapping[str, int | float | tuple[float, float]]
+            Sector name & size (or range) dict
         start : float, optional
             Plot start degree (`-360 <= start < end <= 360`)
         end : float, optional
@@ -63,14 +62,11 @@ class Circos:
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
-        sector2start_pos : Mapping[str, int | float] | None, optional
-            Sector name & start position dict. By default, `start_pos=0`.
         sector2clockwise : dict[str, bool] | None, optional
             Sector name & clockwise bool dict. By default, `clockwise=True`.
         show_axis_for_debug : bool, optional
             Show axis for position check debugging (Developer option)
         """
-        sector2start_pos = {} if sector2start_pos is None else sector2start_pos
         sector2clockwise = {} if sector2clockwise is None else sector2clockwise
 
         # Check start-end degree range
@@ -100,19 +96,21 @@ class Circos:
                 """
             )[1:-1]
             raise ValueError(err_msg)
-        sector_total_size = sum(sectors.values())
+
+        sector2range = self._to_sector2range(sectors)
+        sector_total_size = sum([max(r) - min(r) for r in sector2range.values()])
 
         rad_pos = math.radians(start)
         self._sectors: list[Sector] = []
-        for idx, (sector_name, sector_size) in enumerate(sectors.items()):
+        for idx, (sector_name, sector_range) in enumerate(sector2range.items()):
+            sector_size = max(sector_range) - min(sector_range)
             sector_size_ratio = sector_size / sector_total_size
             deg_size = whole_deg_size_without_space * sector_size_ratio
             rad_size = math.radians(deg_size)
             rad_lim = (rad_pos, rad_pos + rad_size)
             rad_pos += rad_size + math.radians(space_list[idx])
-            start_pos = sector2start_pos.get(sector_name, 0)
             clockwise = sector2clockwise.get(sector_name, True)
-            sector = Sector(sector_name, sector_size, rad_lim, start_pos, clockwise)
+            sector = Sector(sector_name, sector_range, rad_lim, clockwise)
             self._sectors.append(sector)
 
         self._deg_lim = (start, end)
@@ -586,15 +584,13 @@ class Circos:
             Circos instance initialized from BED file
         """
         records = Bed(bed_file).records
-        sectors = {rec.chr: rec.size for rec in records}
-        sector2start_pos = {rec.chr: rec.start for rec in records}
+        sectors = {rec.chr: (rec.start, rec.end) for rec in records}
         return Circos(
             sectors,
             start,
             end,
             space=space,
             endspace=endspace,
-            sector2start_pos=sector2start_pos,
             sector2clockwise=sector2clockwise,
         )
 
@@ -1106,6 +1102,23 @@ class Circos:
         if end - start > max_deg:
             err_msg = f"'end - start' must be less than {max_deg} ({start=}, {end=})"
             raise ValueError(err_msg)
+
+    def _to_sector2range(
+        self,
+        sectors: Mapping[str, int | float | tuple[float, float]],
+    ) -> dict[str, tuple[float, float]]:
+        """Convert sectors to sector2range"""
+        sector2range: dict[str, tuple[float, float]] = {}
+        for name, value in sectors.items():
+            if isinstance(value, (tuple, list)):
+                sector_start, sector_end = value
+                if not sector_start < sector_end:
+                    err_msg = f"{sector_end=} must be larger than {sector_start=}."
+                    raise ValueError(err_msg)
+                sector2range[name] = (sector_start, sector_end)
+            else:
+                sector2range[name] = (0, value)
+        return sector2range
 
     def _initialize_figure(
         self,
