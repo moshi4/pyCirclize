@@ -209,7 +209,6 @@ class Sector:
         rad : float
             Radian coordinate
         """
-        #
         # Check target x is in valid sector range
         if not ignore_range_error:
             # Apply relative torelance value to sector range to avoid
