@@ -26,9 +26,8 @@ class Sector:
     def __init__(
         self,
         name: str,
-        size: float,
+        size: float | tuple[float, float],
         rad_lim: tuple[float, float],
-        start_pos: float = 0,
         clockwise: bool = True,
     ):
         """
@@ -36,19 +35,22 @@ class Sector:
         ----------
         name : str
             Sector name
-        size : float
-            Sector size
+        size : float | tuple[float, float]
+            Sector size (or range)
         rad_lim : tuple[float, float]
             Sector radian limit region
-        start_pos : float, optional
-            Sector start position
         clockwise : bool, optional
             Sector coordinate direction (clockwise or anti-clockwise).
         """
         self._name = name
-        self._size = size
+        if isinstance(size, (tuple, list)):
+            start, end = size[0], size[1]
+        else:
+            start, end = 0, size
+        self._start = start
+        self._end = end
+        self._size = end - start
         self._rad_lim = rad_lim
-        self._start_pos = start_pos
         self._clockwise = clockwise
         self._tracks: list[Track] = []
 
@@ -73,12 +75,12 @@ class Sector:
     @property
     def start(self) -> float:
         """Sector start position (x coordinate)"""
-        return self._start_pos
+        return self._start
 
     @property
     def end(self) -> float:
         """Sector end position (x coordinate)"""
-        return self._start_pos + self._size
+        return self._end
 
     @property
     def center(self) -> float:
@@ -207,9 +209,16 @@ class Sector:
         rad : float
             Radian coordinate
         """
-        if not self.start <= x <= self.end and not ignore_range_error:
-            err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
-            raise ValueError(err_msg)
+        # Check target x is in valid sector range
+        if not ignore_range_error:
+            # Apply relative torelance value to sector range to avoid
+            # unexpected invalid range error due to rounding errors (Issue #27, #67)
+            rel_tol = 1e-14
+            min_range, max_range = self.start - rel_tol, self.end + rel_tol
+            if not min_range <= x <= max_range:
+                err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
+                raise ValueError(err_msg)
+
         if not self.clockwise:
             x = (self.start + self.end) - x
         size_ratio = self.rad_size / self.size

@@ -7,11 +7,15 @@ import zipfile
 from collections import defaultdict
 from io import StringIO, TextIOWrapper
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 from Bio import SeqIO, SeqUtils
 from Bio.SeqFeature import Seq, SeqFeature, SimpleLocation
 from Bio.SeqRecord import SeqRecord
+
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
 
 
 class Genbank:
@@ -56,10 +60,13 @@ class Genbank:
         elif isinstance(self._gbk_source, (StringIO, TextIOWrapper)):
             self._name = self._records[0].name
         else:
-            raise NotImplementedError("Failed to get name.")
+            raise ValueError("Failed to get genbank name.")
 
         if min_range or max_range:
             warnings.warn("min_range & max_range is no longer used in Genbank parser.")
+
+        if len(self.records) == 0:
+            raise ValueError(f"Failed to parse {gbk_source} as Genbank file.")
 
     ############################################################
     # Property
@@ -127,7 +134,7 @@ class Genbank:
         step_size: int | None = None,
         *,
         seq: str | None = None,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[NDArray[np.int64], NDArray[np.float64]]:
         """Calculate GC skew in sliding window
 
         Parameters
@@ -141,7 +148,7 @@ class Genbank:
 
         Returns
         -------
-        gc_skew_result_tuple : tuple[np.ndarray, np.ndarray]
+        gc_skew_result_tuple : tuple[NDArray[np.int64], NDArray[np.float64]]
             Position list & GC skew list
         """
         pos_list, gc_skew_list = [], []
@@ -168,7 +175,10 @@ class Genbank:
                 skew = 0.0
             gc_skew_list.append(skew)
 
-        return (np.array(pos_list), np.array(gc_skew_list))
+        pos_list = np.array(pos_list).astype(np.int64)
+        gc_skew_list = np.array(gc_skew_list).astype(np.float64)
+
+        return pos_list, gc_skew_list
 
     def calc_gc_content(
         self,
@@ -176,7 +186,7 @@ class Genbank:
         step_size: int | None = None,
         *,
         seq: str | None = None,
-    ) -> tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[NDArray[np.int64], NDArray[np.float64]]:
         """Calculate GC content in sliding window
 
         Parameters
@@ -190,7 +200,7 @@ class Genbank:
 
         Returns
         -------
-        gc_content_result_tuple : tuple[np.ndarray, np.ndarray]
+        gc_content_result_tuple : tuple[NDArray[np.int64], NDArray[np.float64]]
             Position list & GC content list
         """
         pos_list, gc_content_list = [], []
@@ -212,7 +222,10 @@ class Genbank:
             gc_content = SeqUtils.gc_fraction(subseq) * 100
             gc_content_list.append(gc_content)
 
-        return (np.array(pos_list), np.array(gc_content_list))
+        pos_list = np.array(pos_list).astype(np.int64)
+        gc_content_list = np.array(gc_content_list).astype(np.float64)
+
+        return pos_list, gc_content_list
 
     def get_seqid2seq(self) -> dict[str, str]:
         """Get seqid & complete/contig/scaffold genome sequence dict
@@ -236,14 +249,14 @@ class Genbank:
 
     def get_seqid2features(
         self,
-        feature_type: str | None = "CDS",
+        feature_type: str | list[str] | None = "CDS",
         target_strand: int | None = None,
     ) -> dict[str, list[SeqFeature]]:
         """Get seqid & features in target seqid genome dict
 
         Parameters
         ----------
-        feature_type : str | None, optional
+        feature_type : str | list[str] | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
             If None, extract regardless of feature type.
         target_strand : int | None, optional
@@ -254,12 +267,15 @@ class Genbank:
         seqid2features : dict[str, list[SeqFeature]]
             seqid & features dict
         """
+        if isinstance(feature_type, str):
+            feature_type = [feature_type]
+
         seqid2features = defaultdict(list)
         for rec in self.records:
             feature: SeqFeature
             for feature in rec.features:
                 strand = feature.location.strand
-                if feature_type is not None and feature.type != feature_type:
+                if feature_type is not None and feature.type not in feature_type:
                     continue
                 if target_strand is not None and strand != target_strand:
                     continue
@@ -279,7 +295,8 @@ class Genbank:
 
     def extract_features(
         self,
-        feature_type: str | None = "CDS",
+        feature_type: str | list[str] | None = "CDS",
+        *,
         target_strand: int | None = None,
         target_range: tuple[int, int] | None = None,
     ) -> list[SeqFeature]:
@@ -287,7 +304,7 @@ class Genbank:
 
         Parameters
         ----------
-        feature_type : str | None, optional
+        feature_type : str | list[str] | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
             If None, extract regardless of feature type.
         target_strand : int | None, optional
