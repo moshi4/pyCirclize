@@ -207,9 +207,17 @@ class Sector:
         rad : float
             Radian coordinate
         """
-        if not self.start <= x <= self.end and not ignore_range_error:
-            err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
-            raise ValueError(err_msg)
+        #
+        # Check target x is in valid sector range
+        if not ignore_range_error:
+            # Apply relative torelance value to sector range to avoid
+            # unexpected invalid range error due to rounding errors (Issue #27, #67)
+            rel_tol = 1e-14
+            min_range, max_range = self.start - rel_tol, self.end + rel_tol
+            if not min_range <= x <= max_range:
+                err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
+                raise ValueError(err_msg)
+
         if not self.clockwise:
             x = (self.start + self.end) - x
         size_ratio = self.rad_size / self.size
