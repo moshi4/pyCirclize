@@ -694,10 +694,10 @@ def test_track_genomic_features_genbank_plot(
     # Plot forward & reverse CDS genomic features
     cds_track = sector.add_track((90, 95))
     cds_track.genomic_features(
-        gbk.extract_features("CDS", 1), plotstyle="arrow", fc="salmon"
+        gbk.extract_features("CDS", target_strand=1), plotstyle="arrow", fc="salmon"
     )
     cds_track.genomic_features(
-        gbk.extract_features("CDS", -1), plotstyle="arrow", fc="skyblue"
+        gbk.extract_features("CDS", target_strand=-1), plotstyle="arrow", fc="skyblue"
     )
 
     circos.savefig(fig_outfile)
@@ -727,10 +727,10 @@ def test_track_genomic_features_gff_plot(
     # Plot forward & reverse CDS genomic features
     cds_track = sector.add_track((90, 95))
     cds_track.genomic_features(
-        gff.extract_features("CDS", 1), plotstyle="arrow", fc="salmon"
+        gff.extract_features("CDS", target_strand=1), plotstyle="arrow", fc="salmon"
     )
     cds_track.genomic_features(
-        gff.extract_features("CDS", -1), plotstyle="arrow", fc="skyblue"
+        gff.extract_features("CDS", target_strand=-1), plotstyle="arrow", fc="skyblue"
     )
 
     circos.savefig(fig_outfile)

@@ -124,14 +124,14 @@ class Gff:
 
     def get_seqid2features(
         self,
-        feature_type: str | None = "CDS",
+        feature_type: str | list[str] | None = "CDS",
         target_strand: int | None = None,
     ) -> dict[str, list[SeqFeature]]:
         """Get seqid & features in target seqid genome dict
 
         Parameters
         ----------
-        feature_type : str | None, optional
+        feature_type : str | list[str] | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
             If None, extract regardless of feature type.
         target_strand : int | None, optional
@@ -142,6 +142,9 @@ class Gff:
         seqid2features : dict[str, list[SeqFeature]]
             seqid & features dict
         """
+        if isinstance(feature_type, str):
+            feature_type = [feature_type]
+
         gff_records = GffRecord.filter_records(
             self.all_records,
             feature_type=feature_type,
@@ -156,15 +159,20 @@ class Gff:
 
     def extract_features(
         self,
-        feature_type: str | None = "CDS",
+        feature_type: str | list[str] | None = "CDS",
+        *,
         target_strand: int | None = None,
         target_range: tuple[int, int] | None = None,
     ) -> list[SeqFeature]:
         """Extract features
 
+        If `target_seqid` is specified when the Gff instance initialized,
+        then the features of the target seqid are extracted.
+        Otherwise, extract the features of the seqid in the first row.
+
         Parameters
         ----------
-        feature_type : str | None, optional
+        feature_type : str | list[str] | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...)
             If None, extract regardless of feature type.
         target_strand : int | None, optional
@@ -204,7 +212,7 @@ class Gff:
         parent_id = None
         parent_id2record: dict[str, GffRecord] = {}
         parent_id2exons: dict[str, list[GffRecord]] = defaultdict(list)
-        for rec in self._records:
+        for rec in self.records:
             if rec.type == feature_type:
                 parent_id = rec.attrs.get("ID", [None])[0]
                 if parent_id is None:
@@ -483,7 +491,7 @@ class GffRecord:
     @staticmethod
     def filter_records(
         gff_records: list[GffRecord],
-        feature_type: str | None = "CDS",
+        feature_type: str | list[str] | None = "CDS",
         target_strand: int | None = None,
         target_range: tuple[int, int] | None = None,
     ) -> list[GffRecord]:
@@ -493,7 +501,7 @@ class GffRecord:
         ----------
         gff_records : list[GffRecord]
             GFF records to be filterd
-        feature_type : str | None, optional
+        feature_type : str | list[str] | None, optional
             Feature type (`CDS`, `gene`, `mRNA`, etc...). If None, no filter.
         target_strand : int | None, optional
             Target strand. If None, no filter.
@@ -505,9 +513,12 @@ class GffRecord:
         filter_gff_records : list[SeqFeature]
             Filtered GFF records
         """
+        if isinstance(feature_type, str):
+            feature_type = [feature_type]
+
         filter_gff_records = []
         for rec in gff_records:
-            if feature_type is not None and rec.type != feature_type:
+            if feature_type is not None and rec.type not in feature_type:
                 continue
             if target_strand is not None and rec.strand != target_strand:
                 continue
