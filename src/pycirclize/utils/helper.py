@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import matplotlib as mpl
 import numpy as np
+from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, to_hex
 
 
@@ -129,3 +130,20 @@ def calc_group_spaces(
         return spaces
     else:
         return spaces[:-1]
+
+
+def is_pseudo_feature(feature: SeqFeature) -> bool:
+    """Check target feature is pseudo or not from qualifiers tag
+
+    Parameters
+    ----------
+    feature : SeqFeature
+        Target feature
+
+    Returns
+    -------
+    check_result : bool
+        pseudo check result
+    """
+    quals = feature.qualifiers
+    return True if "pseudo" in quals or "pseudogene" in quals else False
