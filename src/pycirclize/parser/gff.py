@@ -271,8 +271,12 @@ class Gff:
 
         Returns
         -------
-        gff_records, start, end : tuple[list[GffRecord], int, int]
-            GFF record list, start, end
+        gff_records : list[GffRecord]
+            GFF record list
+        start : int
+            Start position of target_seqid record
+        end : int
+            End position of target_seqid record
         """
         gff_file = Path(gff_file)
         if gff_file.suffix == ".gz":
@@ -308,8 +312,12 @@ class Gff:
 
         Returns
         -------
-        gff_records, start, end : tuple[list[GffRecord], int, int]
-            GFF record list, start, end
+        gff_records : list[GffRecord]
+            GFF record list
+        start : int
+            Start position of target_seqid record
+        end : int
+            End position of target_seqid record
         """
         # Parse GFF lines
         gff_all_lines = handle.read().splitlines()

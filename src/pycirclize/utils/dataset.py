@@ -96,8 +96,12 @@ def load_eukaryote_example_dataset(
 
     Returns
     -------
-    chr_bed_file, cytoband_file, chr_links : tuple[Path, Path, list[ChrLink]]
-        BED file, Cytoband file, Chromosome links
+    chr_bed_file : Path
+        BED file
+    cytoband_file : Path
+        Cytoband file
+    chr_links : list[ChrLink]
+        Chromosome links
     """
     # Check specified name dataset exists or not
     if name not in config.EUKARYOTE_DATASET:

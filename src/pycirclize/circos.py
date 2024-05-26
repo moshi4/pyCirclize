@@ -528,8 +528,10 @@ class Circos:
 
         Returns
         -------
-        circos, tv : tuple[Circos, TreeViz]
-            Circos & TreeViz instances initialized from tree
+        circos : Circos
+            Circos instance
+        tv : TreeViz
+            TreeViz instance
         """
         # Initialize circos sector with tree size
         tree = TreeViz.load_tree(tree_data, format=format)
@@ -1061,9 +1063,6 @@ class Circos:
     ) -> None:
         """Save figure to file
 
-        `circos.savefig("result.png")` is alias for
-        `circos.plotfig().savefig("result.png")`
-
         Parameters
         ----------
         savefile : str | Path
@@ -1074,6 +1073,11 @@ class Circos:
             Figure size
         pad_inches : float, optional
             Padding inches
+
+        Warnings
+        --------
+        To plot a figure that settings a user-defined legend, subtracks, or annotations,
+        call `fig.savefig()` instead of `gv.savefig()`.
         """
         fig = self.plotfig(dpi=dpi, figsize=figsize)
         fig.savefig(
@@ -1143,8 +1147,10 @@ class Circos:
 
         Returns
         -------
-        fig, ax : tuple[Figure, PolarAxes]
-            Figure, PolarAxes
+        fig : Figure
+            Figure
+        ax : PolarAxes
+            PolarAxes
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
