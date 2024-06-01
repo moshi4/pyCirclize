@@ -19,7 +19,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
 ]
-include = ["tests"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
