@@ -1318,8 +1318,10 @@ class Track:
 
         Returns
         -------
-        arc_rad, arc_r : tuple[list[float], list[float]]
-            Arc radian list, Ard radius list
+        arc_rad : list[float]
+            Arc radian list
+        arc_r : list[float]
+            Arc radius list
         """
         all_arc_rad, all_arc_r = [], []
         for i in range(len(rad) - 1):

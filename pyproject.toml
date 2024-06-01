@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyCirclize"
-version = "1.5.0"
+version = "1.6.0"
 description = "Circular visualization in Python"
 authors = ["moshi4"]
 license = "MIT"
@@ -19,7 +19,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
 ]
-include = ["tests"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

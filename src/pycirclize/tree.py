@@ -442,8 +442,10 @@ class TreeViz:
 
         Returns
         -------
-        tree, uniq_node_names: tuple[Tree, list[str]]
-            Unique node name set tree object & set unique node names
+        tree : Tree
+            Tree (set unique node names)
+        uniq_node_names : list[str]
+            Unique node names
         """
         tree = deepcopy(tree)
         uniq_innode_names: list[str] = []

@@ -148,8 +148,10 @@ class Genbank:
 
         Returns
         -------
-        gc_skew_result_tuple : tuple[NDArray[np.int64], NDArray[np.float64]]
-            Position list & GC skew list
+        pos_list : NDArray[np.int64]
+            Position list
+        gc_skew_list : NDArray[np.float64]
+            GC skew list
         """
         pos_list, gc_skew_list = [], []
         seq = self.genome_seq if seq is None else seq
@@ -200,8 +202,10 @@ class Genbank:
 
         Returns
         -------
-        gc_content_result_tuple : tuple[NDArray[np.int64], NDArray[np.float64]]
-            Position list & GC content list
+        pos_list : NDArray[np.int64]
+            Position list
+        gc_content_list : NDArray[np.float64]
+            GC content list
         """
         pos_list, gc_content_list = [], []
         seq = self.genome_seq if seq is None else seq

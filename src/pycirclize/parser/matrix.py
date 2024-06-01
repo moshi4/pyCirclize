@@ -202,16 +202,19 @@ class Matrix:
     ) -> list[tuple[tuple[str, float, float], tuple[str, float, float]]]:
         """Convert matrix to links data for `circos.link()` method
 
-        >>> # Example usage
+        Returns
+        -------
+        link_target1 : tuple[str, float, float]
+            name1, start1, end1
+        link_target2 : tuple[str, float, float]
+            name2, start2, end2
+
+        Examples
+        --------
         >>> matrix = Matrix(matrix_file)
         >>> circos = Circos(matrix.to_sectors())
         >>> for link in matrix.to_links():
         >>>    circos.link(*link)
-
-        Returns
-        -------
-        links : list[tuple[tuple[str, float, float], tuple[str, float, float]]]
-            List of link `((name1, start1, end1), (name2, end2, start2))`
         """
         return self._links
 

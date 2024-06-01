@@ -38,6 +38,12 @@ from pycirclize.tree import TreeViz
 class Circos:
     """Circos Visualization Class"""
 
+    # By default, after saving a figure using the `savefig()` method, figure object is
+    # automatically deleted to avoid memory leaks (no display on jupyter notebook)
+    # If you want to display the figure on jupyter notebook using `savefig()` method,
+    # set clear_savefig=False.
+    clear_savefig: bool = True
+
     def __init__(
         self,
         sectors: Mapping[str, int | float | tuple[float, float]],
@@ -522,8 +528,10 @@ class Circos:
 
         Returns
         -------
-        circos, tv : tuple[Circos, TreeViz]
-            Circos & TreeViz instances initialized from tree
+        circos : Circos
+            Circos instance
+        tv : TreeViz
+            TreeViz instance
         """
         # Initialize circos sector with tree size
         tree = TreeViz.load_tree(tree_data, format=format)
@@ -946,7 +954,9 @@ class Circos:
         vmax: float = 1,
         cmap: str | Colormap = "bwr",
         orientation: str = "vertical",
+        label: str | None = None,
         colorbar_kws: dict[str, Any] | None = None,
+        label_kws: dict[str, Any] | None = None,
         tick_kws: dict[str, Any] | None = None,
     ) -> None:
         """Plot colorbar
@@ -964,20 +974,26 @@ class Circos:
             <https://matplotlib.org/stable/tutorials/colors/colormaps.html>
         orientation : str, optional
             Colorbar orientation (`vertical`|`horizontal`)
+        label : str | None, optional
+            Colorbar label. If None, no label shown.
         colorbar_kws : dict[str, Any] | None, optional
-            Colorbar properties (e.g. `dict(label="name", format="%.1f", ...)`)
+            Colorbar properties (e.g. `dict(format="%.1f", ...)`)
             <https://matplotlib.org/stable/api/colorbar_api.html>
+        label_kws : dict[str, Any] | None, optional
+            Text properties (e.g. `dict(size=15, color="red", ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
         tick_kws : dict[str, Any] | None, optional
             Axes.tick_params properties (e.g. `dict(labelsize=12, colors="red", ...)`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.tick_params.html>
         """
         colorbar_kws = {} if colorbar_kws is None else deepcopy(colorbar_kws)
+        label_kws = {} if label_kws is None else deepcopy(label_kws)
         tick_kws = {} if tick_kws is None else deepcopy(tick_kws)
 
         def plot_colorbar(ax: PolarAxes) -> None:
             axin: Axes = ax.inset_axes(bounds)
             norm = Normalize(vmin=vmin, vmax=vmax)
-            Colorbar(
+            cb = Colorbar(
                 axin,
                 cmap=cmap,  # type: ignore
                 norm=norm,
@@ -985,6 +1001,8 @@ class Circos:
                 **colorbar_kws,
             )
             axin.tick_params(**tick_kws)
+            if label:
+                cb.set_label(label, **label_kws)
 
         self._plot_funcs.append(plot_colorbar)
 
@@ -1055,9 +1073,6 @@ class Circos:
     ) -> None:
         """Save figure to file
 
-        `circos.savefig("result.png")` is alias for
-        `circos.plotfig().savefig("result.png")`
-
         Parameters
         ----------
         savefile : str | Path
@@ -1068,6 +1083,11 @@ class Circos:
             Figure size
         pad_inches : float, optional
             Padding inches
+
+        Warnings
+        --------
+        To plot a figure that settings a user-defined legend, subtracks, or annotations,
+        call `fig.savefig()` instead of `gv.savefig()`.
         """
         fig = self.plotfig(dpi=dpi, figsize=figsize)
         fig.savefig(
@@ -1077,8 +1097,9 @@ class Circos:
             bbox_inches="tight",
         )
         # Clear & close figure to suppress memory leak
-        fig.clear()
-        plt.close(fig)
+        if self.clear_savefig:
+            fig.clear()
+            plt.close(fig)
 
     ############################################################
     # Private Method
@@ -1136,8 +1157,10 @@ class Circos:
 
         Returns
         -------
-        fig, ax : tuple[Figure, PolarAxes]
-            Figure, PolarAxes
+        fig : Figure
+            Figure
+        ax : PolarAxes
+            PolarAxes
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
