@@ -19,19 +19,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python ${{ matrix.python-version}}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
 
-      - name: Install dependencies
-        run: pip install -e . pytest pytest-cov ruff
+      - name: Install Python ${{ matrix.python-version }} & dependencies
+        run: |
+          rye pin ${{ matrix.python-version }}
+          rye sync --update-all --all-features
 
       - name: Run ruff lint check
-        run: ruff check --diff
+        run: rye run ruff check --diff
 
       - name: Run ruff format check
-        run: ruff format --check --diff
+        run: rye run ruff format --check --diff
 
       - name: Run pytest
-        run: pytest
+        run: rye run pytest
