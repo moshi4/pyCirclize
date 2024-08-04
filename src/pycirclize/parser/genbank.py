@@ -278,6 +278,10 @@ class Genbank:
         for rec in self.records:
             feature: SeqFeature
             for feature in rec.features:
+                # Ignore feature if parsing of location fails
+                if feature.location is None:
+                    continue
+                # Filter feature by type & strand
                 strand = feature.location.strand
                 if feature_type is not None and feature.type not in feature_type:
                     continue
