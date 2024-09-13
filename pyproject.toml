@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "matplotlib>=3.6.3",
     "biopython>=1.80",

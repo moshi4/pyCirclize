@@ -20,7 +20,7 @@ pyCirclize was inspired by [circlize](https://github.com/jokergoo/circlize) and 
 
 ## Installation
 
-`Python 3.8 or later` is required for installation.
+`Python 3.9 or later` is required for installation.
 
 **Install PyPI package:**
 
