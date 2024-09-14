@@ -12,15 +12,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install MkDocs & Plugins
+      - name: Install Rye
         run: |
-          pip install .
-          pip install mkdocs mkdocs-material mkdocs-jupyter mkdocstrings[python] black
+          curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+
+      - name: Install Python & MkDocs & Plugins
+        run: rye sync
 
       - name: Publish document
-        run: mkdocs gh-deploy --force
+        run: rye run mkdocs gh-deploy --force

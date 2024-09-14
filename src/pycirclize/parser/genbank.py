@@ -236,10 +236,10 @@ class Genbank:
 
         Returns
         -------
-        seqid2seq : dict[str, int]
+        seqid2seq : dict[str, str]
             seqid & genome sequence dict
         """
-        return {str(rec.id): rec.seq for rec in self.records}
+        return {str(rec.id): str(rec.seq) for rec in self.records}
 
     def get_seqid2size(self) -> dict[str, int]:
         """Get seqid & complete/contig/scaffold genome size dict
@@ -278,6 +278,10 @@ class Genbank:
         for rec in self.records:
             feature: SeqFeature
             for feature in rec.features:
+                # Ignore feature if parsing of location fails
+                if feature.location is None:
+                    continue
+                # Filter feature by type & strand
                 strand = feature.location.strand
                 if feature_type is not None and feature.type not in feature_type:
                     continue

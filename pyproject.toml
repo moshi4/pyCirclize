@@ -1,11 +1,9 @@
-[tool.poetry]
+[project]
 name = "pyCirclize"
-version = "1.6.0"
+dynamic = ["version"]
 description = "Circular visualization in Python"
-authors = ["moshi4"]
+authors = [{ name = "moshi4", email = "" }]
 license = "MIT"
-homepage = "https://moshi4.github.io/pyCirclize/"
-repository = "https://github.com/moshi4/pyCirclize/"
 readme = "README.md"
 keywords = [
     "matplotlib",
@@ -19,6 +17,36 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Framework :: Matplotlib",
 ]
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib>=3.6.3",
+    "biopython>=1.80",
+    "numpy>=1.21",
+    "pandas>=1.3.5",
+]
+
+[project.urls]
+homepage = "https://moshi4.github.io/pyCirclize/"
+repository = "https://github.com/moshi4/pyCirclize/"
+
+[tool.hatch.version]
+path = "src/pycirclize/__init__.py"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "ruff>=0.4.0",
+    "pre-commit>=3.5.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "ipykernel>=6.13.0",
+    # docs
+    "mkdocs>=1.2",
+    "mkdocstrings[python]>=0.19.0",
+    "mkdocs-jupyter>=0.21.0",
+    "mkdocs-material>=8.2",
+    "black>=22.3.0",
+]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -26,7 +54,7 @@ addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.ruff]
-src = ["src", "tests"]
+include = ["src/**.py", "tests/**.py"]
 line-length = 88
 
 # Lint Rules: https://docs.astral.sh/ruff/rules/
@@ -53,27 +81,6 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
-[tool.poetry.dependencies]
-python = "^3.8"
-matplotlib = ">=3.5.2"
-biopython = ">=1.80"
-numpy = ">=1.21.1"
-pandas = ">=1.3.5"
-
-[tool.poetry.group.dev.dependencies]
-ruff = ">=0.1.6"
-pre-commit = ">=3.5.0"
-pytest = ">=7.1.2"
-pytest-cov = ">=4.0.0"
-ipykernel = ">=6.13.0"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = ">=1.2"
-mkdocstrings = { extras = ["python"], version = ">=0.19.0" }
-mkdocs-jupyter = ">=0.21.0"
-mkdocs-material = ">=8.2"
-black = ">=22.10.0"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
