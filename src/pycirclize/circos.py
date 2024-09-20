@@ -426,7 +426,7 @@ class Circos:
             colors = utils.ColorCycler.get_color_list(len(names))
             name2color = dict(zip(names, colors))
         else:
-            if type(cmap) == defaultdict:
+            if isinstance(cmap, defaultdict):
                 name2color = cmap
             else:
                 name2color: dict[str, str] = defaultdict(lambda: "grey")
