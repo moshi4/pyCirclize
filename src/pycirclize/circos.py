@@ -1061,7 +1061,7 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig
+        return fig  # type: ignore
 
     def savefig(
         self,
@@ -1164,7 +1164,7 @@ class Circos:
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
-        return fig, ax
+        return fig, ax  # type: ignore
 
     def _initialize_polar_axes(self, ax: PolarAxes) -> None:
         """Initialize polar axes params
