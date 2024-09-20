@@ -444,10 +444,10 @@ class Circos:
                 outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
 
         # Plot links
-        fromto_label2color = {f"{t[0]}{t[1]}": t[2] for t in link_cmap}
+        fromto_label2color = {f"{t[0]}--->{t[1]}": t[2] for t in link_cmap}
         for link in matrix.to_links():
             from_label, to_label = link[0][0], link[1][0]
-            fromto_label = f"{from_label}{to_label}"
+            fromto_label = f"{from_label}--->{to_label}"
             # Set link color
             if fromto_label in fromto_label2color:
                 color = fromto_label2color[fromto_label]

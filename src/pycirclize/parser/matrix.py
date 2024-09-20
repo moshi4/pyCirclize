@@ -103,7 +103,7 @@ class Matrix:
         for row in fromto_table.itertuples():
             from_label, to_label, value = str(row[1]), str(row[2]), row[3]
             if float(value) > 0:
-                fromto = f"{from_label}{to_label}"
+                fromto = f"{from_label}-->{to_label}"
                 fromto2value[fromto] = value
                 label2value_sum[from_label] += value
                 label2value_sum[to_label] += value
@@ -134,7 +134,7 @@ class Matrix:
         for row_label in all_labels:
             row_data = []
             for col_label in all_labels:
-                row_data.append(fromto2value[f"{row_label}{col_label}"])
+                row_data.append(fromto2value[f"{row_label}-->{col_label}"])
             matrix_data.append(row_data)
         matrix_df = pd.DataFrame(matrix_data, index=all_labels, columns=all_labels)
 
