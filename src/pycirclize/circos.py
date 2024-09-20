@@ -426,7 +426,7 @@ class Circos:
             colors = utils.ColorCycler.get_color_list(len(names))
             name2color = dict(zip(names, colors))
         else:
-            if type(cmap) == defaultdict:
+            if isinstance(cmap, defaultdict):
                 name2color = cmap
             else:
                 name2color: dict[str, str] = defaultdict(lambda: "grey")
@@ -444,10 +444,10 @@ class Circos:
                 outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
 
         # Plot links
-        fromto_label2color = {f"{t[0]}{t[1]}": t[2] for t in link_cmap}
+        fromto_label2color = {f"{t[0]}--->{t[1]}": t[2] for t in link_cmap}
         for link in matrix.to_links():
             from_label, to_label = link[0][0], link[1][0]
-            fromto_label = f"{from_label}{to_label}"
+            fromto_label = f"{from_label}--->{to_label}"
             # Set link color
             if fromto_label in fromto_label2color:
                 color = fromto_label2color[fromto_label]
@@ -1061,7 +1061,7 @@ class Circos:
         for plot_func in self._get_all_plot_funcs():
             plot_func(ax)
 
-        return fig
+        return fig  # type: ignore
 
     def savefig(
         self,
@@ -1164,7 +1164,7 @@ class Circos:
         """
         fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
         ax = fig.add_subplot(projection="polar")
-        return fig, ax
+        return fig, ax  # type: ignore
 
     def _initialize_polar_axes(self, ax: PolarAxes) -> None:
         """Initialize polar axes params

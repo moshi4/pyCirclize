@@ -241,7 +241,7 @@ class BezierCurveLink(PathPatch):
 
         def arc_paths(
             rad1: float, rad2: float, r: float
-        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+        ) -> list[tuple[np.uint8, tuple[float, float]]]:
             # If rad1 == rad2, return blank list
             arc_paths = []
             step = config.ARC_RADIAN_STEP if rad1 <= rad2 else -config.ARC_RADIAN_STEP
@@ -251,7 +251,7 @@ class BezierCurveLink(PathPatch):
 
         def arrow_paths(
             rad1: float, rad2: float, r_side: float, r_top: float
-        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+        ) -> list[tuple[np.uint8, tuple[float, float]]]:
             return [
                 (Path.LINETO, (rad1, r_side)),
                 (Path.LINETO, ((rad1 + rad2) / 2, r_top)),
@@ -260,7 +260,7 @@ class BezierCurveLink(PathPatch):
 
         def bezier_paths(
             rad1: float, rad2: float, r1: float, r2: float, height_ratio: float = 0.5
-        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+        ) -> list[tuple[np.uint8, tuple[float, float]]]:
             if height_ratio >= 0.5:
                 # Example1: height_ratio: 0.50 => r_ctl_pos: 0
                 # Example2: height_ratio: 0.75 => r_ctl_pos: 25
@@ -389,7 +389,7 @@ class BezierCurveLine(PathPatch):
             r1: float,
             r2: float,
             height_ratio: float = 0.5,
-        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+        ) -> list[tuple[np.uint8, tuple[float, float]]]:
             if height_ratio >= 0.5:
                 # Example1: height_ratio: 0.50 => r_ctl_pos: 0
                 # Example2: height_ratio: 0.75 => r_ctl_pos: 25
@@ -412,7 +412,7 @@ class BezierCurveLine(PathPatch):
             r_pos: float,
             arrow_rad_width: float,
             arrow_r_height: float,
-        ) -> list[tuple[Path.code_type, tuple[float, float]]]:
+        ) -> list[tuple[np.uint8, tuple[float, float]]]:
             arrow_r_pos = r_pos - arrow_r_height
             return [
                 (Path.MOVETO, (rad_pos + (arrow_rad_width / 2), arrow_r_pos)),
@@ -421,7 +421,7 @@ class BezierCurveLine(PathPatch):
             ]
 
         arrow_rad_width = np.radians(arrow_width)
-        path_data: list[tuple[Path.code_type, tuple[float, float]]] = []
+        path_data: list[tuple[np.uint8, tuple[float, float]]] = []
         if direction in (config.Direction.REVERSE, config.Direction.BIDIRECTIONAL):
             path_data.extend(arrow_line_paths(rad1, r1, arrow_rad_width, arrow_height))
         path_data.append((Path.MOVETO, (rad1, r1)))

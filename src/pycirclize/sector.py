@@ -449,8 +449,8 @@ class Sector:
 
         # Calculate x, y image set position
         max_r_lim = config.MAX_R + config.R_PLOT_MARGIN
-        im_x = np.cos((np.pi / 2) - rad) * (r / max_r_lim)
-        im_y = np.sin((np.pi / 2) - rad) * (r / max_r_lim)
+        im_x: float = np.cos((np.pi / 2) - rad) * (r / max_r_lim)
+        im_y: float = np.sin((np.pi / 2) - rad) * (r / max_r_lim)
         # Normalize (-1, 1) to (0, 1) axis range
         im_x = (im_x + 1) / 2
         im_y = (im_y + 1) / 2
@@ -463,7 +463,7 @@ class Sector:
 
         def plot_raster(ax: PolarAxes) -> None:
             # Set inset axes & plot raster image
-            bounds = [im_x - (size / 2), im_y - (size / 2), size, size]
+            bounds = (im_x - (size / 2), im_y - (size / 2), size, size)
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
             axin.axis("off")
             axin.imshow(im, **imshow_kws)  # type: ignore
