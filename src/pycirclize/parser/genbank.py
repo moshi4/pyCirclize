@@ -383,7 +383,7 @@ class Genbank:
         outfile : str | Path
             Output genome fasta file
         """
-        with open(outfile, "w") as f:
+        with open(outfile, "w", encoding="utf-8") as f:
             for seqid, seq in self.get_seqid2seq().items():
                 f.write(f">{seqid}\n{seq}\n")
 
@@ -406,19 +406,23 @@ class Genbank:
         list[SeqRecord]
             Genbank SeqRecords
         """
-        # Parse compressed file
+        # Parse file
         if isinstance(gbk_source, (str, Path)):
             if Path(gbk_source).suffix == ".gz":
-                with gzip.open(gbk_source, mode="rt") as f:
+                with gzip.open(gbk_source, mode="rt", encoding="utf-8") as f:
                     return list(SeqIO.parse(f, "genbank"))
             elif Path(gbk_source).suffix == ".bz2":
-                with bz2.open(gbk_source, mode="rt") as f:
+                with bz2.open(gbk_source, mode="rt", encoding="utf-8") as f:
                     return list(SeqIO.parse(f, "genbank"))
             elif Path(gbk_source).suffix == ".zip":
                 with zipfile.ZipFile(gbk_source) as zip:
                     with zip.open(zip.namelist()[0]) as f:
-                        return list(SeqIO.parse(TextIOWrapper(f), "genbank"))
-        # Parse no compressed file or TextIOWrapper
+                        io = TextIOWrapper(f, encoding="utf-8")
+                        return list(SeqIO.parse(io, "genbank"))
+            else:
+                with open(gbk_source, encoding="utf-8") as f:
+                    return list(SeqIO.parse(f, "genbank"))
+        # Parse TextIOWrapper
         return list(SeqIO.parse(gbk_source, "genbank"))
 
     def _is_straddle_feature(self, feature: SeqFeature) -> bool:

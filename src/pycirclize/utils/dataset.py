@@ -225,7 +225,7 @@ def fetch_genbank_by_accid(
     )
     if gbk_outfile is not None:
         gbk_text = gbk_fetch_data.read()
-        with open(gbk_outfile, "w") as f:
+        with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
         gbk_fetch_data = StringIO(gbk_text)
 
@@ -258,7 +258,7 @@ class ChrLink:
             Chromosome link list
         """
         chr_link_list = []
-        with open(chr_link_file) as f:
+        with open(chr_link_file, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter="\t")
             for row in reader:
                 qchr, qstart, qend = row[0], int(row[1]), int(row[2])

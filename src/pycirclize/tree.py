@@ -184,10 +184,12 @@ class TreeViz:
         """
         if isinstance(data, str) and urlparse(data).scheme in ("http", "https"):
             # Load tree file from URL
-            return Phylo.read(io.StringIO(urlopen(data).read().decode()), format=format)
+            treeio = io.StringIO(urlopen(data).read().decode(encoding="utf-8"))
+            return Phylo.read(treeio, format=format)
         elif isinstance(data, (str, Path)) and os.path.isfile(data):
             # Load tree file
-            return Phylo.read(data, format=format)
+            with open(data, encoding="utf-8") as f:
+                return Phylo.read(f, format=format)
         elif isinstance(data, str):
             # Load tree string
             return Phylo.read(io.StringIO(data), format=format)
