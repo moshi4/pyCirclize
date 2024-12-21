@@ -39,5 +39,6 @@ API usage is described in each of the following sections.
 - [Chord Diagram](./chord_diagram/)
 - [Radar Chart](./radar_chart/)
 - [Circos Plot (Genomics)](./circos_plot/)
+- [Comparative Genomics](./comparative_genomics)
 - [Phylogenetic Tree](./phylogenetic_tree/)
 - [Plot Tips](./plot_tips/)
