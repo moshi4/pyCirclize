@@ -337,7 +337,7 @@ class Circos:
         return circos
 
     @staticmethod
-    def initialize_from_matrix(
+    def chord_diagram(
         matrix: str | Path | pd.DataFrame | Matrix,
         *,
         start: float = 0,
@@ -354,9 +354,9 @@ class Circos:
         link_kws: dict[str, Any] | None = None,
         link_kws_handler: Callable[[str, str], dict[str, Any] | None] | None = None,
     ) -> Circos:
-        """Initialize Circos instance from Matrix
+        """Plot chord diagram
 
-        Circos tracks and links are auto-defined by Matrix (For plotting Chord Diagram)
+        Circos tracks and links are auto-defined from Matrix
 
         Parameters
         ----------
@@ -379,7 +379,7 @@ class Circos:
         link_cmap : list[tuple[str, str, str]] | None, optional
             Link colormap to overwrite link colors automatically set by cmap.
             User can set list of `from_label`, `to_label`, `color` tuple
-            (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00), ...]`)
+            (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00"), ...]`)
         ticks_interval : int | None, optional
             Ticks interval. If None, ticks are not plotted.
         order : str | list[str] | None, optional
@@ -444,10 +444,10 @@ class Circos:
                 outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
 
         # Plot links
-        fromto_label2color = {f"{t[0]}--->{t[1]}": t[2] for t in link_cmap}
+        fromto_label2color = {f"{t[0]}-->{t[1]}": t[2] for t in link_cmap}
         for link in matrix.to_links():
             from_label, to_label = link[0][0], link[1][0]
-            fromto_label = f"{from_label}--->{to_label}"
+            fromto_label = f"{from_label}-->{to_label}"
             # Set link color
             if fromto_label in fromto_label2color:
                 color = fromto_label2color[fromto_label]
@@ -464,7 +464,7 @@ class Circos:
 
         return circos
 
-    chord_diagram = initialize_from_matrix
+    initialize_from_matrix = chord_diagram  # For backward compatibility
 
     @staticmethod
     def initialize_from_tree(

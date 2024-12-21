@@ -107,7 +107,7 @@ class Matrix:
                 fromto2value[fromto] = value
                 label2value_sum[from_label] += value
                 label2value_sum[to_label] += value
-        all_labels = list(label2value_sum.keys())
+        all_labels = list(map(str, label2value_sum.keys()))
 
         # Set user specified label order
         if order is not None:

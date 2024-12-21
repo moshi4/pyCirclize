@@ -153,6 +153,11 @@ def test_radar_chart_plot(fig_outfile: Path, tsv_radar_table_file: Path):
 
 def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
     """Test chord diagram plot"""
+    circos = Circos.chord_diagram(tsv_matrix_file)
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
+
+    # For backward compatibility method
     circos = Circos.initialize_from_matrix(tsv_matrix_file)
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()

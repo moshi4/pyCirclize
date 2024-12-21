@@ -280,18 +280,18 @@ class Gff:
         """
         gff_file = Path(gff_file)
         if gff_file.suffix == ".gz":
-            with gzip.open(gff_file, mode="rt") as f:
+            with gzip.open(gff_file, mode="rt", encoding="utf-8") as f:
                 gff_records, start, end = self._parse_gff_textio(f, target_seqid)
         elif gff_file.suffix == ".bz2":
-            with bz2.open(gff_file, mode="rt") as f:
+            with bz2.open(gff_file, mode="rt", encoding="utf-8") as f:
                 gff_records, start, end = self._parse_gff_textio(f, target_seqid)
         elif gff_file.suffix == ".zip":
             with zipfile.ZipFile(gff_file) as zip:
                 with zip.open(zip.namelist()[0]) as f:
-                    io = TextIOWrapper(f)
+                    io = TextIOWrapper(f, encoding="utf-8")
                     gff_records, start, end = self._parse_gff_textio(io, target_seqid)
         else:
-            with open(gff_file) as f:
+            with open(gff_file, encoding="utf-8") as f:
                 gff_records, start, end = self._parse_gff_textio(f, target_seqid)
 
         return gff_records, start, end

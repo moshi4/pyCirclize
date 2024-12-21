@@ -4,7 +4,7 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
 #   generate-hashes: false
 #   universal: false
@@ -16,13 +16,13 @@ contourpy==1.3.0
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
-fonttools==4.53.1
+fonttools==4.55.3
     # via matplotlib
 importlib-resources==6.4.5
     # via matplotlib
 kiwisolver==1.4.7
     # via matplotlib
-matplotlib==3.9.2
+matplotlib==3.9.4
     # via pycirclize
 numpy==2.0.2
     # via biopython
@@ -30,22 +30,22 @@ numpy==2.0.2
     # via matplotlib
     # via pandas
     # via pycirclize
-packaging==24.1
+packaging==24.2
     # via matplotlib
-pandas==2.2.2
+pandas==2.2.3
     # via pycirclize
-pillow==10.4.0
+pillow==11.0.0
     # via matplotlib
-pyparsing==3.1.4
+pyparsing==3.2.0
     # via matplotlib
 python-dateutil==2.9.0.post0
     # via matplotlib
     # via pandas
-pytz==2024.1
+pytz==2024.2
     # via pandas
-six==1.16.0
+six==1.17.0
     # via python-dateutil
-tzdata==2024.1
+tzdata==2024.2
     # via pandas
-zipp==3.20.1
+zipp==3.21.0
     # via importlib-resources

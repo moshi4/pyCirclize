@@ -48,6 +48,7 @@ API usage is described in each of the following sections in the [document](https
 - [Chord Diagram](https://moshi4.github.io/pyCirclize/chord_diagram/)
 - [Radar Chart](https://moshi4.github.io/pyCirclize/radar_chart/)
 - [Circos Plot (Genomics)](https://moshi4.github.io/pyCirclize/circos_plot/)
+- [Comparative Genomics](https://moshi4.github.io/pyCirclize/comparative_genomics/)
 - [Phylogenetic Tree](https://moshi4.github.io/pyCirclize/phylogenetic_tree/)
 - [Plot Tips](https://moshi4.github.io/pyCirclize/plot_tips/)
 
@@ -108,37 +109,42 @@ gbk_fetch_data = fetch_genbank_by_accid("NC_002483")
 gbk = Genbank(gbk_fetch_data)
 
 # Initialize Circos instance with genome size
-circos = Circos(sectors={gbk.name: gbk.range_size})
+sectors = gbk.get_seqid2size()
+space = 0 if len(sectors) == 1 else 2
+circos = Circos(sectors, space=space)
 circos.text(f"Escherichia coli K-12 plasmid F\n\n{gbk.name}", size=14)
-circos.rect(r_lim=(90, 100), fc="lightgrey", ec="none", alpha=0.5)
-sector = circos.sectors[0]
 
-# Plot forward strand CDS
-f_cds_track = sector.add_track((95, 100))
-f_cds_feats = gbk.extract_features("CDS", target_strand=1)
-f_cds_track.genomic_features(f_cds_feats, plotstyle="arrow", fc="salmon", lw=0.5)
+seqid2features = gbk.get_seqid2features(feature_type="CDS")
+for sector in circos.sectors:
+    # Setup track for features plot
+    f_cds_track = sector.add_track((95, 100))
+    f_cds_track.axis(fc="lightgrey", ec="none", alpha=0.5)
+    r_cds_track = sector.add_track((90, 95))
+    r_cds_track.axis(fc="lightgrey", ec="none", alpha=0.5)
+    # Plot forward/reverse strand CDS
+    features = seqid2features[sector.name]
+    for feature in features:
+        if feature.location.strand == 1:
+            f_cds_track.genomic_features(feature, plotstyle="arrow", fc="salmon", lw=0.5)
+        else:
+            r_cds_track.genomic_features(feature, plotstyle="arrow", fc="skyblue", lw=0.5)
 
-# Plot reverse strand CDS
-r_cds_track = sector.add_track((90, 95))
-r_cds_feats = gbk.extract_features("CDS", target_strand=-1)
-r_cds_track.genomic_features(r_cds_feats, plotstyle="arrow", fc="skyblue", lw=0.5)
+    # Plot 'gene' qualifier label if exists
+    labels, label_pos_list = [], []
+    for feature in features:
+        start = int(feature.location.start)
+        end = int(feature.location.end)
+        label_pos = (start + end) / 2
+        gene_name = feature.qualifiers.get("gene", [None])[0]
+        if gene_name is not None:
+            labels.append(gene_name)
+            label_pos_list.append(label_pos)
+    f_cds_track.xticks(label_pos_list, labels, label_size=6, label_orientation="vertical")
 
-# Plot 'gene' qualifier label if exists
-labels, label_pos_list = [], []
-for feat in gbk.extract_features("CDS"):
-    start = int(feat.location.start)
-    end = int(feat.location.end)
-    label_pos = (start + end) / 2
-    gene_name = feat.qualifiers.get("gene", [None])[0]
-    if gene_name is not None:
-        labels.append(gene_name)
-        label_pos_list.append(label_pos)
-f_cds_track.xticks(label_pos_list, labels, label_size=6, label_orientation="vertical")
-
-# Plot xticks (interval = 10 Kb)
-r_cds_track.xticks_by_interval(
-    10000, outer=False, label_formatter=lambda v: f"{v/1000:.1f} Kb"
-)
+    # Plot xticks (interval = 10 Kb)
+    r_cds_track.xticks_by_interval(
+        10000, outer=False, label_formatter=lambda v: f"{v/1000:.1f} Kb"
+    )
 
 circos.savefig("example02.png")
 ```
@@ -161,8 +167,8 @@ matrix_data = [
 ]
 matrix_df = pd.DataFrame(matrix_data, index=row_names, columns=col_names)
 
-# Initialize Circos from matrix for plotting Chord Diagram
-circos = Circos.initialize_from_matrix(
+# Initialize Circos instance for chord diagram plot
+circos = Circos.chord_diagram(
     matrix_df,
     space=5,
     cmap="tab10",
