@@ -46,6 +46,8 @@ dev-dependencies = [
     "mkdocs-jupyter>=0.21.0",
     "mkdocs-material>=8.2",
     "black>=22.3.0",
+    # additional
+    "pygenomeviz>=1.5.0",
 ]
 
 [tool.pytest.ini_options]
