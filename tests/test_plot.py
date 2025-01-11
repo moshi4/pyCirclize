@@ -740,3 +740,19 @@ def test_track_genomic_features_gff_plot(
 
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
+
+
+def test_track_raster_plot(fig_outfile: Path):
+    """Test `track.raster()` method"""
+    logo_file = load_example_image_file("python_logo.png")
+
+    sectors = {"A": 10, "B": 15, "C": 12, "D": 20, "E": 15}
+    circos = Circos(sectors, space=5)
+    for sector in circos.sectors:
+        track1 = sector.add_track((70, 100))
+        track1.raster(logo_file)
+        track2 = sector.add_track((40, 60))
+        track2.raster(logo_file, w=0.5, h=0.5, rotate=False)
+
+    circos.savefig(fig_outfile)
+    assert fig_outfile.exists()
