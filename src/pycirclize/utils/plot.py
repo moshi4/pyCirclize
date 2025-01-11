@@ -4,6 +4,38 @@ import math
 from typing import Any
 
 
+def is_lower_loc(deg: float) -> bool:
+    """Check target deg is lower location or not
+
+    Parameters
+    ----------
+    deg : float
+        Target degree
+
+    Returns
+    -------
+    result : bool
+        Lower location or not
+    """
+    return -270 <= deg < -90 or 90 <= deg < 270
+
+
+def is_right_loc(deg: float) -> bool:
+    """Check target deg is right location or not
+
+    Parameters
+    ----------
+    deg : float
+        Target degree
+
+    Returns
+    -------
+    result : bool
+        Right location or not
+    """
+    return -360 <= deg < -180 or 0 <= deg < 180
+
+
 def get_label_params_by_rad(
     rad: float,
     orientation: str,

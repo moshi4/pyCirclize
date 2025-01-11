@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from pathlib import Path
+from urllib.parse import urlparse
+from urllib.request import urlopen
+
 import matplotlib as mpl
 import numpy as np
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, to_hex
+from PIL import Image
 
 
 class ColorCycler:
@@ -130,6 +135,28 @@ def calc_group_spaces(
         return spaces
     else:
         return spaces[:-1]
+
+
+def load_image(img: str | Path | Image.Image) -> Image.Image:
+    """Load target image as PIL Image
+
+    Parameters
+    ----------
+    img : str | Path | Image.Image
+        Load target image (`File Path`|`URL`|`PIL Image`)
+
+    Returns
+    -------
+    im : Image.Image
+        PIL Image (mode=`RGBA`)
+    """
+    if isinstance(img, str) and urlparse(img).scheme in ("http", "https"):
+        im = Image.open(urlopen(img))
+    elif isinstance(img, (str, Path)):
+        im = Image.open(str(img))
+    else:
+        im = img
+    return im.convert("RGBA")
 
 
 def is_pseudo_feature(feature: SeqFeature) -> bool:

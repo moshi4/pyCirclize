@@ -14,6 +14,7 @@ from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, Normalize
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
+from PIL import Image
 
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
@@ -1145,6 +1146,69 @@ class Track:
                     text_x = (rect_end + rect_start) / 2
                     text_r = sum(rect_r_lim) / 2
                     self.text(text_value, text_x, text_r, **text_kws)
+
+    def raster(
+        self,
+        img: str | Path | Image.Image,
+        *,
+        w: float = 1.0,
+        h: float = 1.0,
+        rotate: bool = True,
+        **kwargs,
+    ) -> None:
+        """Plot raster image
+
+        Parameters
+        ----------
+        img : str | Path | Image.Image
+            Image data (`File Path`|`URL`|`PIL Image`)
+        w : float, optional
+            Width ratio (`0.0 - 1.0`)
+        h : float, optional
+            Height ratio (`0.0 - 1.0`)
+        rotate : bool, optional
+            If True, rotate image 180 degrees if track is in lower location
+            (`-270 <= degree < -90`|`90 <= degree < 270`)
+        **kwargs : dict, optional
+            Axes.pcolormesh properties
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.pcolormesh.html>
+        """
+        # Check range of value
+        if not 0.0 < w <= 1.0:
+            raise ValueError(f"{w=} is invalid (0.0 < w <= 1.0).")
+        if not 0.0 < h <= 1.0:
+            raise ValueError(f"{h=} is invalid (0.0 < h <= 1.0).")
+
+        # Calculate radian (size, start, end)
+        rad_size = self.rad_size * w
+        rad_pad = self.rad_size * ((1.0 - w) / 2)
+        rad_start, rad_end = min(self.rad_lim) + rad_pad, max(self.rad_lim) - rad_pad
+        # Calculate radius (size, start, end)
+        r_size = self.r_size * h
+        r_pad = self.r_size * ((1.0 - h) / 2)
+        r_start, r_end = min(self.r_lim) + r_pad, max(self.r_lim) - r_pad
+
+        # Load image
+        img = utils.load_image(img)
+
+        # Rotate image 180 degrees if track is in lower location
+        track_center_deg = sum(self.deg_lim) / 2
+        if rotate and utils.plot.is_lower_loc(track_center_deg):
+            img = img.rotate(180)
+
+        # Resize image
+        pixel_w = int(rad_size / (np.pi / 1000))
+        pixel_h = int(r_size * 10)
+        resize_img = img.resize((pixel_w, pixel_h))
+
+        # Setup radian & radius positions for plotting image by pcolormesh
+        rad_list = np.linspace(rad_start, rad_end, resize_img.width)
+        r_list = np.linspace(r_end, r_start, resize_img.height)
+
+        def plot_raster(ax: PolarAxes):
+            ax.pcolormesh(rad_list, r_list, np.array(resize_img), **kwargs)
+
+        self._plot_funcs.append(plot_raster)
 
     def tree(
         self,
