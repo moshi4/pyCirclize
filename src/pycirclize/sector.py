@@ -213,8 +213,8 @@ class Sector:
         if not ignore_range_error:
             # Apply relative torelance value to sector range to avoid
             # unexpected invalid range error due to rounding errors (Issue #27, #67)
-            rel_tol = 1e-14
-            min_range, max_range = self.start - rel_tol, self.end + rel_tol
+            min_range = self.start - config.REL_TOL
+            max_range = self.end + config.REL_TOL
             if not min_range <= x <= max_range:
                 err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
                 raise ValueError(err_msg)
