@@ -6,8 +6,6 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
-from urllib.parse import urlparse
-from urllib.request import urlopen
 
 import numpy as np
 from matplotlib.patches import Patch
@@ -213,8 +211,8 @@ class Sector:
         if not ignore_range_error:
             # Apply relative torelance value to sector range to avoid
             # unexpected invalid range error due to rounding errors (Issue #27, #67)
-            rel_tol = 1e-14
-            min_range, max_range = self.start - rel_tol, self.end + rel_tol
+            min_range = self.start - config.REL_TOL
+            max_range = self.end + config.REL_TOL
             if not min_range <= x <= max_range:
                 err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
                 raise ValueError(err_msg)
@@ -390,7 +388,7 @@ class Sector:
         Parameters
         ----------
         img : str | Path | Image
-            Image for plotting (`File Path`|`URL`|`PIL Image`)
+            Image data (`File Path`|`URL`|`PIL Image`)
         size : float, optional
             Image size (ratio to overall figure size)
         x : float | None, optional
@@ -421,13 +419,7 @@ class Sector:
         text_kws = {} if text_kws is None else deepcopy(text_kws)
 
         # Load image data
-        if isinstance(img, str) and urlparse(img).scheme in ("http", "https"):
-            im = Image.open(urlopen(img))
-        elif isinstance(img, (str, Path)):
-            im = Image.open(str(img))
-        else:
-            im = img
-        im = im.convert("RGBA")
+        im = utils.load_image(img)
 
         # Draw border on image
         if border_width > 0:

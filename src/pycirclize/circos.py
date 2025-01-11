@@ -1049,13 +1049,15 @@ class Circos:
         # Plot all patches
         patches = []
         for patch in self._get_all_patches():
+            # Set clip_on=False to enable Patch to be displayed outside of Axes
+            patch.set_clip_on(False)
             # Collection cannot handle `zorder`, `hatch`
             # Separate default or user-defined `zorder`, `hatch` property patch
             if patch.get_zorder() == 1 and patch.get_hatch() is None:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
-        ax.add_collection(PatchCollection(patches, match_original=True))  # type: ignore
+        ax.add_collection(PatchCollection(patches, match_original=True, clip_on=False))  # type: ignore
 
         # Execute all plot functions
         for plot_func in self._get_all_plot_funcs():

@@ -16,6 +16,7 @@ ARC_RADIAN_STEP = 0.01
 R_LIM = (MIN_R, MAX_R)
 AXIS_FACE_PARAM = dict(zorder=0.99, ec="none", edgecolor="none")
 AXIS_EDGE_PARAM = dict(zorder=1.01, fc="none", facecolor="none")
+REL_TOL = 1e-10  # Relative Tolerance
 
 # Circos Color Scheme
 # http://circos.ca/tutorials/lessons/configuration/colors/

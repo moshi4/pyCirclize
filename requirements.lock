@@ -18,7 +18,7 @@ cycler==0.12.1
     # via matplotlib
 fonttools==4.55.3
     # via matplotlib
-importlib-resources==6.4.5
+importlib-resources==6.5.2
     # via matplotlib
 kiwisolver==1.4.7
     # via matplotlib
@@ -34,9 +34,9 @@ packaging==24.2
     # via matplotlib
 pandas==2.2.3
     # via pycirclize
-pillow==11.0.0
+pillow==11.1.0
     # via matplotlib
-pyparsing==3.2.0
+pyparsing==3.2.1
     # via matplotlib
 python-dateutil==2.9.0.post0
     # via matplotlib

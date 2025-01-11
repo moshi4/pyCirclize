@@ -6,7 +6,12 @@ from pycirclize.utils.dataset import (
     load_example_tree_file,
     load_prokaryote_example_file,
 )
-from pycirclize.utils.helper import ColorCycler, calc_group_spaces, is_pseudo_feature
+from pycirclize.utils.helper import (
+    ColorCycler,
+    calc_group_spaces,
+    is_pseudo_feature,
+    load_image,
+)
 
 __all__ = [
     "plot",
@@ -18,4 +23,5 @@ __all__ = [
     "ColorCycler",
     "calc_group_spaces",
     "is_pseudo_feature",
+    "load_image",
 ]
