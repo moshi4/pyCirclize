@@ -62,23 +62,21 @@ def get_label_params_by_rad(
     """
     # Get position degree & location info
     deg = math.degrees(rad)
-    is_lower_loc = True if -270 <= deg < -90 or 90 <= deg < 270 else False
-    is_right_loc = True if -360 <= deg < -180 or 0 <= deg < 180 else False
     # Get parameters
     if orientation == "horizontal":
-        rotation = 180 - deg if is_lower_loc else -deg
+        rotation = 180 - deg if is_lower_loc(deg) else -deg
         ha = "center"
         if outer:
-            va = "top" if is_lower_loc else "bottom"
+            va = "top" if is_lower_loc(deg) else "bottom"
         else:
-            va = "bottom" if is_lower_loc else "top"
+            va = "bottom" if is_lower_loc(deg) else "top"
     elif orientation == "vertical":
-        rotation = 90 - deg if is_right_loc else 270 - deg
+        rotation = 90 - deg if is_right_loc(deg) else 270 - deg
         va = "center_baseline"
         if outer:
-            ha = "left" if is_right_loc else "right"
+            ha = "left" if is_right_loc(deg) else "right"
         else:
-            ha = "right" if is_right_loc else "left"
+            ha = "right" if is_right_loc(deg) else "left"
     else:
         err_msg = f"'{orientation=} is invalid ('horizontal' or 'vertical')"
         raise ValueError(err_msg)
