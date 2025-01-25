@@ -42,12 +42,6 @@ from pycirclize.tree import TreeViz
 class Circos:
     """Circos Visualization Class"""
 
-    # By default, after saving a figure using the `savefig()` method, figure object is
-    # automatically deleted to avoid memory leaks (no display on jupyter notebook)
-    # If you want to display the figure on jupyter notebook using `savefig()` method,
-    # set clear_savefig=False.
-    clear_savefig: bool = True
-
     def __init__(
         self,
         sectors: Mapping[str, int | float | tuple[float, float]],
@@ -1107,7 +1101,7 @@ class Circos:
             bbox_inches="tight",
         )
         # Clear & close figure to suppress memory leak
-        if self.clear_savefig:
+        if config.clear_savefig:
             fig.clear()
             plt.close(fig)
 

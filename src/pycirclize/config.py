@@ -70,6 +70,13 @@ class _AnnotationAdjustConfig:
     """Max radian of Annotation position shift (default: `math.radians(3.0)`)"""
 
 
+clear_savefig: bool = True
+"""
+By default, after saving a figure using the `savefig()` method, figure object is
+automatically deleted to avoid memory leaks (no display on jupyter notebook)
+If you want to display the figure on jupyter notebook using `savefig()` method,
+set clear_savefig=False.
+"""
 ann_adjust = _AnnotationAdjustConfig
 
 
