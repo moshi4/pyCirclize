@@ -1,7 +1,34 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, Literal
+
+from matplotlib.colors import Normalize
+from matplotlib.projections import PolarAxes
+from matplotlib.transforms import Bbox
+
+
+def degrees(rad: float) -> float:
+    """Convert radian to positive degree (`0 - 360`)
+
+    Parameters
+    ----------
+    rad : float
+        Target radian
+
+    Returns
+    -------
+    deg : float
+        Positive degree (`0 - 360`)
+    """
+    # Radian to degree
+    deg = math.degrees(rad)
+    # Normalize degree in 0 - 360 range
+    deg = deg % 360
+    # Negative to positive
+    if deg < 0:
+        deg += 360
+    return deg
 
 
 def is_lower_loc(deg: float) -> bool:
@@ -34,6 +61,84 @@ def is_right_loc(deg: float) -> bool:
         Right location or not
     """
     return -360 <= deg < -180 or 0 <= deg < 180
+
+
+def is_ann_rad_shift_target_loc(rad: float) -> bool:
+    """Check radian is annotation radian shift target or not
+
+    Parameters
+    ----------
+    rad : float
+        Annotation radian position
+
+    Returns
+    -------
+    result : bool
+        Target or not
+    """
+    deg = degrees(rad)
+    return 30 <= deg <= 150 or 210 <= deg <= 330
+
+
+def get_loc(
+    rad: float,
+) -> Literal["upper-right", "lower-right", "lower-left", "upper-left"]:
+    """Get location of 4 sections
+
+    Returns
+    -------
+    loc : str
+        Location (`upper-right`|`lower-right`|`lower-left`|`upper-left`)
+    """
+    deg = degrees(rad)
+    if 0 <= deg < 90:
+        return "upper-right"
+    elif 90 <= deg < 180:
+        return "lower-right"
+    elif 180 <= deg < 270:
+        return "lower-left"
+    else:
+        return "upper-left"
+
+
+def get_ann_relpos(rad: float) -> tuple[float, float]:
+    """Get relative position for annotate by radian text position
+
+    Parameters
+    ----------
+    rad : float
+        Radian text position
+
+    Returns
+    -------
+    relpos : tuple[float, float]
+        Relative position
+    """
+    deg = degrees(rad)
+    if 0 <= deg <= 180:
+        return 0.0, Normalize(0, 180)(deg)
+    else:
+        return 1.0, 1.0 - Normalize(180, 360)(deg)
+
+
+def plot_bbox(bbox: Bbox, ax: PolarAxes, **kwargs) -> None:
+    """Plot bbox to check bbox area for development
+
+    Parameters
+    ----------
+    bbox : Bbox
+        Bounding box
+    ax : PolarAxes
+        Polar axes
+    **kwargs : dict, optional
+        Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
+    """
+    trans_bbox = bbox.transformed(ax.transAxes.inverted())
+    kwargs.setdefault("clip_on", False)
+    x0, y0, x1, y1 = trans_bbox.x0, trans_bbox.y0, trans_bbox.x1, trans_bbox.y1
+    x, y = [x0, x1, x1, x0, x0], [y0, y0, y1, y1, y0]
+    ax.plot(x, y, transform=ax.transAxes, **kwargs)
 
 
 def get_label_params_by_rad(
