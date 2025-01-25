@@ -351,6 +351,72 @@ class Track:
         )
         self._patches.append(arc_arrow)
 
+    def annotate(
+        self,
+        x: float,
+        label: str,
+        *,
+        min_r: float | None = None,
+        max_r: float | None = None,
+        label_size: float = 8,
+        shorten: int | None = 20,
+        line_kws: dict[str, Any] | None = None,
+        text_kws: dict[str, Any] | None = None,
+    ) -> None:
+        """Plot annotation label
+
+        The position of annotation labels is automatically adjusted so that there is
+        no overlap between them. The current algorithm for automatic adjustment of
+        overlap label positions is experimental and may be changed in the future.
+
+        Parameters
+        ----------
+        x : float
+            X coordinate
+        label : str
+            Label
+        min_r : float | None, optional
+            Min radius position of annotation line. If None, `max(self.r_lim)` is set.
+        max_r : float | None, optional
+            Max radius position of annotation line. If None, `min_r + 5` is set.
+        label_size : float, optional
+            Label size
+        shorten : int | None, optional
+            Shorten label if int value is set.
+        line_kws : dict[str, Any] | None, optional
+            Patch properties (e.g. `dict(color="red", lw=1, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+        text_kws : dict[str, Any] | None, optional
+            Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
+            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+        """
+        line_kws = {} if line_kws is None else deepcopy(line_kws)
+        text_kws = {} if text_kws is None else deepcopy(text_kws)
+
+        if shorten:
+            label = label[:shorten] + "..." if len(label) > shorten else label
+
+        # Setup radian, radius coordinates
+        min_r = max(self.r_lim) if min_r is None else min_r
+        max_r = min_r + 5 if max_r is None else max_r
+        if min_r > max_r:
+            ValueError(f"{max_r=} must be larger than {min_r=}.")
+        rad = self.x_to_rad(x)
+        xy, xytext = (rad, min_r), (rad, max_r)
+
+        # Setup annotation line & text property
+        line_kws.setdefault("color", "grey")
+        line_kws.setdefault("lw", 0.5)
+        line_kws.update(dict(shrinkA=0, shrinkB=0, patchA=None, patchB=None))
+        line_kws.update(dict(arrowstyle="-", relpos=utils.plot.get_ann_relpos(rad)))
+        text_kws.update(utils.plot.get_label_params_by_rad(rad, "vertical"))
+        text_kws.update(dict(rotation=0, size=label_size))
+
+        def plot_annotate(ax: PolarAxes) -> None:
+            ax.annotate(label, xy, xytext, arrowprops=line_kws, **text_kws)
+
+        self._plot_funcs.append(plot_annotate)
+
     def xticks(
         self,
         x: list[int] | list[float] | np.ndarray,
@@ -579,13 +645,13 @@ class Track:
             if side == "right":
                 x_lim = (self.end, self.end + x_tick_length)
                 x_text = self.end + (x_tick_length + x_label_margin)
-                deg_text = math.degrees(self.x_to_rad(x_text, True))
-                ha = "right" if utils.plot.is_lower_loc(deg_text) else "left"
+                rad_text = self.x_to_rad(x_text, True)
+                ha = "right" if utils.plot.is_lower_loc(rad_text) else "left"
             elif side == "left":
                 x_lim = (self.start, self.start - x_tick_length)
                 x_text = self.start - (x_tick_length + x_label_margin)
-                deg_text = math.degrees(self.x_to_rad(x_text, True))
-                ha = "left" if utils.plot.is_lower_loc(deg_text) else "right"
+                rad_text = self.x_to_rad(x_text, True)
+                ha = "left" if utils.plot.is_lower_loc(rad_text) else "right"
             else:
                 raise ValueError(f"{side=} is invalid ('right' or 'left').")
             # Plot yticks

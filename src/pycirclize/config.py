@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import math
 from enum import IntEnum
+from typing import ClassVar
 
 import matplotlib as mpl
 
@@ -42,6 +44,40 @@ class Direction(IntEnum):
     NONE = 0
     FORWARD = 1
     BIDIRECTIONAL = 2
+
+
+###########################################################
+# Mutable Value Config (Mainly for Developer)
+###########################################################
+
+
+class _AnnotationAdjustConfig:
+    """Annotation Position Adjustment Config"""
+
+    enable: ClassVar[bool] = True
+    """Enable Annotation position adjustment (default: `True`)"""
+    limit: ClassVar[int] = 200
+    """Limit of Annotation number for position adjustment (default: `200`)"""
+    max_iter: ClassVar[int] = 1000
+    """Max iteration number for Annotation position adjustment (default: `1000`)"""
+    drad: ClassVar[float] = math.radians(0.1)
+    """Delta radian for iterative position adjustment (default: `math.radians(0.1)`)"""
+    dr: ClassVar[float] = 0.1
+    """Delta radius for iterative position adjustment (default: `0.1`)"""
+    expand: ClassVar[tuple[float, float]] = (1.2, 1.2)
+    """Expand width & height factor of text bbox (default: `(1.2, 1.2)`)"""
+    max_rad_shift: ClassVar[float] = math.radians(3.0)
+    """Max radian of Annotation position shift (default: `math.radians(3.0)`)"""
+
+
+clear_savefig: bool = True
+"""
+By default, after saving a figure using the `savefig()` method, figure object is
+automatically deleted to avoid memory leaks (no display on jupyter notebook)
+If you want to display the figure on jupyter notebook using `savefig()` method,
+set clear_savefig=False.
+"""
+ann_adjust = _AnnotationAdjustConfig
 
 
 ###########################################################

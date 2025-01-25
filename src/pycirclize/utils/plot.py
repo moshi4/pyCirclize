@@ -1,39 +1,146 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, Literal
+
+from matplotlib.colors import Normalize
+from matplotlib.projections import PolarAxes
+from matplotlib.transforms import Bbox
 
 
-def is_lower_loc(deg: float) -> bool:
-    """Check target deg is lower location or not
+def degrees(rad: float) -> float:
+    """Convert radian to positive degree (`0 - 360`)
 
     Parameters
     ----------
+    rad : float
+        Target radian
+
+    Returns
+    -------
     deg : float
-        Target degree
+        Positive degree (`0 - 360`)
+    """
+    # Radian to degree
+    deg = math.degrees(rad)
+    # Normalize degree in 0 - 360 range
+    deg = deg % 360
+    # Negative to positive
+    if deg < 0:
+        deg += 360
+    return deg
+
+
+def is_lower_loc(rad: float) -> bool:
+    """Check target radian is lower location or not
+
+    Parameters
+    ----------
+    rad : float
+        Target radian
 
     Returns
     -------
     result : bool
         Lower location or not
     """
+    deg = math.degrees(rad)
     return -270 <= deg < -90 or 90 <= deg < 270
 
 
-def is_right_loc(deg: float) -> bool:
-    """Check target deg is right location or not
+def is_right_loc(rad: float) -> bool:
+    """Check target radian is right location or not
 
     Parameters
     ----------
-    deg : float
-        Target degree
+    rad : float
+        Target radian
 
     Returns
     -------
     result : bool
         Right location or not
     """
+    deg = math.degrees(rad)
     return -360 <= deg < -180 or 0 <= deg < 180
+
+
+def is_ann_rad_shift_target_loc(rad: float) -> bool:
+    """Check radian is annotation radian shift target or not
+
+    Parameters
+    ----------
+    rad : float
+        Annotation radian position
+
+    Returns
+    -------
+    result : bool
+        Target or not
+    """
+    deg = degrees(rad)
+    return 30 <= deg <= 150 or 210 <= deg <= 330
+
+
+def get_loc(
+    rad: float,
+) -> Literal["upper-right", "lower-right", "lower-left", "upper-left"]:
+    """Get location of 4 sections
+
+    Returns
+    -------
+    loc : str
+        Location (`upper-right`|`lower-right`|`lower-left`|`upper-left`)
+    """
+    deg = degrees(rad)
+    if 0 <= deg < 90:
+        return "upper-right"
+    elif 90 <= deg < 180:
+        return "lower-right"
+    elif 180 <= deg < 270:
+        return "lower-left"
+    else:
+        return "upper-left"
+
+
+def get_ann_relpos(rad: float) -> tuple[float, float]:
+    """Get relative position for annotate by radian text position
+
+    Parameters
+    ----------
+    rad : float
+        Radian text position
+
+    Returns
+    -------
+    relpos : tuple[float, float]
+        Relative position
+    """
+    deg = degrees(rad)
+    if 0 <= deg <= 180:
+        return 0.0, Normalize(0, 180)(deg)
+    else:
+        return 1.0, 1.0 - Normalize(180, 360)(deg)
+
+
+def plot_bbox(bbox: Bbox, ax: PolarAxes, **kwargs) -> None:
+    """Plot bbox to check bbox area for development
+
+    Parameters
+    ----------
+    bbox : Bbox
+        Bounding box
+    ax : PolarAxes
+        Polar axes
+    **kwargs : dict, optional
+        Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
+    """
+    trans_bbox = bbox.transformed(ax.transAxes.inverted())
+    kwargs.setdefault("clip_on", False)
+    x0, y0, x1, y1 = trans_bbox.x0, trans_bbox.y0, trans_bbox.x1, trans_bbox.y1
+    x, y = [x0, x1, x1, x0, x0], [y0, y0, y1, y1, y0]
+    ax.plot(x, y, transform=ax.transAxes, **kwargs)
 
 
 def get_label_params_by_rad(
@@ -62,21 +169,22 @@ def get_label_params_by_rad(
     """
     # Get position degree & location info
     deg = math.degrees(rad)
+    is_lower, is_right = is_lower_loc(rad), is_right_loc(rad)
     # Get parameters
     if orientation == "horizontal":
-        rotation = 180 - deg if is_lower_loc(deg) else -deg
+        rotation = 180 - deg if is_lower else -deg
         ha = "center"
         if outer:
-            va = "top" if is_lower_loc(deg) else "bottom"
+            va = "top" if is_lower else "bottom"
         else:
-            va = "bottom" if is_lower_loc(deg) else "top"
+            va = "bottom" if is_lower else "top"
     elif orientation == "vertical":
-        rotation = 90 - deg if is_right_loc(deg) else 270 - deg
+        rotation = 90 - deg if is_right else 270 - deg
         va = "center_baseline"
         if outer:
-            ha = "left" if is_right_loc(deg) else "right"
+            ha = "left" if is_right else "right"
         else:
-            ha = "right" if is_right_loc(deg) else "left"
+            ha = "right" if is_right else "left"
     else:
         err_msg = f"'{orientation=} is invalid ('horizontal' or 'vertical')"
         raise ValueError(err_msg)
