@@ -645,13 +645,13 @@ class Track:
             if side == "right":
                 x_lim = (self.end, self.end + x_tick_length)
                 x_text = self.end + (x_tick_length + x_label_margin)
-                deg_text = math.degrees(self.x_to_rad(x_text, True))
-                ha = "right" if utils.plot.is_lower_loc(deg_text) else "left"
+                rad_text = self.x_to_rad(x_text, True)
+                ha = "right" if utils.plot.is_lower_loc(rad_text) else "left"
             elif side == "left":
                 x_lim = (self.start, self.start - x_tick_length)
                 x_text = self.start - (x_tick_length + x_label_margin)
-                deg_text = math.degrees(self.x_to_rad(x_text, True))
-                ha = "left" if utils.plot.is_lower_loc(deg_text) else "right"
+                rad_text = self.x_to_rad(x_text, True)
+                ha = "left" if utils.plot.is_lower_loc(rad_text) else "right"
             else:
                 raise ValueError(f"{side=} is invalid ('right' or 'left').")
             # Plot yticks
