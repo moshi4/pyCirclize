@@ -290,8 +290,8 @@ class Track:
         rad = min(rad_rect_start, rad_rect_end)
         width = abs(rad_rect_end - rad_rect_start)
         if r_lim is not None:
-            min_range = min(self.r_lim) - config.REL_TOL
-            max_range = max(self.r_lim) + config.REL_TOL
+            min_range = min(self.r_lim) - config.EPSILON
+            max_range = max(self.r_lim) + config.EPSILON
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             radr, height = (rad, min(r_lim)), max(r_lim) - min(r_lim)
@@ -335,8 +335,8 @@ class Track:
         if r_lim is None:
             r, dr = min(self.r_plot_lim), self.r_plot_size
         else:
-            min_range = min(self.r_lim) - config.REL_TOL
-            max_range = max(self.r_lim) + config.REL_TOL
+            min_range = min(self.r_lim) - config.EPSILON
+            max_range = max(self.r_lim) + config.EPSILON
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             r, dr = min(r_lim), max(r_lim) - min(r_lim)
