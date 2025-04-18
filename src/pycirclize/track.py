@@ -1507,6 +1507,7 @@ class Track:
         vmax : float
             Max value
         """
+        vmin, vmax = vmin - config.EPSILON, vmax + config.EPSILON
         if isinstance(value, (list, tuple, np.ndarray)):
             if isinstance(value, np.ndarray):
                 value = list(value.flatten())
