@@ -331,8 +331,7 @@ class BezierCurveLink(PathPatch):
                 (Path.CLOSEPOLY, (rad_start1, arrow_r1)),
             ]
         else:
-            err_msg = f"{direction=} is invalid value (0 or 1 or -1 or 2)."
-            raise ValueError(err_msg)
+            raise ValueError(f"{direction=} is invalid value (0 or 1 or -1 or 2).")
 
         verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
         bezier_curve_path = Path(verts, codes, closed=True)  # type: ignore

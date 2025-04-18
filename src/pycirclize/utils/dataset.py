@@ -45,8 +45,7 @@ def load_prokaryote_example_file(
     """
     # Check specified filename exists or not
     if filename not in config.PROKARYOTE_FILES:
-        err_msg = f"{filename=} not found."
-        raise ValueError(err_msg)
+        raise ValueError(f"{filename=} not found.")
 
     # Cache local directory
     if cache_dir is None:
@@ -156,9 +155,7 @@ def load_example_image_file(filename: str) -> Path:
     if filename.lower() in image_filenames:
         return image_dir / filename.lower()
     else:
-        err_msg = f"{filename=} is not found.\n"
-        err_msg += f"Available filenames = {image_filenames}"
-        raise FileNotFoundError(err_msg)
+        raise FileNotFoundError(f"{filename=} is not found.\nAvailable filenames = {image_filenames}")  # fmt: skip  # noqa: E501
 
 
 def load_example_tree_file(filename: str) -> Path:

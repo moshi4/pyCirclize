@@ -290,8 +290,8 @@ class Track:
         rad = min(rad_rect_start, rad_rect_end)
         width = abs(rad_rect_end - rad_rect_start)
         if r_lim is not None:
-            min_range = min(self.r_lim) - config.REL_TOL
-            max_range = max(self.r_lim) + config.REL_TOL
+            min_range = min(self.r_lim) - config.EPSILON
+            max_range = max(self.r_lim) + config.EPSILON
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             radr, height = (rad, min(r_lim)), max(r_lim) - min(r_lim)
@@ -335,8 +335,8 @@ class Track:
         if r_lim is None:
             r, dr = min(self.r_plot_lim), self.r_plot_size
         else:
-            min_range = min(self.r_lim) - config.REL_TOL
-            max_range = max(self.r_lim) + config.REL_TOL
+            min_range = min(self.r_lim) - config.EPSILON
+            max_range = max(self.r_lim) + config.EPSILON
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             r, dr = min(r_lim), max(r_lim) - min(r_lim)
@@ -467,8 +467,7 @@ class Track:
         # Check list length of x & labels
         labels = [""] * len(x) if labels is None else labels
         if len(x) != len(labels):
-            err_msg = f"List length is not match ({len(x)=}, {len(labels)=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"List length is not match ({len(x)=}, {len(labels)=})")
 
         # Plot xticks & labels
         r = max(self.r_lim) if outer else min(self.r_lim)
@@ -627,8 +626,7 @@ class Track:
         # Check y, labels list length
         labels = [""] * len(y) if labels is None else labels
         if len(y) != len(labels):
-            err_msg = f"List length is not match ({len(y)=}, {len(labels)=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"List length is not match ({len(y)=}, {len(labels)=})")
         # Set vmax & check if y is in min-max range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
@@ -752,8 +750,7 @@ class Track:
         """
         # Check x, y list length
         if len(x) != len(y):
-            err_msg = f"List length is not match ({len(x)=}, {len(y)=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"List length is not match ({len(x)=}, {len(y)=})")
 
         # Convert (x, y) to (rad, r)
         rad = list(map(self.x_to_rad, x))
@@ -799,8 +796,7 @@ class Track:
         """
         # Check x, y list length
         if len(x) != len(y):
-            err_msg = f"List length is not match ({len(x)=}, {len(y)=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"List length is not match ({len(x)=}, {len(y)=})")
 
         # Convert (x, y) to (rad, r)
         rad = list(map(self.x_to_rad, x))
@@ -849,8 +845,7 @@ class Track:
         """
         # Check x, height list length
         if len(x) != len(height):
-            err_msg = f"List length is not match ({len(x)=}, {len(height)=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"List length is not match ({len(x)=}, {len(height)=})")
 
         # Calculate top & vmax
         if isinstance(bottom, (list, tuple, np.ndarray)):
@@ -1512,17 +1507,16 @@ class Track:
         vmax : float
             Max value
         """
+        vmin, vmax = vmin - config.EPSILON, vmax + config.EPSILON
         if isinstance(value, (list, tuple, np.ndarray)):
             if isinstance(value, np.ndarray):
                 value = list(value.flatten())
             for v in value:
                 if not vmin <= v <= vmax:
-                    err_msg = f"value={v} is not in valid range ({vmin=}, {vmax=})"
-                    raise ValueError(err_msg)
+                    raise ValueError(f"value={v} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
         else:
             if not vmin <= value <= vmax:
-                err_msg = f"{value=} is not in valid range ({vmin=}, {vmax=})"
-                raise ValueError(err_msg)
+                raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
 
     def __str__(self):
         min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)

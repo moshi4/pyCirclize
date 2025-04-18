@@ -81,9 +81,7 @@ class Circos:
         space_num = len(sectors) if endspace else len(sectors) - 1
         if isinstance(space, (list, tuple)):
             if len(space) != space_num:
-                err_msg = f"{space=} is invalid.\n"
-                err_msg += f"Length of space list must be {space_num}."
-                raise ValueError(err_msg)
+                raise ValueError(f"{space=} is invalid.\nLength of space list must be {space_num}.")  # fmt: skip  # noqa: E501
             space_list = list(space) + [0]
             space_deg_size = sum(space)
         else:
@@ -169,8 +167,7 @@ class Circos:
         Can't access `ax` property before calling `circos.plotfig()` method
         """
         if self._ax is None:
-            err_msg = "Can't access ax property before calling `circos.plotfig() method"
-            raise ValueError(err_msg)
+            raise ValueError("Can't access ax property before calling `circos.plotfig() method")  # fmt:skip  # noqa: E501
         return self._ax
 
     ############################################################
@@ -1034,8 +1031,7 @@ class Circos:
             # Check PolarAxes or not
             if not isinstance(ax, PolarAxes):
                 ax_class_name = type(ax).__name__
-                err_msg = f"Input ax is not PolarAxes (={ax_class_name})."
-                raise ValueError(err_msg)
+                raise ValueError(f"Input ax is not PolarAxes (={ax_class_name}).")
             fig = ax.get_figure()
         self._initialize_polar_axes(ax)
 
@@ -1121,12 +1117,9 @@ class Circos:
         """
         min_deg, max_deg = -360, 360
         if not min_deg <= start < end <= max_deg:
-            err_msg = "start-end must be "
-            err_msg += f"'{min_deg} <= start < end <= {max_deg}' ({start=}, {end=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"start-end must be '{min_deg} <= start < end <= {max_deg}' ({start=}, {end=})")  # fmt: skip  # noqa: E501
         if end - start > max_deg:
-            err_msg = f"'end - start' must be less than {max_deg} ({start=}, {end=})"
-            raise ValueError(err_msg)
+            raise ValueError(f"'end - start' must be less than {max_deg} ({start=}, {end=})")  # fmt: skip  # noqa: E501
 
     def _to_sector2range(
         self,
@@ -1138,8 +1131,7 @@ class Circos:
             if isinstance(value, (tuple, list)):
                 sector_start, sector_end = value
                 if not sector_start < sector_end:
-                    err_msg = f"{sector_end=} must be larger than {sector_start=}."
-                    raise ValueError(err_msg)
+                    raise ValueError(f"{sector_end=} must be larger than {sector_start=}.")  # fmt: skip  # noqa: E501
                 sector2range[name] = (sector_start, sector_end)
             else:
                 sector2range[name] = (0, value)
@@ -1234,8 +1226,7 @@ class Circos:
         if len(ann_list) == 0 or config.ann_adjust.max_iter <= 0:
             return
         if len(ann_list) > config.ann_adjust.limit:
-            warn_msg = f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done."  # noqa: E501
-            warnings.warn(warn_msg)
+            warnings.warn(f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done.")  # fmt: skip  # noqa: E501
             return
 
         def get_ann_window_extent(ann: Annotation) -> Bbox:
