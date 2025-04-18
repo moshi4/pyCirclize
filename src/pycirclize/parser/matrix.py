@@ -115,9 +115,7 @@ class Matrix:
                 if set(all_labels) == set(order):
                     all_labels = order
                 else:
-                    err_msg = "'order' is not match 'all_labels' in from-to table.\n"
-                    err_msg += f"{order=}\n{all_labels=}"
-                    raise ValueError(err_msg)
+                    raise ValueError(f"'order' is not match 'all_labels' in from-to table.\n{order=}\n{all_labels=}")  # fmt: skip  # noqa: E501
             elif isinstance(order, str) and order in ("asc", "desc"):
                 items = label2value_sum.items()
                 if order == "asc":
@@ -126,8 +124,7 @@ class Matrix:
                     sorted_items = sorted(items, key=lambda v: v[1], reverse=True)
                 all_labels = [item[0] for item in sorted_items]
             else:
-                err_msg = f"{order=} is invalid (list[str]|`asc`|`desc`)."
-                raise ValueError(err_msg)
+                raise ValueError(f"{order=} is invalid (list[str]|`asc`|`desc`).")
 
         # Convert from-to table to matrix
         matrix_data = []

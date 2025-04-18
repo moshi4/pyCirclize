@@ -324,16 +324,14 @@ class Gff:
         gff_record_lines = filter(GffRecord.is_gff_line, gff_all_lines)
         gff_records = list(map(GffRecord.parse_gff_line, gff_record_lines))
         if len(gff_records) == 0:
-            err_msg = f"Failed to parse '{self._gff_file}' as GFF file "
-            raise ValueError(err_msg)
+            raise ValueError(f"Failed to parse '{self._gff_file}' as GFF file")
 
         # Get target seqid & GFF records
         seqid_list = list(dict.fromkeys([rec.seqid for rec in gff_records]))
         if target_seqid is None:
             target_seqid = seqid_list[0]
         if target_seqid not in seqid_list:
-            err_msg = f"Not found {target_seqid=} in '{self._gff_file}'"
-            raise ValueError(err_msg)
+            raise ValueError(f"Not found {target_seqid=} in '{self._gff_file}'")
         target_gff_records = [rec for rec in gff_records if rec.seqid == target_seqid]
 
         # Try to get start-end region from '##sequence-region' annotation line
