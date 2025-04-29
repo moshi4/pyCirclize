@@ -16,11 +16,11 @@ import plotly.graph_objects as go
 from plotly.graph_objs.layout._shape import Shape
 from plotly.graph_objs.layout._annotation import Annotation 
 
-from pycirclize_TEST import config, utils
-from pycirclize_TEST.parser import Bed, Matrix
-from pycirclize_TEST.sector import Sector
-from pycirclize_TEST.track import Track
-from pycirclize_TEST.patches import PolarSVGPatchBuilder
+from pycirclizely_TEST import config, utils
+from pycirclizely_TEST.parser import Bed, Matrix
+from pycirclizely_TEST.sector import Sector
+from pycirclizely_TEST.track import Track
+from pycirclizely_TEST.patches import PolarSVGPatchBuilder
 
 class Circos:
     """Circos Visualization Class"""

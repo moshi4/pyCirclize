@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from pycirclize.utils import ColorCycler
+from pycirclizely.utils import ColorCycler
 
 
 class Table:

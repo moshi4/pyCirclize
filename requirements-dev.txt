@@ -1,0 +1,104 @@
+asttokens==3.0.*                       # via stack-data
+attrs==25.3.*                          # via jsonschema, referencing
+babel==2.17.*                          # via mkdocs-material
+backrefs==5.8.*                        # via mkdocs-material
+beautifulsoup4==4.13.*                # via nbconvert
+biopython==1.85.*                      # via pycirclizely, pygenomeviz
+black==25.1.*                          
+bleach==6.2.*                          # via nbconvert
+certifi==2025.1.*                      # via requests
+cfgv==3.4.*                            # via pre-commit
+charset-normalizer==3.4.*             # via requests
+click==8.1.*                           # via black, mkdocs
+colorama==0.4.*                        # via griffe, mkdocs-material
+comm==0.2.*                            # via ipykernel
+coverage==7.8.*                        # via pytest-cov
+debugpy==1.8.*                         # via ipykernel
+decorator==5.2.*                       # via ipython
+defusedxml==0.7.*                      # via nbconvert
+distlib==0.3.*                         # via virtualenv
+exceptiongroup==1.2.*                  # via ipython, pytest
+executing==2.2.*                       # via stack-data
+fastjsonschema==2.21.*                # via nbformat
+filelock==3.18.*                       # via virtualenv
+ghp-import==2.1.*                      # via mkdocs
+griffe==1.7.*                          # via mkdocstrings-python
+identify==2.6.*                        # via pre-commit
+idna==3.10.*                           # via requests
+importlib-metadata==8.6.*              # via many
+iniconfig==2.1.*                       # via pytest
+ipykernel==6.29.*                      # via mkdocs-jupyter
+ipython==8.18.*                        # via ipykernel
+jedi==0.19.*                           # via ipython
+jinja2==3.1.*                          # via many
+jsonschema==4.23.*                     # via nbformat
+jsonschema-specifications==2024.10.*  # via jsonschema
+jupyter-client==8.6.*                  # via many
+jupyter-core==5.7.*                    # via many
+jupyterlab-pygments==0.3.*            # via nbconvert
+jupytext==1.17.*                       # via mkdocs-jupyter
+markdown==3.8.*                        # via many
+markdown-it-py==3.0.*                  # via jupytext, mdit-py-plugins
+markupsafe==3.0.*                      # via many
+mdit-py-plugins==0.4.*                 # via jupytext
+mdurl==0.1.*                           # via markdown-it-py
+mergedeep==1.3.*                       # via mkdocs, mkdocs-get-deps
+mistune==3.1.*                         # via nbconvert
+mkdocs==1.6.*                          # via many
+mkdocs-autorefs==1.4.*                 # via mkdocstrings
+mkdocs-get-deps==0.2.*                 # via mkdocs
+mkdocs-jupyter==0.25.*                
+mkdocs-material==9.6.*                 # via mkdocs-jupyter
+mkdocs-material-extensions==1.3.*      # via mkdocs-material
+mkdocstrings==0.29.*                   # via mkdocstrings-python
+mkdocstrings-python==1.16.*            # via mkdocstrings
+mypy-extensions==1.0.*                 # via black
+nbclient==0.10.*                       # via nbconvert
+nbconvert==7.16.*                      # via mkdocs-jupyter
+nbformat==5.10.*                       # via many
+nest-asyncio==1.6.*                    # via ipykernel
+nodeenv==1.9.*                         # via pre-commit
+numpy==2.0.*                           # via many
+packaging==24.2.*                      # via many
+paginate==0.5.*                        # via mkdocs-material
+pandas==2.2.*                          # via pycirclizely
+pandocfilters==1.5.*                   # via nbconvert
+parso==0.8.*                           # via jedi
+pathspec==0.12.*                       # via black, mkdocs
+pexpect==4.9.*                         # via ipython
+platformdirs==4.3.*                    # via many
+pluggy==1.5.*                          # via pytest
+pre-commit==4.2.*                      
+prompt-toolkit==3.0.*                  # via ipython
+psutil==7.0.*                          # via ipykernel
+ptyprocess==0.7.*                      # via pexpect
+pure-eval==0.2.*                       # via stack-data
+pygenomeviz==1.5.*                     
+pygments==2.19.*                       # via many
+pymdown-extensions==10.14.*            # via mkdocs-material, mkdocstrings
+pytest==8.3.*                          # via pytest-cov
+pytest-cov==6.1.*                      
+python-dateutil==2.9.*                 # via many
+pytz==2025.2.*                         # via pandas
+pyyaml==6.0.*                          # via many
+pyyaml-env-tag==0.1.*                  # via mkdocs
+pyzmq==26.4.*                          # via ipykernel, jupyter-client
+referencing==0.36.*                    # via jsonschema
+requests==2.32.*                       # via mkdocs-material
+rpds-py==0.24.*                        # via jsonschema, referencing
+ruff==0.11.*                           
+six==1.17.*                            # via python-dateutil
+soupsieve==2.6.*                       # via beautifulsoup4
+stack-data==0.6.*                      # via ipython
+tinycss2==1.4.*                        # via bleach
+tomli==2.2.*                           # via many
+tornado==6.4.*                         # via many
+traitlets==5.14.*                      # via many
+typing-extensions==4.13.*              # via many
+tzdata==2025.2.*                       # via pandas
+urllib3==2.4.*                         # via requests
+virtualenv==20.30.*                    # via pre-commit
+watchdog==6.0.*                        # via mkdocs
+wcwidth==0.2.*                         # via prompt-toolkit
+webencodings==0.5.*                    # via bleach, tinycss2
+zipp==3.21.*                           # via importlib-metadata

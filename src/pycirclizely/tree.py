@@ -14,10 +14,10 @@ from Bio import Phylo
 from Bio.Phylo.BaseTree import Clade, Tree
 from matplotlib.patches import Rectangle
 
-from pycirclize import utils
+from pycirclizely import utils
 
 if TYPE_CHECKING:
-    from pycirclize.track import Track
+    from pycirclizely.track import Track
 
 
 class TreeViz:

@@ -136,7 +136,7 @@ plotly_text_orientation_defaults = {
 # GitHub Eukaryote & Prokaryote Dataset Config
 ###########################################################
 
-# GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pycirclize-data/master/"
+# GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pycirclizely-data/master/"
 
 EUKARYOTE_DATASET = {
     "hg38": [

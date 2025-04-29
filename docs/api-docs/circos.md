@@ -1,3 +1,3 @@
 # Circos Class
 
-::: pycirclize.circos.Circos
+::: pycirclizely.circos.Circos

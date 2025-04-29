@@ -2,7 +2,7 @@ from urllib.request import urlopen
 
 import pytest
 
-from pycirclize.utils import (
+from pycirclizely.utils import (
     load_eukaryote_example_dataset,
     load_example_image_file,
     load_example_tree_file,

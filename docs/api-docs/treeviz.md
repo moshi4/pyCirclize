@@ -1,3 +1,3 @@
 # TreeViz Class
 
-::: pycirclize.tree.TreeViz
+::: pycirclizely.tree.TreeViz

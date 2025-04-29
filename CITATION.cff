@@ -1,8 +1,0 @@
-cff-version: 1.2.0
-message: If you use this software, please cite it as below.
-authors:
-  - family-names: Shimoyama
-    given-names: Yuki
-title: "pyCirclize: Circular visualization in Python"
-date-released: 2022-12-20
-url: https://github.com/moshi4/pyCirclize

@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from pycirclize import config
-from pycirclize.sector import Sector
+from pycirclizely import config
+from pycirclizely.sector import Sector
 
 
 @pytest.fixture

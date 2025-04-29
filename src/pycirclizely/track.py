@@ -12,13 +12,13 @@ from plotly.graph_objs.layout._shape import Shape
 from plotly.graph_objs.layout._annotation import Annotation 
 from PIL import Image
 
-from pycirclize_TEST import config, utils
-from pycirclize_TEST.parser import StackedBarTable
-from pycirclize_TEST.patches import PolarSVGPatchBuilder
+from pycirclizely_TEST import config, utils
+from pycirclizely_TEST.parser import StackedBarTable
+from pycirclizely_TEST.patches import PolarSVGPatchBuilder
 
 if TYPE_CHECKING:
     # Avoid Sector <-> Track circular import error at runtime
-    from pycirclize_TEST.sector import Sector
+    from pycirclizely_TEST.sector import Sector
 
 
 class Track:

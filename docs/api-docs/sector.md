@@ -1,3 +1,3 @@
 # Sector Class
 
-::: pycirclize.sector.Sector
+::: pycirclizely.sector.Sector

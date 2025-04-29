@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from pycirclize.parser import Matrix
+from pycirclizely.parser import Matrix
 
 
 def test_load_dataframe_matrix(matrix_df: pd.DataFrame):

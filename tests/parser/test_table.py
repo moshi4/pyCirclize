@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from pycirclize.parser import RadarTable, StackedBarTable
+from pycirclizely.parser import RadarTable, StackedBarTable
 
 
 class TestStackedBarTable:

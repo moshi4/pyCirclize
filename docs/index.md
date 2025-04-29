@@ -3,8 +3,8 @@
 ![Python3](https://img.shields.io/badge/Language-Python3-steelblue)
 ![OS](https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue)
 ![License](https://img.shields.io/badge/License-MIT-steelblue)
-[![Latest PyPI version](https://img.shields.io/pypi/v/pycirclize.svg)](https://pypi.python.org/pypi/pycirclize)
-[![conda-forge](https://img.shields.io/conda/vn/conda-forge/pycirclize.svg?color=green)](https://anaconda.org/conda-forge/pycirclize)
+[![Latest PyPI version](https://img.shields.io/pypi/v/pycirclizely.svg)](https://pypi.python.org/pypi/pycirclizely)
+[![conda-forge](https://img.shields.io/conda/vn/conda-forge/pycirclizely.svg?color=green)](https://anaconda.org/conda-forge/pycirclizely)
 
 ## Overview
 
@@ -24,11 +24,11 @@ pyCirclize was inspired by [circlize](https://github.com/jokergoo/circlize) and 
 
 **Install PyPI package:**
 
-    pip install pycirclize
+    pip install pycirclizely
 
 **Install conda-forge package:**
 
-    conda install -c conda-forge pycirclize
+    conda install -c conda-forge pycirclizely
 
 ## API Usage
 

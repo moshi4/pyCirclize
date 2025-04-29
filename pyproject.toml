@@ -1,12 +1,12 @@
 [project]
-name = "pyCirclize"
+name = "pyCirclizely"
 dynamic = ["version"]
-description = "Circular visualization in Python"
-authors = [{ name = "moshi4", email = "" }]
+description = "Circular visualization in Python, plotly implemented"
+authors = [{ name = "mirodriguezgal", email = "" }]
 license = "MIT"
 readme = "README.md"
 keywords = [
-    "matplotlib",
+    "plotly",
     "visualization",
     "bioinformatics",
     "circos",
@@ -15,22 +15,21 @@ keywords = [
 classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Framework :: Matplotlib",
+    "Framework :: plotly",
 ]
 requires-python = ">=3.9"
 dependencies = [
-    "matplotlib>=3.6.3",
+    "plotly>=5.24",
     "biopython>=1.80",
     "numpy>=1.21",
     "pandas>=1.3.5",
 ]
 
 [project.urls]
-homepage = "https://moshi4.github.io/pyCirclize/"
-repository = "https://github.com/moshi4/pyCirclize/"
+repository = "https://github.com/Avatar-Cognition/pyCirclizely"
 
 [tool.hatch.version]
-path = "src/pycirclize/__init__.py"
+path = "src/pycirclizely/__init__.py"
 
 [tool.rye]
 managed = true

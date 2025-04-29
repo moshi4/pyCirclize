@@ -9,7 +9,7 @@ from urllib.request import urlretrieve
 
 from Bio import Entrez
 
-from pycirclize_TEST import config
+from pycirclizely_TEST import config
 
 
 def load_prokaryote_example_file(
@@ -17,10 +17,10 @@ def load_prokaryote_example_file(
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
 ) -> Path:
-    """Load pycirclize example Genbank or GFF file
+    """Load pycirclizely example Genbank or GFF file
 
-    Load example file from <https://github.com/moshi4/pycirclize-data/>
-    and cache file in local directory (Default: `~/.cache/pycirclize/`).
+    Load example file from <https://github.com/moshi4/pycirclizely-data/>
+    and cache file in local directory (Default: `~/.cache/pycirclizely/`).
 
     List of example Genbank or GFF filename
 
@@ -33,7 +33,7 @@ def load_prokaryote_example_file(
     filename : str
         Genbank or GFF filename (e.g. `enterobacteria_phage.gff`)
     cache_dir : str | Path | None, optional
-        Output cache directory (Default: `~/.cache/pycirclize/`)
+        Output cache directory (Default: `~/.cache/pycirclizely/`)
     overwrite_cache : bool, optional
         If True, overwrite cache file.
         Assumed to be used when cache file is corrupt.
@@ -73,10 +73,10 @@ def load_eukaryote_example_dataset(
     cache_dir: str | Path | None = None,
     overwrite_cache: bool = False,
 ) -> tuple[Path, Path, list[ChrLink]]:
-    """Load pycirclize eukaryote example dataset
+    """Load pycirclizely eukaryote example dataset
 
-    Load example file from <https://github.com/moshi4/pycirclize-data/>
-    and cache file in local directory (Default: `~/.cache/pycirclize/`).
+    Load example file from <https://github.com/moshi4/pycirclizely-data/>
+    and cache file in local directory (Default: `~/.cache/pycirclizely/`).
 
     List of dataset contents (download from UCSC)
 
@@ -89,7 +89,7 @@ def load_eukaryote_example_dataset(
     name : str, optional
         Dataset name (`hg38`|`hs1`|`mm10`|`mm39`)
     cache_dir : str | Path | None, optional
-        Output cache directory (Default: `~/.cache/pycirclize/`)
+        Output cache directory (Default: `~/.cache/pycirclizely/`)
     overwrite_cache : bool
         If True, overwrite cache dataset.
         Assumed to be used when cache dataset is corrupt.

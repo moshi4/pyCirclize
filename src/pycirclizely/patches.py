@@ -1,7 +1,7 @@
 from typing import ClassVar
 import numpy as np
 
-from pycirclize_TEST import config
+from pycirclizely_TEST import config
 
 class PolarSVGPatchBuilder:
     step: ClassVar[float] = config.ARC_RADIAN_STEP

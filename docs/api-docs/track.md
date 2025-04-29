@@ -1,3 +1,3 @@
 # Track Class
 
-::: pycirclize.track.Track
+::: pycirclizely.track.Track

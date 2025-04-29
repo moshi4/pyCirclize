@@ -1,13 +1,128 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=50]
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+      - id: name-tests-test
+        args: [--pytest-test-first]
+        exclude: helper
+        files: test/.*py
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+      - id: black-jupyter
+        types_or: [jupyter]
+
+  - repo: https://github.com/pre-commit/mirrors-csslint
+    rev: v1.0.5
+    hooks:
+      - id: csslint
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+
+  - repo: local
+    hooks:
+      - id: custom-lint
+        name: custom-lint
+        entry: bin/custom-lint.sh
+        language: script
+        pass_filenames: false
+        require_serial: true
+
+      - id: shfmt
+        name: shfmt
+        language: golang
+        require_serial: true
+        additional_dependencies: [mvdan.cc/sh/v3/cmd/shfmt@v3.9.0]
+        entry: shfmt
+        args: [-l, -w, -i, '4', -ci, bin]
+        types: [shell]
+
+      - id: restricted-filenames
+        name: Check commits with cache/temporary/custom files
+        entry: These files have name patterns which should normally not be committed
+        language: fail
+        files: ^(\.|_)(~|tmp|temp|cache|env).*
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.22
+    hooks:
+      - id: mdformat
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        args: [] #to avoid default --ignore-missing-imports
+        additional_dependencies: &mypy_deps
+          - biopython==1.85 # via pycirclizely
+          - numpy==2.0.* # via biopython, pandas, pycirclizely
+          - pandas==2.2.* # via pycirclizely
+          - python-dateutil==2.9.* # via pandas
+          - pytz==2025.2 # via pandas
+          - six==1.17.* # via python-dateutil
+          - tzdata==2025.2 # via pandas
+          - plotly==5.24.* # via pycirclizely
+
+
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 4.0.1
+    hooks:
+      # https://github.com/srstevenson/nb-clean/issues/323
+      - id: nb-clean
+        entry: nb-clean check --preserve-execution-counts --preserve-notebook-metadata
+
+  # last because it's the slow hook
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.9.1
+    hooks:
+      - id: nbqa-black
+      - id: nbqa-isort
+      - id: nbqa-mypy
+        args: [--allow-untyped-defs, --allow-untyped-globals]
+        additional_dependencies: *mypy_deps
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.1
+    rev: v0.11.6
     hooks:
       - id: ruff
-        name: ruff lint check
-        types_or: [python, pyi]
         args: [--fix]
-      - id: ruff-format
-        name: ruff format check
-        types_or: [python, pyi]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [--severity=error]
+
+  - repo: https://github.com/jendrikseipp/vulture
+    # dead code detection. Remove when https://github.com/astral-sh/ruff/issues/872 implemented
+    rev: v2.14
+    hooks:
+      - id: vulture
+        args: [--min-confidence, '100']
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.3
+    hooks:
+      - id: yamlfmt
+        args: [--offset, '2', --mapping, '2', --sequence, '4', --width, '94']

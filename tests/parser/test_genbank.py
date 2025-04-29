@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pycirclize.parser import Genbank
+from pycirclizely.parser import Genbank
 
 
 def test_parse_complete_genome(prokaryote_testdata_dir: Path):

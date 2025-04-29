@@ -5,7 +5,7 @@ import math
 import numpy as np
 from typing import Any, Literal
 
-from pycirclize_TEST import config
+from pycirclizely_TEST import config
 
 def degrees(rad: float) -> float:
     """Convert radian to positive degree (`0 - 360`)

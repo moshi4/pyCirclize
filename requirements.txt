@@ -1,0 +1,8 @@
+biopython==1.85 # via pycirclizely
+numpy==2.0.* # via biopython, pandas, pycirclizely
+pandas==2.2.* # via pycirclizely
+python-dateutil==2.9.* # via pandas
+pytz==2025.2 # via pandas
+six==1.17.* # via python-dateutil
+tzdata==2025.2 # via pandas
+plotly==5.24.* # via pycirclizely

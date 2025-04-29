@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 from Bio import Phylo
 
-from pycirclize import Circos
-from pycirclize.parser import Genbank, Gff, StackedBarTable
-from pycirclize.utils import (
+from pycirclizely import Circos
+from pycirclizely.parser import Genbank, Gff, StackedBarTable
+from pycirclizely.utils import (
     ColorCycler,
     load_eukaryote_example_dataset,
     load_example_image_file,
