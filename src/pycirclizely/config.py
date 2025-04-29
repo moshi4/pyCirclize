@@ -1,10 +1,8 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 import math
 from enum import IntEnum
 from typing import ClassVar
-
-import matplotlib as mpl
 
 ###########################################################
 # Constant Value Config
@@ -13,12 +11,13 @@ import matplotlib as mpl
 # Fundamental Plot Parameters
 MIN_R = 0
 MAX_R = 100
-R_PLOT_MARGIN = 5
+R_PLOT_MARGIN = 10
 ARC_RADIAN_STEP = 0.01
 R_LIM = (MIN_R, MAX_R)
-AXIS_FACE_PARAM = dict(zorder=0.99, ec="none", edgecolor="none")
-AXIS_EDGE_PARAM = dict(zorder=1.01, fc="none", facecolor="none")
-EPSILON = 1e-10
+AXIS_FACE_PARAM = dict(layer="below", line=dict(color="rgba(0,0,0,0)"))
+AXIS_EDGE_PARAM = dict(layer="above", fillcolor=None)
+REL_TOL = 1e-10  # Relative Tolerance
+AXIS_RANGE = [-MAX_R - R_PLOT_MARGIN, MAX_R + R_PLOT_MARGIN]
 
 # Circos Color Scheme
 # http://circos.ca/tutorials/lessons/configuration/colors/
@@ -81,40 +80,63 @@ ann_adjust = _AnnotationAdjustConfig
 
 
 ###########################################################
-# Matplotlib Runtime Configuration
+# Plotly Default Configuration
 ###########################################################
 
-# Setting matplotlib rc(runtime configuration) parameters
-# https://matplotlib.org/stable/tutorials/introductory/customizing.html
-mpl_rc_params = {
-    # Font
-    "font.size": 10,  # Default: 10
-    # Lines
-    "lines.linewidth": 0.5,  # Default: 1.5
-    "lines.color": "black",  # Default: 'C0'
-    "lines.markersize": 3,  # Default: 6
-    # Patch
-    "patch.linewidth": 0,  # Default: 1.0
-    "patch.facecolor": "C0",  # Default: 'C0'
-    "patch.edgecolor": "black",  # Default: 'black'
-    # Legend
-    "legend.loc": "upper left",  # Default: best
-    "legend.frameon": False,  # Default: True
-    "legend.handlelength": 1,  # Default: 2.0
-    "legend.handleheight": 1,  # Default: 0.7
-    # Savefig
-    "savefig.bbox": "tight",  # Default: None
-    "savefig.pad_inches": 0.5,  # Default: 0.1
-    # SVG
-    "svg.fonttype": "none",
+plotly_layout_defaults = {
+    "title": {'font': {'color': 'black', 'family': 'Times New Roman', 'size': 18}, 'text': None},
+    "hovermode": "closest",
+    "showlegend": False,
+    "xaxis": {
+        "autorange": True,
+        "showgrid": False,
+        "zeroline": False,
+        "showticklabels": False,
+    },
+    "yaxis": {
+        "autorange": True,
+        "showgrid": False,
+        "zeroline": False,
+        "showticklabels": False,
+    },
+    "paper_bgcolor" : "rgba(0,0,0,0)",  # Transparent background outside the axes
+    "plot_bgcolor" : "rgba(0,0,0,0)"   # Transparent background inside the axes
 }
-mpl.rcParams.update(mpl_rc_params)
+
+# Plotly annotation defaults
+plotly_annotation_defaults = {
+    "font": {
+        "size": 10,
+        "color": "black",
+    },
+    "showarrow": False,
+}
+
+# Plotly shape defaults
+plotly_shape_defaults = {
+    "fillcolor": None,
+    "line": {
+        "color": "black",
+        "width": 2
+    },
+    "layer": "above"
+}
+
+# Text orientation-specific overrides
+plotly_text_orientation_defaults = {
+    "horizontal": {
+        "yanchor": "top",  # Default for outer horizontal text
+    },
+    "vertical": {
+        "xanchor": "left",  # Default for outer vertical text
+    },
+}
 
 ###########################################################
 # GitHub Eukaryote & Prokaryote Dataset Config
 ###########################################################
 
-GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pycirclize-data/master/"
+# GITHUB_DATA_URL = "https://raw.githubusercontent.com/moshi4/pycirclize-data/master/"
 
 EUKARYOTE_DATASET = {
     "hg38": [

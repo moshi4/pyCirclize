@@ -5,17 +5,16 @@ import textwrap
 import warnings
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
+from plotly.graph_objs.layout._shape import Shape
+from plotly.graph_objs.layout._annotation import Annotation 
 from PIL import Image, ImageOps
 
-from pycirclize import config, utils
-from pycirclize.patches import ArcLine, ArcRectangle, Line
-from pycirclize.track import Track
-from pycirclize.utils.plot import get_label_params_by_rad
+from pycirclize_TEST import config, utils
+from pycirclize_TEST.patches import PolarSVGPatchBuilder
+from pycirclize_TEST.track import Track
 
 
 class Sector:
@@ -52,9 +51,9 @@ class Sector:
         self._clockwise = clockwise
         self._tracks: list[Track] = []
 
-        # Plot data and functions
-        self._patches: list[Patch] = []
-        self._plot_funcs: list[Callable[[PolarAxes], None]] = []
+        # Shapes and annotations for Layout
+        self._shapes: list[Shape] = []
+        self._annotations: list[Annotation] = []
 
     ############################################################
     # Property
@@ -116,14 +115,15 @@ class Sector:
         return self._tracks
 
     @property
-    def patches(self) -> list[Patch]:
+    def shapes(self) -> list[Shape]:
         """Plot patches"""
-        return self._patches
+        return self._shapes
 
     @property
-    def plot_funcs(self) -> list[Callable[[PolarAxes], None]]:
+    def annotations(self) -> list[Annotation]:
         """Plot functions"""
-        return self._plot_funcs
+        return self._annotations
+
 
     ############################################################
     # Public Method
@@ -156,7 +156,8 @@ class Sector:
         if name in [t.name for t in self.tracks]:
             raise ValueError(f"{name=} track is already exists.")
         if not 0 <= min(r_lim) <= max(r_lim) <= 100:
-            warnings.warn(f"{r_lim=} is unexpected plot range (0 <= r <= 100).")
+            warn_msg = f"{r_lim=} is unexpected plot range (0 <= r <= 100)."
+            warnings.warn(warn_msg, stacklevel=1)
         track = Track(name, r_lim, r_pad_ratio, self)
         self._tracks.append(track)
         return track
@@ -210,10 +211,11 @@ class Sector:
         if not ignore_range_error:
             # Apply relative torelance value to sector range to avoid
             # unexpected invalid range error due to rounding errors (Issue #27, #67)
-            min_range = self.start - config.EPSILON
-            max_range = self.end + config.EPSILON
+            min_range = self.start - config.REL_TOL
+            max_range = self.end + config.REL_TOL
             if not min_range <= x <= max_range:
-                raise ValueError(f"{x=} is invalid range of '{self.name}' sector.\n{self}")  # fmt: skip  # noqa: E501
+                err_msg = f"{x=} is invalid range of '{self.name}' sector.\n{self}"
+                raise ValueError(err_msg)
 
         if not self.clockwise:
             x = (self.start + self.end) - x
@@ -226,75 +228,76 @@ class Sector:
     def axis(self, **kwargs) -> None:
         """Plot axis
 
-        By default, simple black axis params(`fc="none", ec="black", lw=0.5`) are set.
-
         Parameters
         ----------
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=0.5, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line=dict(color="darkgreen", width=2, dash="dash", ... ) ...`)
+            <https://plotly.com/python/reference/layout/shapes/>
         """
-        # Set default params
-        kwargs = utils.plot.set_axis_default_kwargs(**kwargs)
+        kwargs = {} if kwargs is None else kwargs
 
-        # Axis facecolor placed behind other patches (zorder=0.99)
-        fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
+        # Background shape placed behind other shapes (layer="below")
+        fc_behind_kwargs = deepcopy(kwargs)
+        fc_behind_kwargs.update(config.AXIS_FACE_PARAM)
         self.rect(self.start, self.end, config.R_LIM, **fc_behind_kwargs)
 
-        # Axis edgecolor placed in front of other patches (zorder=1.01)
-        ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
+        # Edge shape placed in front of other shapes (layer="above")
+        ec_front_kwargs = deepcopy(kwargs)
+        ec_front_kwargs.update(config.AXIS_EDGE_PARAM)
         self.rect(self.start, self.end, config.R_LIM, **ec_front_kwargs)
 
     def text(
         self,
         text: str,
         x: float | None = None,
-        r: float = 105,
+        r: float = 110,
         *,
         adjust_rotation: bool = True,
         orientation: str = "horizontal",
         ignore_range_error: bool = False,
+        outer: bool = True,
         **kwargs,
     ) -> None:
-        """Plot text
+        """Plot text within a sector. Uses genomic coordinates (x) mapped to radians.
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
         text : str
             Text content
-        x: float | None, optional
-            X position. If None, sector center x is set.
+        x : float | None, optional
+            Genomic position. If None, sector center is used.
         r : float, optional
-            Radius position. By default, outer position `r=105` is set.
+            Radius position (default: 105, outer edge).
         adjust_rotation : bool, optional
-            If True, text rotation is auto set based on `x` and `orientation` params.
+            If True, text rotation is auto set based on `x` and `orientation`.
         orientation : str, optional
-            Text orientation (`horizontal` or `vertical`)
+            Text orientation (`horizontal` or `vertical`).
         ignore_range_error : bool, optional
-            If True, ignore x position range error
-            (ErrorCase: `not track.start <= x <= track.end`)
+            If True, ignores x position outside sector bounds.
+        outer : bool, optional
+            If True, text aligns outward from center (for horizontal orientation).
         **kwargs : dict, optional
-            Text properties (e.g. `size=12, color="red", va="center", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties (e.g. `font=dict(size=12, color='red')`).
+            See: <https://plotly.com/python/reference/layout/annotations/>
         """
-        # If value is None, center position is set.
         x = self.center if x is None else x
         rad = self.x_to_rad(x, ignore_range_error)
+        plotly_rad = -(rad - np.pi/2)
+        x_pos = r * np.cos(plotly_rad)
+        y_pos = r * np.sin(plotly_rad)
 
-        if adjust_rotation:
-            # Set label proper alignment, rotation parameters by radian
-            params = utils.plot.get_label_params_by_rad(rad, orientation)
-            kwargs.update(params)
+        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, **kwargs)
 
-        if "ha" not in kwargs and "horizontalalignment" not in kwargs:
-            kwargs.update(dict(ha="center"))
-        if "va" not in kwargs and "verticalalignment" not in kwargs:
-            kwargs.update(dict(va="center"))
+        annotation.update({
+            "x": x_pos,
+            "y": y_pos,
+            "text": text,
+        })
 
-        def plot_text(ax: PolarAxes) -> None:
-            ax.text(rad, r, text, **kwargs)
-
-        self._plot_funcs.append(plot_text)
+        self._annotations.append(annotation)
 
     def line(
         self,
@@ -319,8 +322,8 @@ class Sector:
             If True, plot arc style line for polar projection.
             If False, simply plot linear style line.
         **kwargs : dict, optional
-            Patch properties (e.g. `color="red", lw=3, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `line=dict(color="darkgreen", width=2, dash="dash", ... ) ...`)
+            <https://plotly.com/python/reference/layout/shapes/>
         """
         start = self.start if start is None else start
         end = self.end if end is None else end
@@ -336,7 +339,10 @@ class Sector:
         r_lim: tuple[float, float] | None = None,
         **kwargs,
     ) -> None:
-        """Plot rectangle
+        """Plot a rectangle spanning angular and radial ranges.
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
@@ -347,8 +353,8 @@ class Sector:
         r_lim : tuple[float, float] | None, optional
             Radius limit region. If None, (0, 100) is set.
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line: {color: "blue", width: 2, ... } ...`)
+            <https://plotly.com/python/reference/layout/shapes/>
         """
         start = self.start if start is None else start
         end = self.end if end is None else end
@@ -362,7 +368,10 @@ class Sector:
         radr = (min_rad, min(r_lim))
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
-        self._patches.append(ArcRectangle(radr, width, height, **kwargs))
+        
+        path = PolarSVGPatchBuilder.arc_rectangle(radr, width, height)
+        shape = utils.plot.build_plotly_shape(path, **kwargs)
+        self._shapes.append(shape)
 
     def raster(
         self,

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import math
+import numpy as np
 from typing import Any, Literal
 
-from matplotlib.colors import Normalize
-from matplotlib.projections import PolarAxes
-from matplotlib.transforms import Bbox
-
+from pycirclize_TEST import config
 
 def degrees(rad: float) -> float:
     """Convert radian to positive degree (`0 - 360`)
@@ -143,72 +142,51 @@ def plot_bbox(bbox: Bbox, ax: PolarAxes, **kwargs) -> None:
     ax.plot(x, y, transform=ax.transAxes, **kwargs)
 
 
-def get_label_params_by_rad(
-    rad: float,
-    orientation: str,
-    outer: bool = True,
-    only_rotation: bool = False,
-) -> dict[str, Any]:
-    """Get proper label parameters by radian position
-
-    Parameters
-    ----------
-    rad : float
-        Radian coordinate
-    orientation : str
-        Label orientation (`horizontal` or `vertical`)
-    outer : bool, optional
-        If True, show on `outer` style. Else, show on `inner` style.
-    only_rotation : bool, optional
-        If True, Only return rotation parameter
-
-    Returns
-    -------
-    dict_param : dict[str, Any]
-        `va`, `ha`, `rotation`, `rotation_mode` dict
-    """
-    # Get position degree & location info
-    deg = math.degrees(rad)
-    is_lower, is_right = is_lower_loc(rad), is_right_loc(rad)
-    # Get parameters
-    if orientation == "horizontal":
-        rotation = 180 - deg if is_lower else -deg
-        ha = "center"
-        if outer:
-            va = "top" if is_lower else "bottom"
+def get_plotly_label_params(rad: float, adjust_rotation: bool, orientation: str, outer: bool = True, 
+                            only_rotation: bool = False, **kwargs) -> dict:
+    # Start with global defaults
+    annotation = deepcopy(config.plotly_annotation_defaults)
+    
+    if not only_rotation:
+        # Apply orientation-specific defaults
+        orientation_defaults = config.plotly_text_orientation_defaults.get(orientation, {})
+        annotation.update(orientation_defaults)
+        
+        # Handle outer/inner alignment
+        if not outer:
+            if orientation == "horizontal":
+                annotation["yanchor"] = "bottom" if annotation["yanchor"] == "top" else "top"
+            elif orientation == "vertical":
+                annotation["xanchor"] = "right" if annotation["xanchor"] == "left" else "left"
         else:
-            va = "bottom" if is_lower else "top"
-    elif orientation == "vertical":
-        rotation = 90 - deg if is_right else 270 - deg
-        va = "center_baseline"
-        if outer:
-            ha = "left" if is_right else "right"
-        else:
-            ha = "right" if is_right else "left"
-    else:
-        err_msg = f"'{orientation=} is invalid ('horizontal' or 'vertical')"
-        raise ValueError(err_msg)
+            annotation["xanchor"] = "center"
+            annotation["yanchor"] = "middle"
+    
+    # Override with user-provided kwargs
+    annotation.update(kwargs)
 
-    if only_rotation:
-        return dict(rotation=rotation)
-    else:
-        return dict(va=va, ha=ha, rotation=rotation, rotation_mode="anchor")
+    if adjust_rotation:
+        rotation = np.degrees(rad)
+        
+        if orientation == "horizontal":
+            rotation = rotation % 360
+            # Flip if upside-down
+            if 90 < rotation <= 270:
+                rotation += 180
+        elif orientation == "vertical":
+            # Point text radially (90° offset from horizontal)
+            rotation = (rotation + 90) % 360
+            # No flipping needed for vertical text
 
+        annotation.update({"textangle": rotation})
 
-def set_axis_default_kwargs(**kwargs) -> dict[str, Any]:
-    """Set axis default keyword arguments
+    return annotation
 
-    Set simple black axis params (`fc="none", ec="black", lw=0.5`) as default.
-
-    Returns
-    -------
-    kwargs : dict[str, Any]
-        Keyword arguments
-    """
-    if "fc" not in kwargs and "facecolor" not in kwargs:
-        kwargs.update({"fc": "none"})
-    if "ec" not in kwargs and "edgecolor" not in kwargs:
-        kwargs.update({"ec": "black"})
-    if "lw" not in kwargs and "linewidth" not in kwargs:
-        kwargs.update({"lw": 0.5})
-    return kwargs
+def build_plotly_shape(path: str, **kwargs) -> dict:
+    shape_defaults = deepcopy(config.plotly_shape_defaults)
+    shape_defaults.update(**kwargs)
+    return {
+        "type": "path",
+        "path": path,
+        **shape_defaults
+    }

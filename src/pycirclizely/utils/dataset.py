@@ -9,7 +9,7 @@ from urllib.request import urlretrieve
 
 from Bio import Entrez
 
-from pycirclize import config
+from pycirclize_TEST import config
 
 
 def load_prokaryote_example_file(
@@ -45,7 +45,8 @@ def load_prokaryote_example_file(
     """
     # Check specified filename exists or not
     if filename not in config.PROKARYOTE_FILES:
-        raise ValueError(f"{filename=} not found.")
+        err_msg = f"{filename=} not found."
+        raise ValueError(err_msg)
 
     # Cache local directory
     if cache_dir is None:
@@ -155,7 +156,9 @@ def load_example_image_file(filename: str) -> Path:
     if filename.lower() in image_filenames:
         return image_dir / filename.lower()
     else:
-        raise FileNotFoundError(f"{filename=} is not found.\nAvailable filenames = {image_filenames}")  # fmt: skip  # noqa: E501
+        err_msg = f"{filename=} is not found.\n"
+        err_msg += f"Available filenames = {image_filenames}"
+        raise FileNotFoundError(err_msg)
 
 
 def load_example_tree_file(filename: str) -> Path:

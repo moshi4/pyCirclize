@@ -6,24 +6,19 @@ from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
-import matplotlib as mpl
 import numpy as np
 import pandas as pd
-from Bio.Phylo.BaseTree import Tree
-from Bio.SeqFeature import SeqFeature
-from matplotlib.colors import Colormap, Normalize
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
+from plotly.graph_objs.layout._shape import Shape
+from plotly.graph_objs.layout._annotation import Annotation 
 from PIL import Image
 
-from pycirclize import config, utils
-from pycirclize.parser import StackedBarTable
-from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
-from pycirclize.tree import TreeViz
+from pycirclize_TEST import config, utils
+from pycirclize_TEST.parser import StackedBarTable
+from pycirclize_TEST.patches import PolarSVGPatchBuilder
 
 if TYPE_CHECKING:
     # Avoid Sector <-> Track circular import error at runtime
-    from pycirclize.sector import Sector
+    from pycirclize_TEST.sector import Sector
 
 
 class Track:
@@ -59,9 +54,9 @@ class Track:
         self._end = parent_sector.end
 
         # Plot data and functions
-        self._patches: list[Patch] = []
-        self._plot_funcs: list[Callable[[PolarAxes], None]] = []
-        self._trees: list[TreeViz] = []
+        self._shapes: list[Shape] = []
+        self._annotations: list[Annotation] = []
+
 
     ############################################################
     # Property
@@ -151,14 +146,15 @@ class Track:
         return self.parent_sector.clockwise
 
     @property
-    def patches(self) -> list[Patch]:
+    def shapes(self) -> list[Shape]:
         """Plot patches"""
-        return self._patches
+        return self._shapes
 
     @property
-    def plot_funcs(self) -> list[Callable[[PolarAxes], None]]:
+    def annotations(self) -> list[Annotation]:
         """Plot functions"""
-        return self._plot_funcs
+        return self._annotations
+
 
     ############################################################
     # Public Method
@@ -184,23 +180,22 @@ class Track:
     def axis(self, **kwargs) -> None:
         """Plot axis
 
-        By default, simple black axis params(`fc="none", ec="black", lw=0.5`) are set.
-
         Parameters
         ----------
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="tomato", ec="blue", hatch="//"`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line=dict(color="darkgreen", width=2, dash="dash", ... ) ...`)
+            <https://plotly.com/python/reference/layout/shapes/>
         """
-        # Set default params
-        kwargs = utils.plot.set_axis_default_kwargs(**kwargs)
+        kwargs = {} if kwargs is None else kwargs
 
-        # Axis facecolor placed behind other patches (zorder=0.99)
-        fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
+        # Background shape placed behind other shapes (layer="below")
+        fc_behind_kwargs = deepcopy(kwargs)
+        fc_behind_kwargs.update(config.AXIS_FACE_PARAM)
         self.rect(self.start, self.end, ignore_pad=True, **fc_behind_kwargs)
 
-        # Axis edgecolor placed in front of other patches (zorder=1.01)
-        ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
+        # Edge shape placed in front of other shapes (layer="above")
+        ec_front_kwargs = deepcopy(kwargs)
+        ec_front_kwargs.update(config.AXIS_EDGE_PARAM)
         self.rect(self.start, self.end, ignore_pad=True, **ec_front_kwargs)
 
     def text(
@@ -212,50 +207,50 @@ class Track:
         adjust_rotation: bool = True,
         orientation: str = "horizontal",
         ignore_range_error: bool = False,
+        outer: bool = True,
         **kwargs,
     ) -> None:
-        """Plot text
+        """Plot text within a track. Uses genomic coordinates (x) mapped to radians.
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
         text : str
             Text content
         x : float | None, optional
-            X position. If None, track center x position is set.
+            Genomic position. If None, track center is used.
         r : float | None, optional
-            Radius position. If None, track center radius position is set.
+            Radius position. If None, track midpoint (`r_center`) is used.
         adjust_rotation : bool, optional
-            If True, text rotation is auto set based on `x` and `orientation` params.
+            If True, text rotation is auto set based on `x` and `orientation`.
         orientation : str, optional
-            Text orientation (`horizontal` or `vertical`)
-            If adjust_rotation=True, orientation is used for rotation calculation.
+            Text orientation (`horizontal` or `vertical`).
         ignore_range_error : bool, optional
-            If True, ignore x position range error
-            (ErrorCase: `not track.start <= x <= track.end`)
+            If True, ignores x position outside track bounds.
+        outer : bool, optional
+            If True, text aligns outward from center (for horizontal orientation).
         **kwargs : dict, optional
-            Text properties (e.g. `size=12, color="red", va="center", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties (e.g. `font=dict(size=12, color='red')`).
+            See: <https://plotly.com/python/reference/layout/annotations/>
         """
-        # If value is None, center position is set.
         x = self.center if x is None else x
         r = self.r_center if r is None else r
-
         rad = self.x_to_rad(x, ignore_range_error)
-        if adjust_rotation:
-            params = utils.plot.get_label_params_by_rad(
-                rad, orientation, only_rotation=True
-            )
-            kwargs.update(params)
+        plotly_rad = -(rad - np.pi/2)
+        x_pos = r * np.cos(plotly_rad)
+        y_pos = r * np.sin(plotly_rad)
 
-        if "ha" not in kwargs and "horizontalalignment" not in kwargs:
-            kwargs.update(dict(ha="center"))
-        if "va" not in kwargs and "verticalalignment" not in kwargs:
-            kwargs.update(dict(va="center"))
+        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, only_rotation=True, **kwargs)
 
-        def plot_text(ax: PolarAxes) -> None:
-            ax.text(rad, r, text, **kwargs)
+        annotation.update({
+            "x": x_pos,
+            "y": y_pos,
+            "text": text,
+        })
 
-        self._plot_funcs.append(plot_text)
+        self._annotations.append(annotation)
 
     def rect(
         self,
@@ -266,32 +261,36 @@ class Track:
         ignore_pad: bool = False,
         **kwargs,
     ) -> None:
-        """Plot rectangle
+        """Plot a rectangle within a track, respecting padding settings.
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
         start : float
-            Start position (x coordinate)
+            Genomic start position (x coordinate).
         end : float
-            End position (x coordinate)
+            Genomic end position (x coordinate).
         r_lim : tuple[float, float] | None, optional
-            Radius limit range.
-            If None, `track.r_lim` (ignore_pad=False) or
-            `track.r_plot_lim` (ignore_pad=True) is set.
+            Radial limits (min, max). If None, uses track defaults:
+            - `track.r_lim` (ignore_pad=False) or 
+            - `track.r_plot_lim` (ignore_pad=True).
         ignore_pad : bool, optional
-            If True, ignore track padding setting.
-            If `r_lim` param is set by user, this option not works.
+            If True, ignores track padding when auto-setting `r_lim`.
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line=dict(width=2)`)
+            See: <https://plotly.com/python/reference/layout/shapes/>
         """
+        # Convert genomic coordinates to radians
         rad_rect_start = self.x_to_rad(start)
         rad_rect_end = self.x_to_rad(end)
         rad = min(rad_rect_start, rad_rect_end)
         width = abs(rad_rect_end - rad_rect_start)
+
         if r_lim is not None:
-            min_range = min(self.r_lim) - config.EPSILON
-            max_range = max(self.r_lim) + config.EPSILON
+            min_range = min(self.r_lim) - config.REL_TOL
+            max_range = max(self.r_lim) + config.REL_TOL
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             radr, height = (rad, min(r_lim)), max(r_lim) - min(r_lim)
@@ -299,8 +298,11 @@ class Track:
             radr, height = (rad, min(self.r_lim)), self.r_size
         else:
             radr, height = (rad, min(self.r_plot_lim)), self.r_plot_size
-        arc_rect = ArcRectangle(radr, width, height, **kwargs)
-        self._patches.append(arc_rect)
+
+        # Build and add shape
+        path = PolarSVGPatchBuilder.arc_rectangle(radr, width, height)
+        shape = utils.plot.build_plotly_shape(path, **kwargs)
+        self._shapes.append(shape)
 
     def arrow(
         self,
@@ -335,8 +337,8 @@ class Track:
         if r_lim is None:
             r, dr = min(self.r_plot_lim), self.r_plot_size
         else:
-            min_range = min(self.r_lim) - config.EPSILON
-            max_range = max(self.r_lim) + config.EPSILON
+            min_range = min(self.r_lim) - config.REL_TOL
+            max_range = max(self.r_lim) + config.REL_TOL
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             r, dr = min(r_lim), max(r_lim) - min(r_lim)
@@ -358,7 +360,7 @@ class Track:
         *,
         min_r: float | None = None,
         max_r: float | None = None,
-        label_size: float = 8,
+        # label_size: float = 8,
         shorten: int | None = 20,
         line_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
@@ -379,8 +381,8 @@ class Track:
             Min radius position of annotation line. If None, `max(self.r_lim)` is set.
         max_r : float | None, optional
             Max radius position of annotation line. If None, `min_r + 5` is set.
-        label_size : float, optional
-            Label size
+        # label_size : float, optional
+        #     Label size
         shorten : int | None, optional
             Shorten label if int value is set.
         line_kws : dict[str, Any] | None, optional
@@ -425,8 +427,7 @@ class Track:
         tick_length: float = 2,
         outer: bool = True,
         show_bottom_line: bool = False,
-        label_size: float = 8,
-        label_margin: float = 0.5,
+        label_margin: float = 1.7,
         label_orientation: str = "horizontal",
         line_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
@@ -448,18 +449,18 @@ class Track:
             If True, show ticks on outer. If False, show ticks on inner.
         show_bottom_line : bool, optional
             If True, show bottom line.
-        label_size : float, optional
-            Label size
         label_margin : float, optional
             Label margin size
         label_orientation : str, optional
             Label orientation (`horizontal` or `vertical`)
         line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties for ticks/baseline (default: None)
+            e.g. `dict(line=dict(color="black", width=1))`
+            See: <https://plotly.com/python/reference/layout/shapes/>
         text_kws : dict[str, Any] | None, optional
-            Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties for labels (default: None)
+            e.g. `dict(font=dict(size=12, color="black"))`
+            See: <https://plotly.com/python/reference/layout/annotations/>
         """
         line_kws = {} if line_kws is None else deepcopy(line_kws)
         text_kws = {} if text_kws is None else deepcopy(text_kws)
@@ -467,7 +468,8 @@ class Track:
         # Check list length of x & labels
         labels = [""] * len(x) if labels is None else labels
         if len(x) != len(labels):
-            raise ValueError(f"List length is not match ({len(x)=}, {len(labels)=})")
+            err_msg = f"List length is not match ({len(x)=}, {len(labels)=})"
+            raise ValueError(err_msg)
 
         # Plot xticks & labels
         r = max(self.r_lim) if outer else min(self.r_lim)
@@ -478,16 +480,12 @@ class Track:
                 self._simpleline((x_pos, x_pos), tick_r_lim, **line_kws)
             # Plot labels
             if label != "":
-                rad = self.x_to_rad(x_pos)
                 if outer:
                     adj_r = max(tick_r_lim) + label_margin
                 else:
                     adj_r = min(tick_r_lim) - label_margin
-                params = utils.plot.get_label_params_by_rad(
-                    rad, label_orientation, outer
-                )
-                text_kws.update({**params, **dict(size=label_size)})
-                self.text(label, x_pos, adj_r, adjust_rotation=False, **text_kws)
+
+                self.text(label, x_pos, adj_r, orientation=label_orientation, outer=outer, **text_kws)
 
         # Plot bottom line
         if show_bottom_line:
@@ -502,48 +500,45 @@ class Track:
         show_bottom_line: bool = False,
         show_label: bool = True,
         show_endlabel: bool = True,
-        label_size: float = 8,
-        label_margin: float = 0.5,
+        label_margin: float = 1.7,
         label_orientation: str = "horizontal",
         label_formatter: Callable[[float], str] | None = None,
         line_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
     ) -> None:
-        """Plot xticks & position labels by user-specified interval
+        """Plot xticks & position labels by user-specified interval using Plotly.
 
         `track.xticks_by_interval()` is high-level API function of `track.xticks()`.
-        If you want to plot xticks and their labels in any position you like,
-        use `track.xticks()` instead.
+        For custom tick positions, use `track.xticks()` instead.
 
         Parameters
         ----------
         interval : int | float
-            Xticks interval
+            Xticks interval in genomic coordinates
         tick_length : float, optional
-            Tick length (Radius unit)
+            Tick length in radius units (default: 2)
         outer : bool, optional
-            If True, show ticks on outer. If False, show ticks on inner.
+            If True, show ticks on outer radius (default: True)
         show_bottom_line : bool, optional
-            If True, show bottom line.
+            If True, show baseline at bottom of ticks (default: False)
         show_label : bool, optional
-            If True, show label of xticks interval position.
+            If True, show position labels (default: True)
         show_endlabel : bool, optional
-            If False, no display end xtick label.
-            Used to prevent overlap of start-end xtick labels.
-        label_size : float, optional
-            Label size
+            If False, hides label at final position to prevent overlap (default: True)
         label_margin : float, optional
-            Label margin size
+            Additional radial margin for labels (default: 0.5)
         label_orientation : str, optional
-            Label orientation (`horizontal` or `vertical`)
+            Label orientation ('horizontal' or 'vertical') (default: 'horizontal')
         label_formatter : Callable[[float], str] | None, optional
-            User-defined function for label format. (e.g. `1000 -> '1.0 Kb'`)
+            Function to format tick labels (e.g. `lambda x: f"{x/1000:.1f}kb")
         line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties for ticks/baseline (default: None)
+            e.g. `dict(line=dict(color="black", width=1))`
+            See: <https://plotly.com/python/reference/layout/shapes/>
         text_kws : dict[str, Any] | None, optional
-            Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties for labels (default: None)
+            e.g. `dict(font=dict(size=12, color="black"))`
+            See: <https://plotly.com/python/reference/layout/annotations/>
         """
         line_kws = {} if line_kws is None else deepcopy(line_kws)
         text_kws = {} if text_kws is None else deepcopy(text_kws)
@@ -572,7 +567,6 @@ class Track:
             tick_length=tick_length,
             outer=outer,
             show_bottom_line=show_bottom_line,
-            label_size=label_size,
             label_margin=label_margin,
             label_orientation=label_orientation,
             line_kws=line_kws,
@@ -588,12 +582,12 @@ class Track:
         vmax: float | None = None,
         side: str = "right",
         tick_length: float = 1,
-        label_size: float = 8,
-        label_margin: float = 0.5,
+        label_margin: float = 1.7,
+        label_orientation: str = "horizontal",
         line_kws: dict[str, Any] | None = None,
         text_kws: dict[str, Any] | None = None,
     ) -> None:
-        """Plot yticks & labels on user-specified position
+        """Plot yticks & labels on user-specified position (for Plotly)
 
         Parameters
         ----------
@@ -609,30 +603,29 @@ class Track:
             Ticks side position (`right` or `left`)
         tick_length : float, optional
             Tick length (Degree unit)
-        label_size : float, optional
-            Label size
         label_margin : float, optional
             Label margin size
+        label_orientation : str, optional
+            Label orientation (`horizontal` or `vertical`)
         line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(ec="red", lw=1, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties for ticks/baseline (default: None)
+            e.g. `dict(line=dict(color="black", width=1))`
         text_kws : dict[str, Any] | None, optional
-            Text properties (e.g. `dict(color="red", alpha=0.5, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties for labels (default: None)
+            e.g. `dict(font=dict(size=12, color="black"))`
         """
         line_kws = {} if line_kws is None else deepcopy(line_kws)
         text_kws = {} if text_kws is None else deepcopy(text_kws)
 
-        # Check y, labels list length
+        # Check list length
         labels = [""] * len(y) if labels is None else labels
         if len(y) != len(labels):
-            raise ValueError(f"List length is not match ({len(y)=}, {len(labels)=})")
-        # Set vmax & check if y is in min-max range
+            err_msg = f"List length is not match ({len(y)=}, {len(labels)=})"
+            raise ValueError(err_msg)
+
+        # Set vmax & check y range
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
-        # Temporarily set clockwise=True in this method
-        original_clockwise = self.clockwise
-        self.parent_sector._clockwise = True
 
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
@@ -640,32 +633,24 @@ class Track:
             # Set plot properties
             x_tick_length = (self.size / self.deg_size) * tick_length
             x_label_margin = (self.size / self.deg_size) * label_margin
+
             if side == "right":
                 x_lim = (self.end, self.end + x_tick_length)
                 x_text = self.end + (x_tick_length + x_label_margin)
-                rad_text = self.x_to_rad(x_text, True)
-                ha = "right" if utils.plot.is_lower_loc(rad_text) else "left"
             elif side == "left":
                 x_lim = (self.start, self.start - x_tick_length)
                 x_text = self.start - (x_tick_length + x_label_margin)
-                rad_text = self.x_to_rad(x_text, True)
-                ha = "left" if utils.plot.is_lower_loc(rad_text) else "right"
             else:
                 raise ValueError(f"{side=} is invalid ('right' or 'left').")
+
             # Plot yticks
             if tick_length > 0:
                 self._simpleline(x_lim, (r_pos, r_pos), **line_kws)
-            # Plot ylabels
-            if label != "":
-                va = "center_baseline"
-                _text_kws = deepcopy(text_kws)
-                _text_kws.update(
-                    dict(ha=ha, va=va, rotation_mode="anchor", size=label_size)
-                )
-                self.text(label, x_text, r_pos, ignore_range_error=True, **_text_kws)
 
-        # Restore clockwise to original value
-        self.parent_sector._clockwise = original_clockwise
+            # Plot labels
+            if label != "":
+                self.text(label, x_text, r_pos, orientation=label_orientation, outer=True, ignore_range_error=True, **text_kws)
+
 
     def grid(
         self,
@@ -729,45 +714,51 @@ class Track:
         arc: bool = True,
         **kwargs,
     ) -> None:
-        """Plot line
-
+        """Plot line with SVG path at plotly.
+        
         Parameters
         ----------
         x : list[float] | np.ndarray
-            X coordinates
+            Genomic positions along the track
         y : list[float] | np.ndarray
-            Y coordinates
+            Data values to plot
         vmin : float, optional
-            Y min value
+            Minimum value for radial scaling (default: 0)
         vmax : float | None, optional
-            Y max value. If None, `max(y)` is set.
+            Maximum value for radial scaling. If None, uses max(y)
         arc : bool, optional
-            If True, plot arc style line for polar projection.
-            If False, simply plot linear style line.
+            If True, creates curved arc lines (polar projection)
+            If False, creates straight chord lines
         **kwargs : dict, optional
-            Axes.plot properties (e.g. `color="red", lw=0.5, ls="--", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
+            Line properties (e.g. `line=dict(color="red", width=2, dash="dash")`)
+            See: <https://plotly.com/python/reference/layout/shapes/>
         """
-        # Check x, y list length
+        # Validation
         if len(x) != len(y):
-            raise ValueError(f"List length is not match ({len(x)=}, {len(y)=})")
-
-        # Convert (x, y) to (rad, r)
-        rad = list(map(self.x_to_rad, x))
+            raise ValueError(f"x and y lengths must match ({len(x)} vs {len(y)})")
+        
+        # Convert to polar coordinates
+        rad = [self.x_to_rad(pos) for pos in x]
         vmax = max(y) if vmax is None else vmax
-        self._check_value_min_max(y, vmin, vmax)
-        r = [self._y_to_r(v, vmin, vmax) for v in y]
-
+        r = [self._y_to_r(val, vmin, vmax) for val in y]
+        
         if arc:
-            # Convert linear line to arc line (rad, r) points
-            plot_rad, plot_r = self._to_arc_radr(rad, r)
+            # Create curved arc line
+            path = PolarSVGPatchBuilder.arc_line(
+                rad_lim=(min(rad), max(rad)),
+                r_lim=(min(r), max(r))
+            )
         else:
-            plot_rad, plot_r = rad, r
-
-        def plot_line(ax: PolarAxes) -> None:
-            ax.plot(plot_rad, plot_r, **kwargs)
-
-        self._plot_funcs.append(plot_line)
+            # Create straight chord line
+            points = [
+                PolarSVGPatchBuilder._polar_to_cart(rad[i], r[i])
+                for i in range(len(rad))
+            ]
+            path = PolarSVGPatchBuilder._svg_path_from_points(points)
+        
+        # Build and add shape
+        shape = utils.plot.build_plotly_shape(path,**kwargs)
+        self._shapes.append(shape)
 
     def scatter(
         self,
@@ -796,7 +787,8 @@ class Track:
         """
         # Check x, y list length
         if len(x) != len(y):
-            raise ValueError(f"List length is not match ({len(x)=}, {len(y)=})")
+            err_msg = f"List length is not match ({len(x)=}, {len(y)=})"
+            raise ValueError(err_msg)
 
         # Convert (x, y) to (rad, r)
         rad = list(map(self.x_to_rad, x))
@@ -845,7 +837,8 @@ class Track:
         """
         # Check x, height list length
         if len(x) != len(height):
-            raise ValueError(f"List length is not match ({len(x)=}, {len(height)=})")
+            err_msg = f"List length is not match ({len(x)=}, {len(height)=})"
+            raise ValueError(err_msg)
 
         # Calculate top & vmax
         if isinstance(bottom, (list, tuple, np.ndarray)):
@@ -1062,7 +1055,6 @@ class Track:
             X coordinates
         y1 : list[float] | np.ndarray
             Y coordinates (first curve definition)
-        y2 : float | list[float] | np.ndarray, optional
             Y coordinate[s] (second curve definition)
         vmin : float, optional
             Y min value
@@ -1473,22 +1465,34 @@ class Track:
         r_lim: tuple[float, float],
         **kwargs,
     ) -> None:
-        """Plot simple patch line between two points (x1, r1), (x2, r2)
-
-        Used to plot simple lines such as ticks internally
-
-        Parameters
-        ----------
-        x_lim : tuple[float, float]
-            X start-end limit region
-        r_lim : tuple[float, float]
-            Radius start-end limit region
-        **kwargs : dict, optional
-            Patch properties (e.g. `ec="red", lw=1.0, ...`)
-            https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html
+        """Plot a line between two positions at specified radial distances.
         """
-        rad_lim = tuple(map(self.x_to_rad, x_lim, (True, True)))
-        self._patches.append(ArcLine(rad_lim, r_lim, **kwargs))  # type: ignore
+
+        # Convert genomic positions to radians
+        rad_start, rad_end = map(self.x_to_rad, x_lim)
+
+        # Convert to Plotly's coordinate system (0=up, clockwise)
+        plotly_rad_start = -(rad_start - np.pi/2)
+        plotly_rad_end = -(rad_end - np.pi/2)
+
+        if np.isclose(plotly_rad_start, plotly_rad_end):
+            # Special case: straight radial line (tick!)
+            x0 = r_lim[0] * np.cos(plotly_rad_start)
+            y0 = r_lim[0] * np.sin(plotly_rad_start)
+            x1 = r_lim[1] * np.cos(plotly_rad_end)
+            y1 = r_lim[1] * np.sin(plotly_rad_end)
+
+            path = f"M {x0} {y0} L {x1} {y1}"
+        else:
+            # General arc line
+            path = PolarSVGPatchBuilder.arc_line(
+                rad_lim=(plotly_rad_start, plotly_rad_end),
+                r_lim=r_lim
+            )
+
+        # Build and add shape
+        shape = utils.plot.build_plotly_shape(path, **kwargs)
+        self._shapes.append(shape)
 
     def _check_value_min_max(
         self,
@@ -1507,16 +1511,17 @@ class Track:
         vmax : float
             Max value
         """
-        vmin, vmax = vmin - config.EPSILON, vmax + config.EPSILON
         if isinstance(value, (list, tuple, np.ndarray)):
             if isinstance(value, np.ndarray):
                 value = list(value.flatten())
             for v in value:
                 if not vmin <= v <= vmax:
-                    raise ValueError(f"value={v} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
+                    err_msg = f"value={v} is not in valid range ({vmin=}, {vmax=})"
+                    raise ValueError(err_msg)
         else:
             if not vmin <= value <= vmax:
-                raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
+                err_msg = f"{value=} is not in valid range ({vmin=}, {vmax=})"
+                raise ValueError(err_msg)
 
     def __str__(self):
         min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)

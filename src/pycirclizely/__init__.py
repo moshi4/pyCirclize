@@ -1,6 +1,6 @@
-from pycirclize.circos import Circos
+from pycirclize_TEST.circos import Circos
 
-__version__ = "1.9.1"
+__version__ = "1.9.0"
 
 __all__ = [
     "Circos",

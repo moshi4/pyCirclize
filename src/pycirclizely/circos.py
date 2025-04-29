@@ -8,36 +8,19 @@ from collections import defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from Bio.Phylo.BaseTree import Tree
-from matplotlib.axes import Axes
-from matplotlib.collections import PatchCollection
-from matplotlib.colorbar import Colorbar
-from matplotlib.colors import Colormap, Normalize
-from matplotlib.figure import Figure
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
-from matplotlib.text import Annotation, Text
-from matplotlib.transforms import Bbox
-from numpy.typing import NDArray
 
-from pycirclize import config, utils
-from pycirclize.parser import Bed, Matrix, RadarTable
-from pycirclize.patches import (
-    ArcLine,
-    ArcRectangle,
-    BezierCurveLine,
-    BezierCurveLink,
-    Line,
-)
-from pycirclize.sector import Sector
-from pycirclize.track import Track
-from pycirclize.tree import TreeViz
+import plotly.graph_objects as go
+from plotly.graph_objs.layout._shape import Shape
+from plotly.graph_objs.layout._annotation import Annotation 
 
+from pycirclize_TEST import config, utils
+from pycirclize_TEST.parser import Bed, Matrix
+from pycirclize_TEST.sector import Sector
+from pycirclize_TEST.track import Track
+from pycirclize_TEST.patches import PolarSVGPatchBuilder
 
 class Circos:
     """Circos Visualization Class"""
@@ -81,7 +64,9 @@ class Circos:
         space_num = len(sectors) if endspace else len(sectors) - 1
         if isinstance(space, (list, tuple)):
             if len(space) != space_num:
-                raise ValueError(f"{space=} is invalid.\nLength of space list must be {space_num}.")  # fmt: skip  # noqa: E501
+                err_msg = f"{space=} is invalid.\n"
+                err_msg += f"Length of space list must be {space_num}."
+                raise ValueError(err_msg)
             space_list = list(space) + [0]
             space_deg_size = sum(space)
         else:
@@ -93,9 +78,10 @@ class Circos:
                 f"""
                 Too large sector space size is set!!
                 Circos Degree Size = {whole_deg_size} ({start} - {end})
-                Total Sector Space Size = {space_deg_size}
-                List of Sector Space Size = {space_list}
                 """
+                # Total Sector Space Size = {space_deg_size}
+                # List of Sector Space Size = {space_list}
+                
             )[1:-1]
             raise ValueError(err_msg)
 
@@ -103,6 +89,7 @@ class Circos:
         sector_total_size = sum([max(r) - min(r) for r in sector2range.values()])
 
         rad_pos = math.radians(start)
+        
         self._sectors: list[Sector] = []
         for idx, (sector_name, sector_range) in enumerate(sector2range.items()):
             sector_size = max(sector_range) - min(sector_range)
@@ -117,10 +104,12 @@ class Circos:
 
         self._deg_lim = (start, end)
         self._rad_lim = (math.radians(start), math.radians(end))
-        self._patches: list[Patch] = []
-        self._plot_funcs: list[Callable[[PolarAxes], None]] = []
-        self._ax: PolarAxes | None = None
         self._show_axis_for_debug = show_axis_for_debug
+
+        # Shapes and annotations for Layout
+        self._shapes: list[Shape] = []
+        self._annotations: list[Annotation] = []
+        # self._ax: PolarAxes | None = None
 
     ############################################################
     # Property
@@ -160,397 +149,9 @@ class Circos:
                 tracks.append(track)
         return tracks
 
-    @property
-    def ax(self) -> PolarAxes:
-        """Plot polar axes
-
-        Can't access `ax` property before calling `circos.plotfig()` method
-        """
-        if self._ax is None:
-            raise ValueError("Can't access ax property before calling `circos.plotfig() method")  # fmt:skip  # noqa: E501
-        return self._ax
-
     ############################################################
     # Public Method
     ############################################################
-
-    @staticmethod
-    def radar_chart(
-        table: str | Path | pd.DataFrame | RadarTable,
-        *,
-        r_lim: tuple[float, float] = (0, 100),
-        vmin: float = 0,
-        vmax: float = 100,
-        fill: bool = True,
-        marker_size: int = 0,
-        bg_color: str | None = "#eeeeee80",
-        circular: bool = False,
-        cmap: str | dict[str, str] = "Set2",
-        show_grid_label: bool = True,
-        grid_interval_ratio: float | None = 0.2,
-        grid_line_kws: dict[str, Any] | None = None,
-        grid_label_kws: dict[str, Any] | None = None,
-        grid_label_formatter: Callable[[float], str] | None = None,
-        label_kws_handler: Callable[[str], dict[str, Any]] | None = None,
-        line_kws_handler: Callable[[str], dict[str, Any]] | None = None,
-        marker_kws_handler: Callable[[str], dict[str, Any]] | None = None,
-    ) -> Circos:
-        """Plot radar chart
-
-        Parameters
-        ----------
-        table : str | Path | pd.DataFrame | RadarTable
-            Table file or Table dataframe or RadarTable instance
-        r_lim : tuple[float, float], optional
-            Radar chart radius limit region (0 - 100)
-        vmin : float, optional
-            Min value
-        vmax : float, optional
-            Max value
-        fill : bool, optional
-            If True, fill color of radar chart.
-        marker_size : int, optional
-            Marker size
-        bg_color : str | None, optional
-            Background color
-        circular : bool, optional
-            If True, plot with circular style.
-        cmap : str | dict[str, str], optional
-            Colormap assigned to each target row(index) in table.
-            User can set matplotlib's colormap (e.g. `tab10`, `Set2`) or
-            target_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
-        show_grid_label : bool, optional
-            If True, show grid label.
-        grid_interval_ratio : float | None, optional
-            Grid interval ratio (0.0 - 1.0)
-        grid_line_kws : dict[str, Any] | None, optional
-            Keyword arguments passed to `track.line()` method
-            (e.g. `dict(color="black", ls="dotted", lw=1.0, ...)`)
-        grid_label_kws : dict[str, Any] | None, optional
-            Keyword arguments passed to `track.text()` method
-            (e.g. `dict(size=12, color="red", ...)`)
-        grid_label_formatter : Callable[[float], str] | None, optional
-            User-defined function to format grid label (e.g. `lambda v: f"{v:.1f}%"`).
-        label_kws_handler : Callable[[str], dict[str, Any]] | None, optional
-            Handler function for keyword arguments passed to `track.text()` method.
-            Handler function takes each column name of table as an argument.
-        line_kws_handler : Callable[[str], dict[str, Any]] | None, optional
-            Handler function for keyword arguments passed to `track.line()` method.
-            Handler function takes each row(index) name of table as an argument.
-        marker_kws_handler : Callable[[str], dict[str, Any]] | None, optional
-            Handler function for keyword arguments passed to `track.scatter()` method.
-            Handler function takes each row(index) name of table as an argument.
-
-        Returns
-        -------
-        circos : Circos
-            Circos instance initialized for radar chart
-        """
-        if not vmin < vmax:
-            raise ValueError(f"vmax must be larger than vmin ({vmin=}, {vmax=})")
-        size = vmax - vmin
-
-        # Setup default properties
-        grid_line_kws = {} if grid_line_kws is None else deepcopy(grid_line_kws)
-        for k, v in dict(color="grey", ls="dashed", lw=0.5).items():
-            grid_line_kws.setdefault(k, v)
-
-        grid_label_kws = {} if grid_label_kws is None else deepcopy(grid_label_kws)
-        for k, v in dict(color="dimgrey", size=10, ha="left", va="top").items():
-            grid_label_kws.setdefault(k, v)
-
-        # Initialize circos for radar chart
-        radar_table = table if isinstance(table, RadarTable) else RadarTable(table)
-        circos = Circos(dict(radar=radar_table.col_num))
-        sector = circos.sectors[0]
-        track = sector.add_track(r_lim)
-        x = np.arange(radar_table.col_num + 1)
-
-        # Plot background color
-        if bg_color:
-            track.fill_between(x, [vmax] * len(x), arc=circular, color=bg_color)
-
-        # Plot grid line
-        if grid_interval_ratio:
-            if not 0 < grid_interval_ratio <= 1.0:
-                raise ValueError(f"{grid_interval_ratio=} is invalid.")
-            # Plot horizontal grid line & label
-            stop, step = vmax + (size / 1000), size * grid_interval_ratio
-            for v in np.arange(vmin, stop, step):
-                y = [v] * len(x)
-                track.line(x, y, vmin=vmin, vmax=vmax, arc=circular, **grid_line_kws)
-                if show_grid_label:
-                    r = track._y_to_r(v, vmin, vmax)
-                    # Format grid label
-                    if grid_label_formatter:
-                        text = grid_label_formatter(v)
-                    else:
-                        v = float(f"{v:.9f}")  # Correct rounding error
-                        text = f"{v:.0f}" if math.isclose(int(v), float(v)) else str(v)
-                    track.text(text, 0, r, **grid_label_kws)
-            # Plot vertical grid line
-            for p in x[:-1]:
-                track.line([p, p], [vmin, vmax], vmin=vmin, vmax=vmax, **grid_line_kws)
-
-        # Plot radar charts
-        if isinstance(cmap, str):
-            row_name2color = radar_table.get_row_name2color(cmap)
-        else:
-            row_name2color = cmap
-        for row_name, values in radar_table.row_name2values.items():
-            y = values + [values[0]]
-            color = row_name2color[row_name]
-            line_kws = line_kws_handler(row_name) if line_kws_handler else {}
-            line_kws.setdefault("lw", 1.0)
-            line_kws.setdefault("label", row_name)
-            track.line(x, y, vmin=vmin, vmax=vmax, arc=False, color=color, **line_kws)
-            if marker_size > 0:
-                marker_kws = marker_kws_handler(row_name) if marker_kws_handler else {}
-                marker_kws.setdefault("marker", "o")
-                marker_kws.setdefault("zorder", 2)
-                marker_kws.update(s=marker_size**2)
-                track.scatter(x, y, vmin=vmin, vmax=vmax, color=color, **marker_kws)
-            if fill:
-                fill_kws = dict(arc=False, color=color, alpha=0.5)
-                track.fill_between(x, y, y2=vmin, vmin=vmin, vmax=vmax, **fill_kws)  # type:ignore
-
-        # Plot column names
-        for idx, col_name in enumerate(radar_table.col_names):
-            deg = 360 * (idx / sector.size)
-            label_kws = label_kws_handler(col_name) if label_kws_handler else {}
-            label_kws.setdefault("size", 12)
-            if math.isclose(deg, 0):
-                label_kws.update(va="bottom")
-            elif math.isclose(deg, 180):
-                label_kws.update(va="top")
-            elif 0 < deg < 180:
-                label_kws.update(ha="left")
-            elif 180 < deg < 360:
-                label_kws.update(ha="right")
-            track.text(col_name, idx, r=105, adjust_rotation=False, **label_kws)
-
-        return circos
-
-    @staticmethod
-    def chord_diagram(
-        matrix: str | Path | pd.DataFrame | Matrix,
-        *,
-        start: float = 0,
-        end: float = 360,
-        space: float | list[float] = 0,
-        endspace: bool = True,
-        r_lim: tuple[float, float] = (97, 100),
-        cmap: str | dict[str, str] = "viridis",
-        link_cmap: list[tuple[str, str, str]] | None = None,
-        ticks_interval: int | None = None,
-        order: str | list[str] | None = None,
-        label_kws: dict[str, Any] | None = None,
-        ticks_kws: dict[str, Any] | None = None,
-        link_kws: dict[str, Any] | None = None,
-        link_kws_handler: Callable[[str, str], dict[str, Any] | None] | None = None,
-    ) -> Circos:
-        """Plot chord diagram
-
-        Circos tracks and links are auto-defined from Matrix
-
-        Parameters
-        ----------
-        matrix : str | Path | pd.DataFrame | Matrix
-            Matrix file or Matrix dataframe or Matrix instance
-        start : float, optional
-            Plot start degree (-360 <= start < end <= 360)
-        end : float, optional
-            Plot end degree (-360 <= start < end <= 360)
-        space : float | list[float], optional
-            Space degree(s) between sector
-        endspace : bool, optional
-            If True, insert space after the end sector
-        r_lim : tuple[float, float], optional
-            Outer track radius limit region (0 - 100)
-        cmap : str | dict[str, str], optional
-            Colormap assigned to each outer track and link.
-            User can set matplotlib's colormap (e.g. `viridis`, `jet`, `tab10`) or
-            label_name -> color dict (e.g. `dict(A="red", B="blue", C="green", ...)`)
-        link_cmap : list[tuple[str, str, str]] | None, optional
-            Link colormap to overwrite link colors automatically set by cmap.
-            User can set list of `from_label`, `to_label`, `color` tuple
-            (e.g. `[("A", "B", "red"), ("A", "C", "#ffff00"), ...]`)
-        ticks_interval : int | None, optional
-            Ticks interval. If None, ticks are not plotted.
-        order : str | list[str] | None, optional
-            Sort order of matrix for plotting Chord Diagram. If `None`, no sorting.
-            If `asc`|`desc`, sort in ascending(or descending) order by node size.
-            If node name list is set, sort in user specified node order.
-        label_kws : dict[str, Any] | None, optional
-            Keyword arguments passed to `sector.text()` method
-            (e.g. `dict(r=110, orientation="vertical", size=15, ...)`)
-        ticks_kws : dict[str, Any] | None, optional
-            Keyword arguments passed to `track.xticks_by_interval()` method
-            (e.g. `dict(label_size=10, label_orientation="vertical", ...)`)
-        link_kws : dict[str, Any] | None, optional
-            Keyword arguments passed to `circos.link()` method
-            (e.g. `dict(direction=1, ec="black", lw=0.5, alpha=0.8, ...)`)
-        link_kws_handler : Callable[[str, str], dict[str, Any] | None] | None, optional
-            User-defined function to handle keyword arguments for each link.
-            This option allows user to set or override properties such as
-            `fc`, `alpha`, `zorder`, etc... on each link.
-            Handler function arguments `[str, str]` means `[from_label, to_label]`.
-
-        Returns
-        -------
-        circos : Circos
-            Circos instance initialized from Matrix
-        """
-        link_cmap = [] if link_cmap is None else deepcopy(link_cmap)
-        label_kws = {} if label_kws is None else deepcopy(label_kws)
-        ticks_kws = {} if ticks_kws is None else deepcopy(ticks_kws)
-        link_kws = {} if link_kws is None else deepcopy(link_kws)
-
-        # If input matrix is file path, convert to Matrix instance
-        if isinstance(matrix, (str, Path, pd.DataFrame)):
-            matrix = Matrix(matrix)
-
-        # Sort matrix if order is set
-        if order is not None:
-            matrix = matrix.sort(order)
-
-        # Get name2color dict from user-specified colormap
-        names = matrix.all_names
-        if isinstance(cmap, str):
-            utils.ColorCycler.set_cmap(cmap)
-            colors = utils.ColorCycler.get_color_list(len(names))
-            name2color = dict(zip(names, colors))
-        else:
-            if isinstance(cmap, defaultdict):
-                name2color = cmap
-            else:
-                name2color: dict[str, str] = defaultdict(lambda: "grey")
-                name2color.update(cmap)
-
-        # Initialize circos sectors
-        circos = Circos(matrix.to_sectors(), start, end, space=space, endspace=endspace)
-        for sector in circos.sectors:
-            # Plot label, outer track axis & xticks
-            sector.text(sector.name, **label_kws)
-            outer_track = sector.add_track(r_lim)
-            color = name2color[sector.name]
-            outer_track.axis(fc=color)
-            if ticks_interval is not None:
-                outer_track.xticks_by_interval(ticks_interval, **ticks_kws)
-
-        # Plot links
-        fromto_label2color = {f"{t[0]}-->{t[1]}": t[2] for t in link_cmap}
-        for link in matrix.to_links():
-            from_label, to_label = link[0][0], link[1][0]
-            fromto_label = f"{from_label}-->{to_label}"
-            # Set link color
-            if fromto_label in fromto_label2color:
-                color = fromto_label2color[fromto_label]
-            else:
-                color = name2color[from_label]
-            # Update link properties by user-defined handler function
-            _link_kws = deepcopy(link_kws)
-            _link_kws.update(fc=color)
-            if link_kws_handler is not None:
-                handle_link_kws = link_kws_handler(from_label, to_label)
-                if handle_link_kws is not None:
-                    _link_kws.update(handle_link_kws)
-            circos.link(*link, **_link_kws)
-
-        return circos
-
-    initialize_from_matrix = chord_diagram  # For backward compatibility
-
-    @staticmethod
-    def initialize_from_tree(
-        tree_data: str | Path | Tree,
-        *,
-        start: float = 0,
-        end: float = 360,
-        r_lim: tuple[float, float] = (50, 100),
-        format: str = "newick",
-        outer: bool = True,
-        align_leaf_label: bool = True,
-        ignore_branch_length: bool = False,
-        leaf_label_size: float = 12,
-        leaf_label_rmargin: float = 2.0,
-        reverse: bool = False,
-        ladderize: bool = False,
-        line_kws: dict[str, Any] | None = None,
-        label_formatter: Callable[[str], str] | None = None,
-        align_line_kws: dict[str, Any] | None = None,
-    ) -> tuple[Circos, TreeViz]:
-        """Initialize Circos instance from phylogenetic tree
-
-        Circos sector and track are auto-defined by phylogenetic tree
-
-        Parameters
-        ----------
-        tree_data : str | Path | Tree
-            Tree data (`File`|`File URL`|`Tree Object`|`Tree String`)
-        start : float, optional
-            Plot start degree (-360 <= start < end <= 360)
-        end : float, optional
-            Plot end degree (-360 <= start < end <= 360)
-        r_lim : tuple[float, float], optional
-            Tree track radius limit region (0 - 100)
-        format : str, optional
-            Tree format (`newick`|`phyloxml`|`nexus`|`nexml`|`cdao`)
-        outer : bool, optional
-            If True, plot tree on outer side. If False, plot tree on inner side.
-        align_leaf_label: bool, optional
-            If True, align leaf label.
-        ignore_branch_length : bool, optional
-            If True, ignore branch length for plotting tree.
-        leaf_label_size : float, optional
-            Leaf label size
-        leaf_label_rmargin : float, optional
-            Leaf label radius margin
-        reverse : bool, optional
-            If True, reverse tree
-        ladderize : bool, optional
-            If True, ladderize tree
-        line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(color="red", lw=1, ls="dashed", ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        align_line_kws : dict[str, Any] | None, optional
-            Patch properties (e.g. `dict(lw=1, ls="dotted", alpha=1.0, ...)`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        label_formatter : Callable[[str], str] | None, optional
-            User-defined label text format function to change plot label text content.
-            For example, if you want to change underscore of the label to space,
-            set `lambda t: t.replace("_", " ")`.
-
-        Returns
-        -------
-        circos : Circos
-            Circos instance
-        tv : TreeViz
-            TreeViz instance
-        """
-        # Initialize circos sector with tree size
-        tree = TreeViz.load_tree(tree_data, format=format)
-        leaf_num = tree.count_terminals()
-        circos = Circos(dict(tree=leaf_num), start=start, end=end)
-        sector = circos.sectors[0]
-
-        # Plot tree on track
-        track = sector.add_track(r_lim)
-        tv = track.tree(
-            tree,
-            format=format,
-            outer=outer,
-            align_leaf_label=align_leaf_label,
-            ignore_branch_length=ignore_branch_length,
-            leaf_label_size=leaf_label_size,
-            leaf_label_rmargin=leaf_label_rmargin,
-            reverse=reverse,
-            ladderize=ladderize,
-            line_kws=line_kws,
-            label_formatter=label_formatter,
-            align_line_kws=align_line_kws,
-        )
-        return circos, tv
 
     @staticmethod
     def initialize_from_bed(
@@ -630,65 +231,26 @@ class Circos:
                     color = cytoband_cmap.get(str(rec.score), "white")
                     track.rect(rec.start, rec.end, fc=color)
 
-    def get_sector(self, name: str) -> Sector:
-        """Get sector by name
-
-        Parameters
-        ----------
-        name : str
-            Sector name
-
-        Returns
-        -------
-        sector : Sector
-            Sector
-        """
-        name2sector = {s.name: s for s in self.sectors}
-        if name not in name2sector:
-            raise ValueError(f"{name=} sector not found.")
-        return name2sector[name]
-
-    def get_group_sectors_deg_lim(
-        self,
-        group_sector_names: list[str],
-    ) -> tuple[float, float]:
-        """Get degree min-max limit in target group sectors
-
-        Parameters
-        ----------
-        group_sector_names : list[str]
-            Group sector names
-
-        Returns
-        -------
-        group_sectors_deg_lim : tuple[float, float]
-            Degree limit in group sectors
-        """
-        group_sectors = [self.get_sector(name) for name in group_sector_names]
-        min_deg = min([min(s.deg_lim) for s in group_sectors])
-        max_deg = max([max(s.deg_lim) for s in group_sectors])
-        return min_deg, max_deg
 
     def axis(self, **kwargs) -> None:
         """Plot axis
 
-        By default, simple black axis params(`fc="none", ec="black", lw=0.5`) are set.
-
         Parameters
         ----------
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=0.5, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line=dict(color="darkgreen", width=2, dash="dash", ... ) ...`)
+            <https://plotly.com/python/reference/layout/shapes/>
         """
-        # Set default params
-        kwargs = utils.plot.set_axis_default_kwargs(**kwargs)
+        kwargs = {} if kwargs is None else kwargs
 
-        # Axis facecolor placed behind other patches (zorder=0.99)
-        fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
+        # Background shape placed behind other shapes (layer="below")
+        fc_behind_kwargs = deepcopy(kwargs)
+        fc_behind_kwargs.update(config.AXIS_FACE_PARAM)
         self.rect(**fc_behind_kwargs)
 
-        # Axis edgecolor placed in front of other patches (zorder=1.01)
-        ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
+        # Edge shape placed in front of other shapes (layer="above")
+        ec_front_kwargs = deepcopy(kwargs)
+        ec_front_kwargs.update(config.AXIS_EDGE_PARAM)
         self.rect(**ec_front_kwargs)
 
     def text(
@@ -699,40 +261,51 @@ class Circos:
         deg: float = 0,
         adjust_rotation: bool = False,
         orientation: str = "horizontal",
+        outer: bool = True,
         **kwargs,
     ) -> None:
-        """Plot text
+        """Plot text on the entire circos plot. Uses angular positioning (0-360°).
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
         text : str
             Text content
-        r : float
-            Radius position
-        deg : float
-            Degree position (0 - 360)
+        r : float, optional
+            Radius position (default: 0, centered).
+        deg : float, optional
+            Degree position (0-360). 0° points upward.
         adjust_rotation : bool, optional
-            If True, text rotation is auto set based on `deg` param.
+            If True, text rotation is auto set based on `deg` and `orientation`.
         orientation : str, optional
-            Text orientation (`horizontal` or `vertical`)
-            If adjust_rotation=True, orientation is used for rotation calculation.
+            Text orientation (`horizontal` or `vertical`).
+        outer : bool, optional
+            If True, text aligns outward from center (for horizontal orientation).
         **kwargs : dict, optional
-            Text properties (e.g. `size=12, color="red", rotation=90, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>
+            Annotation properties (e.g. `font=dict(size=12, color='red')`).
+            See: <https://plotly.com/python/reference/layout/annotations/>
         """
-        if "va" not in kwargs and "verticalalignment" not in kwargs:
-            kwargs.update(dict(va="center"))
-        if "ha" not in kwargs and "horizontalalignment" not in kwargs:
-            kwargs.update(dict(ha="center"))
-        if adjust_rotation:
-            rad = math.radians(deg)
-            params = utils.plot.get_label_params_by_rad(rad, orientation)
-            kwargs.update(**params)
+        rad = np.radians(deg)
+        plotly_rad = -(rad - np.pi/2)  # Convert to Plotly's polar coordinates
+        x_pos = r * np.cos(plotly_rad)
+        y_pos = r * np.sin(plotly_rad)
 
-        def plot_text(ax: PolarAxes) -> None:
-            ax.text(math.radians(deg), r, text, **kwargs)
+        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, **kwargs)
+        
+        annotation.update({
+            "x": x_pos,
+            "y": y_pos,
+            "text": text,
+        })
 
-        self._plot_funcs.append(plot_text)
+        self._annotations.append(annotation)
+
+    # def plot_text(ax: PolarAxes) -> None:
+    #     ax.text(math.radians(deg), r, text, **kwargs)
+
+    # self._plot_funcs.append(plot_text)
 
     def line(
         self,
@@ -761,7 +334,7 @@ class Circos:
         rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
         r_lim = r if isinstance(r, (tuple, list)) else (r, r)
         LinePatch = ArcLine if arc else Line
-        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
+        # self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
     def rect(
         self,
@@ -769,177 +342,188 @@ class Circos:
         deg_lim: tuple[float, float] | None = None,
         **kwargs,
     ) -> None:
-        """Plot rectangle
+        """Plot a rectangle spanning angular and radial ranges.
+        Angle is adjusted to Plotly's coordinate system:
+            - 0° points upward (Plotly's default)
+            - Angles increase clockwise
 
         Parameters
         ----------
         r_lim : tuple[float, float]
-            Radius limit region (0 - 100)
-        deg_lim : tuple[float, float]
-            Degree limit region (-360 - 360). If None, `circos.deg_lim` is set.
+            Radial limits (min, max) between 0 (center) and 100 (outer edge).
+        deg_lim : tuple[float, float] | None, optional
+            Angular limits in degrees (-360 to 360). If None, uses `circos.deg_lim`.
         **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="black", lw=1, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+            Shape properties (e.g. `fillcolor="red", line=dict(color="blue", width=2)`)
+            See: <https://plotly.com/python/reference/layout/shapes/>
         """
         deg_lim = self.deg_lim if deg_lim is None else deg_lim
-        rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
-
-        radr = (min(rad_lim), min(r_lim))
-        width = max(rad_lim) - min(rad_lim)
+        rad_lim = (np.radians(min(deg_lim)), np.radians(max(deg_lim)))
+        
+        # Convert to Plotly's coordinate system
+        plotly_rad_lim = [-(rad - np.pi/2) for rad in rad_lim]
+        min_rad, max_rad = min(plotly_rad_lim), max(plotly_rad_lim)
+        
+        # Build rectangle path
+        radr = (min_rad, min(r_lim))
+        width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
-        self._patches.append(ArcRectangle(radr, width, height, **kwargs))
+        
+        path = PolarSVGPatchBuilder.arc_rectangle(radr, width, height)
+        shape = utils.plot.build_plotly_shape(path, **kwargs)
+        self._shapes.append(shape)
 
-    def link(
-        self,
-        sector_region1: tuple[str, float, float],
-        sector_region2: tuple[str, float, float],
-        r1: float | None = None,
-        r2: float | None = None,
-        *,
-        color: str = "grey",
-        alpha: float = 0.5,
-        height_ratio: float = 0.5,
-        direction: int = 0,
-        arrow_length_ratio: float = 0.05,
-        allow_twist: bool = True,
-        **kwargs,
-    ) -> None:
-        """Plot link to specified region within or between sectors
+    # def link(
+    #     self,
+    #     sector_region1: tuple[str, float, float],
+    #     sector_region2: tuple[str, float, float],
+    #     r1: float | None = None,
+    #     r2: float | None = None,
+    #     *,
+    #     color: str = "grey",
+    #     alpha: float = 0.5,
+    #     height_ratio: float = 0.5,
+    #     direction: int = 0,
+    #     arrow_length_ratio: float = 0.05,
+    #     allow_twist: bool = True,
+    #     **kwargs,
+    # ) -> None:
+    #     """Plot link to specified region within or between sectors
 
-        Parameters
-        ----------
-        sector_region1 : tuple[str, float, float]
-            Link sector region1 (name, start, end)
-        sector_region2 : tuple[str, float, float]
-            Link sector region2 (name, start, end)
-        r1 : float | None, optional
-            Link radius end position for sector_region1.
-            If None, lowest radius position of track in target sector is set.
-        r2 : float | None, optional
-            Link radius end position for sector_region2.
-            If None, lowest radius position of track in target sector is set.
-        color : str, optional
-            Link color
-        alpha : float, optional
-            Link color alpha (transparency) value
-        height_ratio : float, optional
-            Bezier curve height ratio
-        direction : int, optional
-            `0`: No direction edge shape (Default)
-            `1`: Forward direction arrow edge shape (region1 -> region2)
-            `-1`: Reverse direction arrow edge shape (region1 <- region2)
-            `2`: Bidirectional arrow edge shape (region1 <-> region2)
-        arrow_length_ratio : float, optional
-            Direction arrow length ratio
-        allow_twist : bool, optional
-            If False, twisted link is automatically resolved.
-            <http://circos.ca/documentation/tutorials/links/twists/images>
-        **kwargs : dict, optional
-            Patch properties (e.g. `ec="red", lw=1.0, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        # Set data for plot link
-        name1, start1, end1 = sector_region1
-        name2, start2, end2 = sector_region2
-        sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
-        r1 = sector1.get_lowest_r() if r1 is None else r1
-        r2 = sector2.get_lowest_r() if r2 is None else r2
-        rad_start1, rad_end1 = sector1.x_to_rad(start1), sector1.x_to_rad(end1)
-        rad_start2, rad_end2 = sector2.x_to_rad(start2), sector2.x_to_rad(end2)
+    #     Parameters
+    #     ----------
+    #     sector_region1 : tuple[str, float, float]
+    #         Link sector region1 (name, start, end)
+    #     sector_region2 : tuple[str, float, float]
+    #         Link sector region2 (name, start, end)
+    #     r1 : float | None, optional
+    #         Link radius end position for sector_region1.
+    #         If None, lowest radius position of track in target sector is set.
+    #     r2 : float | None, optional
+    #         Link radius end position for sector_region2.
+    #         If None, lowest radius position of track in target sector is set.
+    #     color : str, optional
+    #         Link color
+    #     alpha : float, optional
+    #         Link color alpha (transparency) value
+    #     height_ratio : float, optional
+    #         Bezier curve height ratio
+    #     direction : int, optional
+    #         `0`: No direction edge shape (Default)
+    #         `1`: Forward direction arrow edge shape (region1 -> region2)
+    #         `-1`: Reverse direction arrow edge shape (region1 <- region2)
+    #         `2`: Bidirectional arrow edge shape (region1 <-> region2)
+    #     arrow_length_ratio : float, optional
+    #         Direction arrow length ratio
+    #     allow_twist : bool, optional
+    #         If False, twisted link is automatically resolved.
+    #         <http://circos.ca/documentation/tutorials/links/twists/images>
+    #     **kwargs : dict, optional
+    #         Patch properties (e.g. `ec="red", lw=1.0, hatch="//", ...`)
+    #         <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+    #     """
+    #     # Set data for plot link
+    #     name1, start1, end1 = sector_region1
+    #     name2, start2, end2 = sector_region2
+    #     sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
+    #     r1 = sector1.get_lowest_r() if r1 is None else r1
+    #     r2 = sector2.get_lowest_r() if r2 is None else r2
+    #     rad_start1, rad_end1 = sector1.x_to_rad(start1), sector1.x_to_rad(end1)
+    #     rad_start2, rad_end2 = sector2.x_to_rad(start2), sector2.x_to_rad(end2)
 
-        # Set patch kwargs & default linewidth as 0.1
-        # If linewidth=0 is set, twisted part is almost invisible
-        kwargs.update(dict(color=color, alpha=alpha))
-        if "lw" not in kwargs and "linewidth" not in kwargs:
-            kwargs.update(dict(lw=0.1))
+    #     # Set patch kwargs & default linewidth as 0.1
+    #     # If linewidth=0 is set, twisted part is almost invisible
+    #     kwargs.update(dict(color=color, alpha=alpha))
+    #     if "lw" not in kwargs and "linewidth" not in kwargs:
+    #         kwargs.update(dict(lw=0.1))
 
-        if not allow_twist:
-            # Resolve twist
-            if (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
-                rad_start2, rad_end2 = rad_end2, rad_start2
+    #     if not allow_twist:
+    #         # Resolve twist
+    #         if (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
+    #             rad_start2, rad_end2 = rad_end2, rad_start2
 
-        # Create bezier curve path patch
-        bezier_curve_link = BezierCurveLink(
-            rad_start1,
-            rad_end1,
-            r1,
-            rad_start2,
-            rad_end2,
-            r2,
-            height_ratio,
-            direction,
-            arrow_length_ratio,
-            **kwargs,
-        )
-        self._patches.append(bezier_curve_link)
+    #     # Create bezier curve path patch
+    #     bezier_curve_link = BezierCurveLink(
+    #         rad_start1,
+    #         rad_end1,
+    #         r1,
+    #         rad_start2,
+    #         rad_end2,
+    #         r2,
+    #         height_ratio,
+    #         direction,
+    #         arrow_length_ratio,
+    #         **kwargs,
+    #     )
+    #     self._patches.append(bezier_curve_link)
 
-    def link_line(
-        self,
-        sector_pos1: tuple[str, float],
-        sector_pos2: tuple[str, float],
-        r1: float | None = None,
-        r2: float | None = None,
-        *,
-        color: str = "black",
-        height_ratio: float = 0.5,
-        direction: int = 0,
-        arrow_height: float = 3.0,
-        arrow_width: float = 2.0,
-        **kwargs,
-    ) -> None:
-        """Plot link line to specified position within or between sectors
+    # def link_line(
+    #     self,
+    #     sector_pos1: tuple[str, float],
+    #     sector_pos2: tuple[str, float],
+    #     r1: float | None = None,
+    #     r2: float | None = None,
+    #     *,
+    #     color: str = "black",
+    #     height_ratio: float = 0.5,
+    #     direction: int = 0,
+    #     arrow_height: float = 3.0,
+    #     arrow_width: float = 2.0,
+    #     **kwargs,
+    # ) -> None:
+    #     """Plot link line to specified position within or between sectors
 
-        Parameters
-        ----------
-        sector_pos1 : tuple[str, float]
-            Link line sector position1 (name, position)
-        sector_pos2 : tuple[str, float]
-            Link line sector position2 (name, position)
-        r1 : float | None, optional
-            Link line radius end position for sector_pos1.
-            If None, lowest radius position of track in target sector is set.
-        r2 : float | None, optional
-            Link line radius end position for sector_pos2.
-            If None, lowest radius position of track in target sector is set.
-        color : str, optional
-            Link line color
-        height_ratio : float, optional
-            Bezier curve height ratio
-        direction : int, optional
-            `0`: No direction edge shape (Default)
-            `1`: Forward direction arrow edge shape (pos1 -> pos2)
-            `-1`: Reverse direction arrow edge shape (pos1 <- pos2)
-            `2`: Bidirectional arrow edge shape (pos1 <-> pos2)
-        arrow_height : float, optional
-            Arrow height size (Radius unit)
-        arrow_width : float, optional
-            Arrow width size (Degree unit)
-        **kwargs : dict, optional
-            Patch properties (e.g. `lw=1.0, ls="dashed", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        # Set data for plot link
-        name1, pos1 = sector_pos1
-        name2, pos2 = sector_pos2
-        sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
-        r1 = sector1.get_lowest_r() if r1 is None else r1
-        r2 = sector2.get_lowest_r() if r2 is None else r2
-        rad_pos1, rad_pos2 = sector1.x_to_rad(pos1), sector2.x_to_rad(pos2)
+    #     Parameters
+    #     ----------
+    #     sector_pos1 : tuple[str, float]
+    #         Link line sector position1 (name, position)
+    #     sector_pos2 : tuple[str, float]
+    #         Link line sector position2 (name, position)
+    #     r1 : float | None, optional
+    #         Link line radius end position for sector_pos1.
+    #         If None, lowest radius position of track in target sector is set.
+    #     r2 : float | None, optional
+    #         Link line radius end position for sector_pos2.
+    #         If None, lowest radius position of track in target sector is set.
+    #     color : str, optional
+    #         Link line color
+    #     height_ratio : float, optional
+    #         Bezier curve height ratio
+    #     direction : int, optional
+    #         `0`: No direction edge shape (Default)
+    #         `1`: Forward direction arrow edge shape (pos1 -> pos2)
+    #         `-1`: Reverse direction arrow edge shape (pos1 <- pos2)
+    #         `2`: Bidirectional arrow edge shape (pos1 <-> pos2)
+    #     arrow_height : float, optional
+    #         Arrow height size (Radius unit)
+    #     arrow_width : float, optional
+    #         Arrow width size (Degree unit)
+    #     **kwargs : dict, optional
+    #         Patch properties (e.g. `lw=1.0, ls="dashed", ...`)
+    #         <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
+    #     """
+    #     # Set data for plot link
+    #     name1, pos1 = sector_pos1
+    #     name2, pos2 = sector_pos2
+    #     sector1, sector2 = self.get_sector(name1), self.get_sector(name2)
+    #     r1 = sector1.get_lowest_r() if r1 is None else r1
+    #     r2 = sector2.get_lowest_r() if r2 is None else r2
+    #     rad_pos1, rad_pos2 = sector1.x_to_rad(pos1), sector2.x_to_rad(pos2)
 
-        kwargs.update(color=color)
+    #     kwargs.update(color=color)
 
-        bezier_curve_line = BezierCurveLine(
-            rad_pos1,
-            r1,
-            rad_pos2,
-            r2,
-            height_ratio,
-            direction,
-            arrow_height,
-            arrow_width,
-            **kwargs,
-        )
-        self._patches.append(bezier_curve_line)
+    #     bezier_curve_line = BezierCurveLine(
+    #         rad_pos1,
+    #         r1,
+    #         rad_pos2,
+    #         r2,
+    #         height_ratio,
+    #         direction,
+    #         arrow_height,
+    #         arrow_width,
+    #         **kwargs,
+    #     )
+    #     self._patches.append(bezier_curve_line)
 
     def colorbar(
         self,
@@ -999,69 +583,37 @@ class Circos:
             if label:
                 cb.set_label(label, **label_kws)
 
-        self._plot_funcs.append(plot_colorbar)
+        # self._plot_funcs.append(plot_colorbar)
 
     def plotfig(
         self,
         dpi: int = 100,
-        *,
-        ax: PolarAxes | None = None,
         figsize: tuple[float, float] = (8, 8),
-    ) -> Figure:
-        """Plot figure
+        **kwargs,
+    ) -> go.Figure:
+        """Create the Plotly Circos-style figure.
 
         Parameters
         ----------
         dpi : int, optional
-            Figure DPI
-        ax : PolarAxes | None
-            If None, figure and axes are newly created.
+            Dots per inch (used to scale figsize)
         figsize : tuple[float, float], optional
-            Figure size
+            Size of figure in inches (width, height)
+        **kwargs : dict
+            Additional layout settings to override defaults
 
         Returns
         -------
-        figure : Figure
-            Circos matplotlib figure
+        fig : go.Figure
+            Plotly figure object
         """
-        if ax is None:
-            # Initialize Figure & PolarAxes
-            fig, ax = self._initialize_figure(figsize=figsize, dpi=dpi)
-        else:
-            # Check PolarAxes or not
-            if not isinstance(ax, PolarAxes):
-                ax_class_name = type(ax).__name__
-                raise ValueError(f"Input ax is not PolarAxes (={ax_class_name}).")
-            fig = ax.get_figure()
-        self._initialize_polar_axes(ax)
+        layout_dict = self._initialize_plotly_layout(figsize=figsize, dpi=dpi)
+        layout_dict.update(kwargs)
 
-        # Plot trees (add 'patches' & 'plot functions')
-        for tv in self._get_all_treeviz_list():
-            tv._plot_tree_line()
-            tv._plot_tree_label()
+        layout_dict['shapes'] = self._get_all_shapes()
+        layout_dict['annotations'] = self._get_all_annotations()
 
-        # Plot all patches
-        patches = []
-        for patch in self._get_all_patches():
-            # Set clip_on=False to enable Patch to be displayed outside of Axes
-            patch.set_clip_on(False)
-            # Collection cannot handle `zorder`, `hatch`
-            # Separate default or user-defined `zorder`, `hatch` property patch
-            if patch.get_zorder() == 1 and patch.get_hatch() is None:
-                patches.append(patch)
-            else:
-                ax.add_patch(patch)
-        ax.add_collection(PatchCollection(patches, match_original=True, clip_on=False))  # type: ignore
-
-        # Execute all plot functions
-        for plot_func in self._get_all_plot_funcs():
-            plot_func(ax)
-
-        # Adjust annotation text position
-        if config.ann_adjust.enable:
-            self._adjust_annotation()
-
-        return fig  # type: ignore
+        return go.Figure(layout=go.Layout(layout_dict))
 
     def savefig(
         self,
@@ -1089,17 +641,17 @@ class Circos:
         To plot a figure that settings a user-defined legend, subtracks, or annotations,
         call `fig.savefig()` instead of `gv.savefig()`.
         """
-        fig = self.plotfig(dpi=dpi, figsize=figsize)
-        fig.savefig(
-            fname=savefile,  # type: ignore
-            dpi=dpi,
-            pad_inches=pad_inches,
-            bbox_inches="tight",
-        )
-        # Clear & close figure to suppress memory leak
-        if config.clear_savefig:
-            fig.clear()
-            plt.close(fig)
+        # fig = self.plotfig(dpi=dpi, figsize=figsize)
+        # fig.savefig(
+        #     fname=savefile,  # type: ignore
+        #     dpi=dpi,
+        #     pad_inches=pad_inches,
+        #     bbox_inches="tight",
+        # )
+        # # Clear & close figure to suppress memory leak
+        # if config.clear_savefig:
+        #     fig.clear()
+        #     plt.close(fig)
 
     ############################################################
     # Private Method
@@ -1117,9 +669,12 @@ class Circos:
         """
         min_deg, max_deg = -360, 360
         if not min_deg <= start < end <= max_deg:
-            raise ValueError(f"start-end must be '{min_deg} <= start < end <= {max_deg}' ({start=}, {end=})")  # fmt: skip  # noqa: E501
+            err_msg = "start-end must be "
+            err_msg += f"'{min_deg} <= start < end <= {max_deg}' ({start=}, {end=})"
+            raise ValueError(err_msg)
         if end - start > max_deg:
-            raise ValueError(f"'end - start' must be less than {max_deg} ({start=}, {end=})")  # fmt: skip  # noqa: E501
+            err_msg = f"'end - start' must be less than {max_deg} ({start=}, {end=})"
+            raise ValueError(err_msg)
 
     def _to_sector2range(
         self,
@@ -1131,93 +686,45 @@ class Circos:
             if isinstance(value, (tuple, list)):
                 sector_start, sector_end = value
                 if not sector_start < sector_end:
-                    raise ValueError(f"{sector_end=} must be larger than {sector_start=}.")  # fmt: skip  # noqa: E501
+                    err_msg = f"{sector_end=} must be larger than {sector_start=}."
+                    raise ValueError(err_msg)
                 sector2range[name] = (sector_start, sector_end)
             else:
                 sector2range[name] = (0, value)
         return sector2range
 
-    def _initialize_figure(
-        self,
+    @staticmethod
+    def _initialize_plotly_layout(
         figsize: tuple[float, float] = (8, 8),
         dpi: int = 100,
-    ) -> tuple[Figure, PolarAxes]:
-        """Initialize figure
+    ) -> dict:
+        """Initialize default Plotly layout based on config and figure size."""
+        width = int(figsize[0] * dpi)
+        height = int(figsize[1] * dpi)
 
-        Parameters
-        ----------
-        figsize : tuple[float, float], optional
-            Figure size
-        dpi : int, optional
-            Figure DPI
+        layout = deepcopy(config.plotly_layout_defaults)
 
-        Returns
-        -------
-        fig : Figure
-            Figure
-        ax : PolarAxes
-            PolarAxes
-        """
-        fig = plt.figure(figsize=figsize, dpi=dpi, tight_layout=True)
-        ax = fig.add_subplot(projection="polar")
-        return fig, ax  # type: ignore
+        layout['width'] = width
+        layout['height'] = height
+        layout['xaxis']['range'] = config.AXIS_RANGE
+        layout['yaxis']['range'] = config.AXIS_RANGE
 
-    def _initialize_polar_axes(self, ax: PolarAxes) -> None:
-        """Initialize polar axes params
+        return layout
 
-        Parameters
-        ----------
-        ax : PolarAxes
-            PolarAxes
-        """
-        ax.set_theta_zero_location("N")
-        ax.set_theta_direction(-1)
-        # Reason for setting the max radius limit at MAX_R(100) + R_PLOT_MARGIN
-        # Because a portion of the patch at the upper boundary of 100 may be missed.
-        ax.set_rlim(bottom=config.MIN_R, top=config.MAX_R + config.R_PLOT_MARGIN)
+    def _get_all_shapes(self) -> list[dict]:
+        """Gather all shape dictionaries from self, sectors, and tracks."""
+        circos_shapes = self._shapes
+        sector_shapes = list(itertools.chain(*[s._shapes for s in self.sectors]))
+        track_shapes = list(itertools.chain(*[t._shapes for t in self.tracks]))
+        return circos_shapes + sector_shapes + track_shapes
 
-        show_axis = "on" if self._show_axis_for_debug else "off"
-        ax.axis(show_axis)
-        self._ax = ax
+    def _get_all_annotations(self) -> list[dict]:
+        """Gather all annotation dictionaries from self, sectors, and tracks."""
+        circos_ann = self._annotations
+        sector_ann = list(itertools.chain(*[s._annotations for s in self.sectors]))
+        track_ann = list(itertools.chain(*[t._annotations for t in self.tracks]))
+        return circos_ann + sector_ann + track_ann
 
-    def _get_all_patches(self) -> list[Patch]:
-        """Get all patches from `circos, sector, track`
-
-        Returns
-        -------
-        all_patches : list[Patch]
-            All patches
-        """
-        circos_patches = self._patches
-        sector_patches = list(itertools.chain(*[s.patches for s in self.sectors]))
-        track_patches = list(itertools.chain(*[t.patches for t in self.tracks]))
-        all_patches = circos_patches + sector_patches + track_patches
-        # deepcopy to avoid putting original patch to figure
-        return deepcopy(all_patches)
-
-    def _get_all_plot_funcs(self) -> list[Callable[[PolarAxes], None]]:
-        """Get all plot functions from `circos, sector, track`
-
-        Returns
-        -------
-        all_plot_funcs : list[Callable[[PolarAxes], None]]
-            All plot functions
-        """
-        circos_plot_funcs = self._plot_funcs
-        sector_plot_funcs = list(itertools.chain(*[s.plot_funcs for s in self.sectors]))
-        track_plot_funcs = list(itertools.chain(*[t.plot_funcs for t in self.tracks]))
-        all_plot_funcs = circos_plot_funcs + sector_plot_funcs + track_plot_funcs
-        return all_plot_funcs
-
-    def _get_all_treeviz_list(self) -> list[TreeViz]:
-        """Get all tree visualization instance list from tracks
-
-        Returns
-        -------
-        all_treeviz_list : list[TreeViz]
-            All tree visualization instance list
-        """
-        return list(itertools.chain(*[t._trees for t in self.tracks]))
 
     def _adjust_annotation(self) -> None:
         """Adjust annotation text position"""
@@ -1226,7 +733,8 @@ class Circos:
         if len(ann_list) == 0 or config.ann_adjust.max_iter <= 0:
             return
         if len(ann_list) > config.ann_adjust.limit:
-            warnings.warn(f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done.")  # fmt: skip  # noqa: E501
+            warn_msg = f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done."  # noqa: E501
+            warnings.warn(warn_msg)
             return
 
         def get_ann_window_extent(ann: Annotation) -> Bbox:

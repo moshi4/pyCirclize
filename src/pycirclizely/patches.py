@@ -1,434 +1,107 @@
-from __future__ import annotations
-
-import math
-
+from typing import ClassVar
 import numpy as np
-from matplotlib.patches import PathPatch
-from matplotlib.path import Path
 
-from pycirclize import config
+from pycirclize_TEST import config
 
+class PolarSVGPatchBuilder:
+    step: ClassVar[float] = config.ARC_RADIAN_STEP
 
-class Line(PathPatch):
-    """Linear Line Patch"""
-
-    def __init__(
-        self,
-        rad_lim: tuple[float, float],
-        r_lim: tuple[float, float],
-        **kwargs,
-    ):
+    @staticmethod
+    def _polar_to_cart(theta: float, r: float) -> tuple[float, float]:
+        """Convert polar coordinates to cartesian with Plotly's orientation:
+            - Shift by π/2 to make 0 point upward
+            - Negate to make angles increase clockwise
         """
-        Parameters
-        ----------
-        rad_lim : tuple[float, float]
-            Radian limit region
-        r_lim : tuple[float, float]
-            Radius limit region
-        **kwargs : dict, optional
-            Patch properties (e.g. `ec="red", lw=1.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        # Default params: fc='none', color='black', linewidth=0.5
-        kwargs.update(dict(fc="none"))
-        if "ec" not in kwargs and "edgecolor" not in kwargs and "color" not in kwargs:
-            kwargs.update(dict(ec="black"))
-        if "lw" not in kwargs and "linewidth" not in kwargs:
-            kwargs.update(dict(lw=0.5))
+        adjusted_theta = -(theta - np.pi/2)
+        x = r * np.cos(adjusted_theta)
+        y = r * np.sin(adjusted_theta)
+        return (x, y)
 
-        # Set line path
-        verts = list(zip(rad_lim, r_lim))
-        super().__init__(Path(verts), **kwargs)  # type: ignore
-
-
-class ArcLine(PathPatch):
-    """Arc Line Patch"""
-
-    def __init__(
-        self,
-        rad_lim: tuple[float, float],
-        r_lim: tuple[float, float],
-        **kwargs,
-    ):
-        """
-        Parameters
-        ----------
-        rad_lim : tuple[float, float]
-            Radian limit region
-        r_lim : tuple[float, float]
-            Radius limit region
-        **kwargs : dict, optional
-            Patch properties (e.g. `ec="red", lw=1.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        # Default params: fc='none', color='black', linewidth=0.5
-        kwargs.update(dict(fc="none"))
-        if "ec" not in kwargs and "edgecolor" not in kwargs and "color" not in kwargs:
-            kwargs.update(dict(ec="black"))
-        if "lw" not in kwargs and "linewidth" not in kwargs:
-            kwargs.update(dict(lw=0.5))
-
-        # Calculate line path vertices
-        if rad_lim[1] >= rad_lim[0]:
-            rad_start, rad_end = rad_lim
-            r_start, r_end = r_lim
-        else:
-            rad_start, rad_end = rad_lim[::-1]
-            r_start, r_end = r_lim[::-1]
-        if rad_start == rad_end:
-            arc_rads = [rad_start, rad_end]
-        else:
-            step = config.ARC_RADIAN_STEP
-            arc_rads = list(np.arange(rad_start, rad_end, step)) + [rad_end]
-        arc_r_list = np.linspace(r_start, r_end, len(arc_rads), endpoint=True)
-
-        # Set line path
-        verts = list(zip(arc_rads, arc_r_list))
-        super().__init__(Path(verts), **kwargs)  # type: ignore
-
-
-class ArcRectangle(PathPatch):
-    """Arc Rectangle PathPatch"""
-
-    def __init__(
-        self,
-        radr: tuple[float, float],
-        width: float,
-        height: float,
-        **kwargs,
-    ):
-        """
-        Parameters
-        ----------
-        radr : tuple[float, float]
-            Anchor point (rad=`radian`, r=`radius`)
-        width : float
-            Rectangle radian width
-        height : float
-            Rectangle radius height
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=2.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
+    @staticmethod
+    def _svg_path_from_points(points: list[tuple[float, float]], closed: bool = False) -> str:
+        if not points:
+            return ""
+        path = [f"M {points[0][0]} {points[0][1]}"]
+        path += [f"L {x} {y}" for x, y in points[1:]]
+        if closed:
+            path.append("Z")
+        return " ".join(path)
+    
+    @classmethod
+    def arc_rectangle(cls, radr: tuple[float, float], width: float, height: float) -> str:
         min_rad, min_r = radr
-        max_rad, max_r = min_rad + width, min_r + height
-        arc_rads = np.arange(min_rad, max_rad, config.ARC_RADIAN_STEP)
+        max_rad = min_rad + width
+        max_r = min_r + height
+
+        arc_rads = np.arange(min_rad, max_rad, cls.step)
         arc_rads = np.append(arc_rads, max_rad)
-        bottom_arc_path = list(zip(arc_rads, [min_r] * len(arc_rads)))
-        upper_arc_path = list(zip(arc_rads[::-1], [max_r] * len(arc_rads)))
-        arc_rect_path = Path(
-            bottom_arc_path + upper_arc_path + [bottom_arc_path[0]],  # type: ignore
-            closed=True,
-        )
-        super().__init__(arc_rect_path, **kwargs)
 
+        bottom_arc = [cls._polar_to_cart(theta, min_r) for theta in arc_rads]
+        upper_arc = [cls._polar_to_cart(theta, max_r) for theta in arc_rads[::-1]]
+        points = bottom_arc + upper_arc + [bottom_arc[0]]
+        return cls._svg_path_from_points(points, closed=True)
+    
+    @classmethod
+    def arc_line(cls, rad_lim: tuple[float, float], r_lim: tuple[float, float]) -> str:
+        rad_start, rad_end = rad_lim
+        r_start, r_end = r_lim
 
-class ArcArrow(PathPatch):
-    """Arc Arrow PathPatch"""
+        if rad_start > rad_end:
+            rad_start, rad_end = rad_end, rad_start
+            r_start, r_end = r_end, r_start
 
-    def __init__(
-        self,
+        if rad_start == rad_end:
+            # Special case: straight radial line
+            points = [
+                cls._polar_to_cart(rad_start, r_start),
+                cls._polar_to_cart(rad_end, r_end)
+            ]
+        else:
+            arc_rads = np.arange(rad_start, rad_end, cls.step)
+            arc_rads = np.append(arc_rads, rad_end)
+            arc_rs = np.linspace(r_start, r_end, len(arc_rads))
+            points = [cls._polar_to_cart(t, r) for t, r in zip(arc_rads, arc_rs)]
+
+        return cls._svg_path_from_points(points)
+    
+    @classmethod
+    def line(cls, rad_lim: tuple[float, float], r_lim: tuple[float, float]) -> str:
+        points = [cls._polar_to_cart(rad, r) for rad, r in zip(rad_lim, r_lim)]
+        return cls._svg_path_from_points(points)
+    
+    @classmethod
+    def arc_arrow(
+        cls,
         rad: float,
         r: float,
         drad: float,
         dr: float,
         head_length: float = np.pi / 90,
         shaft_ratio: float = 0.5,
-        **kwargs,
-    ):
-        """
-        Parameters
-        ----------
-        rad : float
-            Radian base coordinate
-        r : float
-            Radius base coordinate
-        drad : float
-            Radian size
-        dr : float
-            Radius size
-        head_length : float, optional
-            Arrow head length (Radian unit)
-        shaft_ratio : float, optional
-            Arrow shaft ratio (0 - 1.0)
-        **kwargs : dict, optional
-            Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        # Set position parameters
+    ) -> str:
         shaft_size = dr * shaft_ratio
         y_shaft_bottom = r + ((dr - shaft_size) / 2)
         y_shaft_upper = r + dr - ((dr - shaft_size) / 2)
 
-        is_forward = True if drad >= 0 else False
+        is_forward = drad >= 0
         drad = abs(drad)
-        if head_length > drad:
-            head_length = drad
-        if is_forward:
-            rad_shaft_tip = rad + (drad - head_length)
-            rad_arrow_tip = rad + drad
-        else:
-            rad_shaft_tip = rad - (drad - head_length)
-            rad_arrow_tip = rad - drad
+        head_length = min(head_length, drad)
 
-        # ArcArrow vertex points
+        rad_shaft_tip = rad + (drad - head_length) if is_forward else rad - (drad - head_length)
+        rad_arrow_tip = rad + drad if is_forward else rad - drad
+
         p1 = rad, y_shaft_bottom
         p2 = rad_shaft_tip, y_shaft_bottom
-        p3 = rad_shaft_tip, r  # Arrow bottom tip point
-        p4 = rad_arrow_tip, (r + (r + dr)) / 2  # Arrow center tip point
-        p5 = rad_shaft_tip, r + dr  # Arrow upper tip point
+        p3 = rad_shaft_tip, r
+        p4 = rad_arrow_tip, (r + r + dr) / 2
+        p5 = rad_shaft_tip, r + dr
         p6 = rad_shaft_tip, y_shaft_upper
         p7 = rad, y_shaft_upper
 
-        # Create ArcArrow Path from vertex points
-        step = config.ARC_RADIAN_STEP if is_forward else -config.ARC_RADIAN_STEP
-        shaft_arc_rads = np.arange(p1[0], p2[0], step)
-        bottom_shaft_r_list = [p1[1]] * len(shaft_arc_rads)
-        upper_shaft_r_list = [p7[1]] * len(shaft_arc_rads)
-        bottom_shaft_arc_path = list(zip(shaft_arc_rads, bottom_shaft_r_list))
-        upper_shaft_arc_path = list(zip(shaft_arc_rads[::-1], upper_shaft_r_list))
-        arc_arrow_path = Path(
-            bottom_shaft_arc_path + [p2, p3, p4, p5, p6] + upper_shaft_arc_path + [p1],  # type: ignore
-            closed=True,
-        )
-        super().__init__(arc_arrow_path, **kwargs)
+        shaft_rads = np.arange(p1[0], p2[0], cls.step if is_forward else -cls.step)
+        bottom_shaft = [cls._polar_to_cart(t, p1[1]) for t in shaft_rads]
+        top_shaft = [cls._polar_to_cart(t, p7[1]) for t in shaft_rads[::-1]]
+        head = [cls._polar_to_cart(*pt) for pt in [p2, p3, p4, p5, p6]]
+        path_points = bottom_shaft + head + top_shaft + [cls._polar_to_cart(*p1)]
 
-
-class BezierCurveLink(PathPatch):
-    """Bezier Curve Link PathPatch"""
-
-    def __init__(
-        self,
-        rad_start1: float,
-        rad_end1: float,
-        r1: float,
-        rad_start2: float,
-        rad_end2: float,
-        r2: float,
-        height_ratio: float = 0.5,
-        direction: int = 0,
-        arrow_length_ratio: float = 0.05,
-        **kwargs,
-    ):
-        """
-        Parameters
-        ----------
-        rad_start1 : float
-            Radian start1
-        rad_end1 : float
-            Radian end1
-        r1 : float
-            Radius position1
-        rad_start2 : float
-            Radian start2
-        rad_end2 : float
-            Radian end2
-        r2 : float
-            Radius position2
-        height_ratio : float, optional
-            Bezier curve height ratio parameter
-        direction : int, optional
-            `0`: Circular edge shape (Default)
-            `1`: Directional(1 -> 2) arrow edge shape
-            `-1`: Directional(1 <- 2) arrow edge shape
-            `2`: Bidirectional arrow edge shape
-        arrow_length_ratio : float, optional
-            Arrow length ratio.
-        **kwargs : dict, optional
-            Patch properties (e.g. `lw=1.0, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-
-        def arc_paths(
-            rad1: float, rad2: float, r: float
-        ) -> list[tuple[np.uint8, tuple[float, float]]]:
-            # If rad1 == rad2, return blank list
-            arc_paths = []
-            step = config.ARC_RADIAN_STEP if rad1 <= rad2 else -config.ARC_RADIAN_STEP
-            for rad in np.arange(rad1, rad2, step):
-                arc_paths.append((Path.LINETO, (rad, r)))
-            return arc_paths
-
-        def arrow_paths(
-            rad1: float, rad2: float, r_side: float, r_top: float
-        ) -> list[tuple[np.uint8, tuple[float, float]]]:
-            return [
-                (Path.LINETO, (rad1, r_side)),
-                (Path.LINETO, ((rad1 + rad2) / 2, r_top)),
-                (Path.LINETO, (rad2, r_side)),
-            ]
-
-        def bezier_paths(
-            rad1: float, rad2: float, r1: float, r2: float, height_ratio: float = 0.5
-        ) -> list[tuple[np.uint8, tuple[float, float]]]:
-            if height_ratio >= 0.5:
-                # Example1: height_ratio: 0.50 => r_ctl_pos: 0
-                # Example2: height_ratio: 0.75 => r_ctl_pos: 25
-                # Example3: height_ratio: 1.00 => r_ctl_pos: 50
-                r_ctl_pos = config.MAX_R * (height_ratio - 0.5)
-                rad_ctl_pos = (rad1 + rad2) / 2 + math.pi
-            else:
-                # Example1: height_ratio: 0.25 => r_ctl_pos: 25
-                # Example2: height_ratio: 0.00 => r_ctl_pos: 50
-                r_ctl_pos = config.MAX_R * (0.5 - height_ratio)
-                rad_ctl_pos = (rad1 + rad2) / 2
-            return [
-                (Path.LINETO, (rad1, r1)),
-                (Path.CURVE3, (rad_ctl_pos, r_ctl_pos)),
-                (Path.LINETO, (rad2, r2)),
-            ]
-
-        # Circos style plot order `start1 -> end1 -> end2 -> start2 -> start1`
-        # http://circos.ca/documentation/tutorials/links/twists/images
-        arrow_r1 = r1 * (1 - arrow_length_ratio)
-        arrow_r2 = r2 * (1 - arrow_length_ratio)
-        if direction == config.Direction.NONE:
-            path_data = [
-                (Path.MOVETO, (rad_start1, r1)),
-                *arc_paths(rad_start1, rad_end1, r1),
-                (Path.LINETO, (rad_end1, r1)),
-                *bezier_paths(rad_end1, rad_end2, r1, r2, height_ratio),
-                (Path.LINETO, (rad_end2, r2)),
-                *arc_paths(rad_end2, rad_start2, r2),
-                (Path.LINETO, (rad_start2, r2)),
-                *bezier_paths(rad_start2, rad_start1, r2, r1, height_ratio),
-                (Path.CLOSEPOLY, (rad_start1, r1)),
-            ]
-        elif direction == config.Direction.FORWARD:
-            path_data = [
-                (Path.MOVETO, (rad_start1, r1)),
-                *arc_paths(rad_start1, rad_end1, r1),
-                (Path.LINETO, (rad_end1, r1)),
-                *bezier_paths(rad_end1, rad_end2, r1, arrow_r2, height_ratio),
-                (Path.LINETO, (rad_end2, arrow_r2)),
-                *arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
-                (Path.LINETO, (rad_start2, arrow_r2)),
-                *bezier_paths(rad_start2, rad_start1, arrow_r2, r1, height_ratio),
-                (Path.CLOSEPOLY, (rad_start1, r1)),
-            ]
-        elif direction == config.Direction.REVERSE:
-            path_data = [
-                (Path.MOVETO, (rad_start1, arrow_r1)),
-                *arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
-                (Path.LINETO, (rad_end1, arrow_r1)),
-                *bezier_paths(rad_end1, rad_end2, arrow_r1, r2, height_ratio),
-                (Path.LINETO, (rad_end2, r2)),
-                *arc_paths(rad_end2, rad_start2, r2),
-                (Path.LINETO, (rad_start2, r2)),
-                *bezier_paths(rad_start2, rad_start1, r2, arrow_r1, height_ratio),
-                (Path.CLOSEPOLY, (rad_start1, arrow_r1)),
-            ]
-        elif direction == config.Direction.BIDIRECTIONAL:
-            path_data = [
-                (Path.MOVETO, (rad_start1, arrow_r1)),
-                *arrow_paths(rad_start1, rad_end1, arrow_r1, r1),
-                (Path.LINETO, (rad_end1, arrow_r1)),
-                *bezier_paths(rad_end1, rad_end2, arrow_r1, arrow_r2, height_ratio),
-                (Path.LINETO, (rad_end2, arrow_r2)),
-                *arrow_paths(rad_end2, rad_start2, arrow_r2, r2),
-                (Path.LINETO, (rad_start2, arrow_r2)),
-                *bezier_paths(rad_start2, rad_start1, arrow_r2, arrow_r1, height_ratio),
-                (Path.CLOSEPOLY, (rad_start1, arrow_r1)),
-            ]
-        else:
-            raise ValueError(f"{direction=} is invalid value (0 or 1 or -1 or 2).")
-
-        verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
-        bezier_curve_path = Path(verts, codes, closed=True)  # type: ignore
-        super().__init__(bezier_curve_path, **kwargs)
-
-
-class BezierCurveLine(PathPatch):
-    """Bezier Curve Line PathPatch"""
-
-    def __init__(
-        self,
-        rad1: float,
-        r1: float,
-        rad2: float,
-        r2: float,
-        height_ratio: float = 0.5,
-        direction: int = 0,
-        arrow_height: float = 3.0,
-        arrow_width: float = 1.0,
-        **kwargs,
-    ):
-        """
-        Parameters
-        ----------
-        rad1 : float
-            Radian position1
-        r1 : float
-            Radius position1
-        rad2 : float
-            Radian position2
-        r2 : float
-            Radius position2
-        height_ratio : float, optional
-            Bezier curve height ratio parameter
-        direction : int, optional
-            `0`: No edge shape (Default)
-            `1`: Directional(1 -> 2) arrow edge shape
-            `-1`: Directional(1 <- 2) arrow edge shape
-            `2`: Bidirectional arrow edge shape
-        arrow_height : float, optional
-            Arrow height size (Radius unit)
-        arrow_width : float, optional
-            Arrow width size (Degree unit)
-        **kwargs : dict, optional
-            Patch properties (e.g. `lw=1.0, hatch="//", ...`)
-            <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
-        """
-        kwargs.update(fill=False)
-        kwargs.setdefault("lw", 0.5)
-
-        def bezier_paths(
-            rad1: float,
-            rad2: float,
-            r1: float,
-            r2: float,
-            height_ratio: float = 0.5,
-        ) -> list[tuple[np.uint8, tuple[float, float]]]:
-            if height_ratio >= 0.5:
-                # Example1: height_ratio: 0.50 => r_ctl_pos: 0
-                # Example2: height_ratio: 0.75 => r_ctl_pos: 25
-                # Example3: height_ratio: 1.00 => r_ctl_pos: 50
-                r_ctl_pos = config.MAX_R * (height_ratio - 0.5)
-                rad_ctl_pos = (rad1 + rad2) / 2 + math.pi
-            else:
-                # Example1: height_ratio: 0.25 => r_ctl_pos: 25
-                # Example2: height_ratio: 0.00 => r_ctl_pos: 50
-                r_ctl_pos = config.MAX_R * (0.5 - height_ratio)
-                rad_ctl_pos = (rad1 + rad2) / 2
-            return [
-                (Path.LINETO, (rad1, r1)),
-                (Path.CURVE3, (rad_ctl_pos, r_ctl_pos)),
-                (Path.LINETO, (rad2, r2)),
-            ]
-
-        def arrow_line_paths(
-            rad_pos: float,
-            r_pos: float,
-            arrow_rad_width: float,
-            arrow_r_height: float,
-        ) -> list[tuple[np.uint8, tuple[float, float]]]:
-            arrow_r_pos = r_pos - arrow_r_height
-            return [
-                (Path.MOVETO, (rad_pos + (arrow_rad_width / 2), arrow_r_pos)),
-                (Path.LINETO, (rad_pos, r_pos)),
-                (Path.LINETO, (rad_pos - (arrow_rad_width / 2), arrow_r_pos)),
-            ]
-
-        arrow_rad_width = np.radians(arrow_width)
-        path_data: list[tuple[np.uint8, tuple[float, float]]] = []
-        if direction in (config.Direction.REVERSE, config.Direction.BIDIRECTIONAL):
-            path_data.extend(arrow_line_paths(rad1, r1, arrow_rad_width, arrow_height))
-        path_data.append((Path.MOVETO, (rad1, r1)))
-        path_data.extend(bezier_paths(rad1, rad2, r1, r2, height_ratio))
-        path_data.append((Path.LINETO, (rad2, r2)))
-        if direction in (config.Direction.FORWARD, config.Direction.BIDIRECTIONAL):
-            path_data.extend(arrow_line_paths(rad2, r2, arrow_rad_width, arrow_height))
-
-        verts, codes = [p[1] for p in path_data], [p[0] for p in path_data]
-        bezier_arrow_line_path = Path(verts, codes, closed=True)  # type: ignore
-        super().__init__(bezier_arrow_line_path, **kwargs)
+        return cls._svg_path_from_points(path_points, closed=True)
