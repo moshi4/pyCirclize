@@ -1,9 +1,10 @@
+---
 site_name: pyCirclize
 site_description: Circular visualization in Python
 site_author: moshi4
 repo_name: moshi4/pyCirclize
 repo_url: https://github.com/moshi4/pyCirclize
-edit_uri: ""
+edit_uri: ''
 use_directory_urls: true
 watch:
   - src
@@ -48,7 +49,7 @@ markdown_extensions:
 plugins:
   - search
   - mkdocs-jupyter:
-      execute: False
+      execute: false
   - mkdocstrings:
       handlers:
         python:
@@ -56,17 +57,17 @@ plugins:
           options:
             # Heading options
             heading_level: 2
-            show_root_full_path: False
-            show_root_heading: True
+            show_root_full_path: false
+            show_root_heading: true
             # Member options
             members_order: source # alphabetical, source
             # Docstrings options
             docstring_style: numpy
             docstring_section_style: spacy # table, list, spacy
             line_length: 89
-            merge_init_into_class: True
+            merge_init_into_class: true
             # Signatures/annotations options
-            show_signature_annotations: True
-            separate_signature: True
+            show_signature_annotations: true
+            separate_signature: true
             # Additional options
-            show_source: False
+            show_source: false

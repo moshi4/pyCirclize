@@ -8,10 +8,9 @@ from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
 import pandas as pd
-from plotly.graph_objs.layout._shape import Shape
-from plotly.graph_objs.layout._annotation import Annotation 
 from PIL import Image
-
+from plotly.graph_objs.layout._annotation import Annotation
+from plotly.graph_objs.layout._shape import Shape
 from pycirclizely_TEST import config, utils
 from pycirclizely_TEST.parser import StackedBarTable
 from pycirclizely_TEST.patches import PolarSVGPatchBuilder
@@ -56,7 +55,6 @@ class Track:
         # Plot data and functions
         self._shapes: list[Shape] = []
         self._annotations: list[Annotation] = []
-
 
     ############################################################
     # Property
@@ -155,7 +153,6 @@ class Track:
         """Plot functions"""
         return self._annotations
 
-
     ############################################################
     # Public Method
     ############################################################
@@ -238,17 +235,21 @@ class Track:
         x = self.center if x is None else x
         r = self.r_center if r is None else r
         rad = self.x_to_rad(x, ignore_range_error)
-        plotly_rad = -(rad - np.pi/2)
+        plotly_rad = -(rad - np.pi / 2)
         x_pos = r * np.cos(plotly_rad)
         y_pos = r * np.sin(plotly_rad)
 
-        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, only_rotation=True, **kwargs)
+        annotation = utils.plot.get_plotly_label_params(
+            rad, adjust_rotation, orientation, outer, only_rotation=True, **kwargs
+        )
 
-        annotation.update({
-            "x": x_pos,
-            "y": y_pos,
-            "text": text,
-        })
+        annotation.update(
+            {
+                "x": x_pos,
+                "y": y_pos,
+                "text": text,
+            }
+        )
 
         self._annotations.append(annotation)
 
@@ -274,7 +275,7 @@ class Track:
             Genomic end position (x coordinate).
         r_lim : tuple[float, float] | None, optional
             Radial limits (min, max). If None, uses track defaults:
-            - `track.r_lim` (ignore_pad=False) or 
+            - `track.r_lim` (ignore_pad=False) or
             - `track.r_plot_lim` (ignore_pad=True).
         ignore_pad : bool, optional
             If True, ignores track padding when auto-setting `r_lim`.
@@ -485,7 +486,14 @@ class Track:
                 else:
                     adj_r = min(tick_r_lim) - label_margin
 
-                self.text(label, x_pos, adj_r, orientation=label_orientation, outer=outer, **text_kws)
+                self.text(
+                    label,
+                    x_pos,
+                    adj_r,
+                    orientation=label_orientation,
+                    outer=outer,
+                    **text_kws,
+                )
 
         # Plot bottom line
         if show_bottom_line:
@@ -649,8 +657,15 @@ class Track:
 
             # Plot labels
             if label != "":
-                self.text(label, x_text, r_pos, orientation=label_orientation, outer=True, ignore_range_error=True, **text_kws)
-
+                self.text(
+                    label,
+                    x_text,
+                    r_pos,
+                    orientation=label_orientation,
+                    outer=True,
+                    ignore_range_error=True,
+                    **text_kws,
+                )
 
     def grid(
         self,
@@ -715,7 +730,7 @@ class Track:
         **kwargs,
     ) -> None:
         """Plot line with SVG path at plotly.
-        
+
         Parameters
         ----------
         x : list[float] | np.ndarray
@@ -736,17 +751,16 @@ class Track:
         # Validation
         if len(x) != len(y):
             raise ValueError(f"x and y lengths must match ({len(x)} vs {len(y)})")
-        
+
         # Convert to polar coordinates
         rad = [self.x_to_rad(pos) for pos in x]
         vmax = max(y) if vmax is None else vmax
         r = [self._y_to_r(val, vmin, vmax) for val in y]
-        
+
         if arc:
             # Create curved arc line
             path = PolarSVGPatchBuilder.arc_line(
-                rad_lim=(min(rad), max(rad)),
-                r_lim=(min(r), max(r))
+                rad_lim=(min(rad), max(rad)), r_lim=(min(r), max(r))
             )
         else:
             # Create straight chord line
@@ -755,9 +769,9 @@ class Track:
                 for i in range(len(rad))
             ]
             path = PolarSVGPatchBuilder._svg_path_from_points(points)
-        
+
         # Build and add shape
-        shape = utils.plot.build_plotly_shape(path,**kwargs)
+        shape = utils.plot.build_plotly_shape(path, **kwargs)
         self._shapes.append(shape)
 
     def scatter(
@@ -1465,15 +1479,13 @@ class Track:
         r_lim: tuple[float, float],
         **kwargs,
     ) -> None:
-        """Plot a line between two positions at specified radial distances.
-        """
-
+        """Plot a line between two positions at specified radial distances."""
         # Convert genomic positions to radians
         rad_start, rad_end = map(self.x_to_rad, x_lim)
 
         # Convert to Plotly's coordinate system (0=up, clockwise)
-        plotly_rad_start = -(rad_start - np.pi/2)
-        plotly_rad_end = -(rad_end - np.pi/2)
+        plotly_rad_start = -(rad_start - np.pi / 2)
+        plotly_rad_end = -(rad_end - np.pi / 2)
 
         if np.isclose(plotly_rad_start, plotly_rad_end):
             # Special case: straight radial line (tick!)
@@ -1486,8 +1498,7 @@ class Track:
         else:
             # General arc line
             path = PolarSVGPatchBuilder.arc_line(
-                rad_lim=(plotly_rad_start, plotly_rad_end),
-                r_lim=r_lim
+                rad_lim=(plotly_rad_start, plotly_rad_end), r_lim=r_lim
             )
 
         # Build and add shape

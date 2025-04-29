@@ -1,3 +1,4 @@
+---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -25,11 +26,6 @@ repos:
       - id: black-jupyter
         types_or: [jupyter]
 
-  - repo: https://github.com/pre-commit/mirrors-csslint
-    rev: v1.0.5
-    hooks:
-      - id: csslint
-
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
@@ -39,30 +35,6 @@ repos:
     rev: 6.0.1
     hooks:
       - id: isort
-
-  - repo: local
-    hooks:
-      - id: custom-lint
-        name: custom-lint
-        entry: bin/custom-lint.sh
-        language: script
-        pass_filenames: false
-        require_serial: true
-
-      - id: shfmt
-        name: shfmt
-        language: golang
-        require_serial: true
-        additional_dependencies: [mvdan.cc/sh/v3/cmd/shfmt@v3.9.0]
-        entry: shfmt
-        args: [-l, -w, -i, '4', -ci, bin]
-        types: [shell]
-
-      - id: restricted-filenames
-        name: Check commits with cache/temporary/custom files
-        entry: These files have name patterns which should normally not be committed
-        language: fail
-        files: ^(\.|_)(~|tmp|temp|cache|env).*
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.22
@@ -107,12 +79,6 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
-    hooks:
-      - id: shellcheck
-        args: [--severity=error]
 
   - repo: https://github.com/jendrikseipp/vulture
     # dead code detection. Remove when https://github.com/astral-sh/ruff/issues/872 implemented

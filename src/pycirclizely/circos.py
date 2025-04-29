@@ -11,16 +11,15 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 import plotly.graph_objects as go
+from plotly.graph_objs.layout._annotation import Annotation
 from plotly.graph_objs.layout._shape import Shape
-from plotly.graph_objs.layout._annotation import Annotation 
-
 from pycirclizely_TEST import config, utils
-from pycirclizely_TEST.parser import Bed, Matrix
+from pycirclizely_TEST.parser import Bed
+from pycirclizely_TEST.patches import PolarSVGPatchBuilder
 from pycirclizely_TEST.sector import Sector
 from pycirclizely_TEST.track import Track
-from pycirclizely_TEST.patches import PolarSVGPatchBuilder
+
 
 class Circos:
     """Circos Visualization Class"""
@@ -81,7 +80,6 @@ class Circos:
                 """
                 # Total Sector Space Size = {space_deg_size}
                 # List of Sector Space Size = {space_list}
-                
             )[1:-1]
             raise ValueError(err_msg)
 
@@ -89,7 +87,7 @@ class Circos:
         sector_total_size = sum([max(r) - min(r) for r in sector2range.values()])
 
         rad_pos = math.radians(start)
-        
+
         self._sectors: list[Sector] = []
         for idx, (sector_name, sector_range) in enumerate(sector2range.items()):
             sector_size = max(sector_range) - min(sector_range)
@@ -231,7 +229,6 @@ class Circos:
                     color = cytoband_cmap.get(str(rec.score), "white")
                     track.rect(rec.start, rec.end, fc=color)
 
-
     def axis(self, **kwargs) -> None:
         """Plot axis
 
@@ -288,17 +285,21 @@ class Circos:
             See: <https://plotly.com/python/reference/layout/annotations/>
         """
         rad = np.radians(deg)
-        plotly_rad = -(rad - np.pi/2)  # Convert to Plotly's polar coordinates
+        plotly_rad = -(rad - np.pi / 2)  # Convert to Plotly's polar coordinates
         x_pos = r * np.cos(plotly_rad)
         y_pos = r * np.sin(plotly_rad)
 
-        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, **kwargs)
-        
-        annotation.update({
-            "x": x_pos,
-            "y": y_pos,
-            "text": text,
-        })
+        annotation = utils.plot.get_plotly_label_params(
+            rad, adjust_rotation, orientation, outer, **kwargs
+        )
+
+        annotation.update(
+            {
+                "x": x_pos,
+                "y": y_pos,
+                "text": text,
+            }
+        )
 
         self._annotations.append(annotation)
 
@@ -359,16 +360,16 @@ class Circos:
         """
         deg_lim = self.deg_lim if deg_lim is None else deg_lim
         rad_lim = (np.radians(min(deg_lim)), np.radians(max(deg_lim)))
-        
+
         # Convert to Plotly's coordinate system
-        plotly_rad_lim = [-(rad - np.pi/2) for rad in rad_lim]
+        plotly_rad_lim = [-(rad - np.pi / 2) for rad in rad_lim]
         min_rad, max_rad = min(plotly_rad_lim), max(plotly_rad_lim)
-        
+
         # Build rectangle path
         radr = (min_rad, min(r_lim))
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
-        
+
         path = PolarSVGPatchBuilder.arc_rectangle(radr, width, height)
         shape = utils.plot.build_plotly_shape(path, **kwargs)
         self._shapes.append(shape)
@@ -610,8 +611,8 @@ class Circos:
         layout_dict = self._initialize_plotly_layout(figsize=figsize, dpi=dpi)
         layout_dict.update(kwargs)
 
-        layout_dict['shapes'] = self._get_all_shapes()
-        layout_dict['annotations'] = self._get_all_annotations()
+        layout_dict["shapes"] = self._get_all_shapes()
+        layout_dict["annotations"] = self._get_all_annotations()
 
         return go.Figure(layout=go.Layout(layout_dict))
 
@@ -704,10 +705,10 @@ class Circos:
 
         layout = deepcopy(config.plotly_layout_defaults)
 
-        layout['width'] = width
-        layout['height'] = height
-        layout['xaxis']['range'] = config.AXIS_RANGE
-        layout['yaxis']['range'] = config.AXIS_RANGE
+        layout["width"] = width
+        layout["height"] = height
+        layout["xaxis"]["range"] = config.AXIS_RANGE
+        layout["yaxis"]["range"] = config.AXIS_RANGE
 
         return layout
 
@@ -724,7 +725,6 @@ class Circos:
         sector_ann = list(itertools.chain(*[s._annotations for s in self.sectors]))
         track_ann = list(itertools.chain(*[t._annotations for t in self.tracks]))
         return circos_ann + sector_ann + track_ann
-
 
     def _adjust_annotation(self) -> None:
         """Adjust annotation text position"""

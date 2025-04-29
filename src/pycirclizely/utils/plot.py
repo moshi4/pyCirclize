@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import math
-import numpy as np
-from typing import Any, Literal
+from copy import deepcopy
+from typing import Literal
 
+import numpy as np
 from pycirclizely_TEST import config
+
 
 def degrees(rad: float) -> float:
     """Convert radian to positive degree (`0 - 360`)
@@ -142,32 +143,44 @@ def plot_bbox(bbox: Bbox, ax: PolarAxes, **kwargs) -> None:
     ax.plot(x, y, transform=ax.transAxes, **kwargs)
 
 
-def get_plotly_label_params(rad: float, adjust_rotation: bool, orientation: str, outer: bool = True, 
-                            only_rotation: bool = False, **kwargs) -> dict:
+def get_plotly_label_params(
+    rad: float,
+    adjust_rotation: bool,
+    orientation: str,
+    outer: bool = True,
+    only_rotation: bool = False,
+    **kwargs,
+) -> dict:
     # Start with global defaults
     annotation = deepcopy(config.plotly_annotation_defaults)
-    
+
     if not only_rotation:
         # Apply orientation-specific defaults
-        orientation_defaults = config.plotly_text_orientation_defaults.get(orientation, {})
+        orientation_defaults = config.plotly_text_orientation_defaults.get(
+            orientation, {}
+        )
         annotation.update(orientation_defaults)
-        
+
         # Handle outer/inner alignment
         if not outer:
             if orientation == "horizontal":
-                annotation["yanchor"] = "bottom" if annotation["yanchor"] == "top" else "top"
+                annotation["yanchor"] = (
+                    "bottom" if annotation["yanchor"] == "top" else "top"
+                )
             elif orientation == "vertical":
-                annotation["xanchor"] = "right" if annotation["xanchor"] == "left" else "left"
+                annotation["xanchor"] = (
+                    "right" if annotation["xanchor"] == "left" else "left"
+                )
         else:
             annotation["xanchor"] = "center"
             annotation["yanchor"] = "middle"
-    
+
     # Override with user-provided kwargs
     annotation.update(kwargs)
 
     if adjust_rotation:
         rotation = np.degrees(rad)
-        
+
         if orientation == "horizontal":
             rotation = rotation % 360
             # Flip if upside-down
@@ -182,11 +195,8 @@ def get_plotly_label_params(rad: float, adjust_rotation: bool, orientation: str,
 
     return annotation
 
+
 def build_plotly_shape(path: str, **kwargs) -> dict:
     shape_defaults = deepcopy(config.plotly_shape_defaults)
     shape_defaults.update(**kwargs)
-    return {
-        "type": "path",
-        "path": path,
-        **shape_defaults
-    }
+    return {"type": "path", "path": path, **shape_defaults}

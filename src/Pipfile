@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+biopython = "==1.85"
+numpy = "==2.0.*"
+pandas = "==2.2.*"
+python-dateutil = "==2.9.*"
+pytz = "==2025.2"
+six = "==1.17.*"
+tzdata = "==2025.2"
+plotly = "==5.24.*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

@@ -8,10 +8,9 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from plotly.graph_objs.layout._shape import Shape
-from plotly.graph_objs.layout._annotation import Annotation 
 from PIL import Image, ImageOps
-
+from plotly.graph_objs.layout._annotation import Annotation
+from plotly.graph_objs.layout._shape import Shape
 from pycirclizely_TEST import config, utils
 from pycirclizely_TEST.patches import PolarSVGPatchBuilder
 from pycirclizely_TEST.track import Track
@@ -123,7 +122,6 @@ class Sector:
     def annotations(self) -> list[Annotation]:
         """Plot functions"""
         return self._annotations
-
 
     ############################################################
     # Public Method
@@ -285,17 +283,21 @@ class Sector:
         """
         x = self.center if x is None else x
         rad = self.x_to_rad(x, ignore_range_error)
-        plotly_rad = -(rad - np.pi/2)
+        plotly_rad = -(rad - np.pi / 2)
         x_pos = r * np.cos(plotly_rad)
         y_pos = r * np.sin(plotly_rad)
 
-        annotation = utils.plot.get_plotly_label_params(rad, adjust_rotation, orientation, outer, **kwargs)
+        annotation = utils.plot.get_plotly_label_params(
+            rad, adjust_rotation, orientation, outer, **kwargs
+        )
 
-        annotation.update({
-            "x": x_pos,
-            "y": y_pos,
-            "text": text,
-        })
+        annotation.update(
+            {
+                "x": x_pos,
+                "y": y_pos,
+                "text": text,
+            }
+        )
 
         self._annotations.append(annotation)
 
@@ -368,7 +370,7 @@ class Sector:
         radr = (min_rad, min(r_lim))
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
-        
+
         path = PolarSVGPatchBuilder.arc_rectangle(radr, width, height)
         shape = utils.plot.build_plotly_shape(path, **kwargs)
         self._shapes.append(shape)

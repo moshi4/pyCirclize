@@ -1,11 +1,12 @@
+---
 name: CI
 on:
   push:
     branches: [main, develop]
-    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
+    paths: [src/**, tests/**, .github/workflows/ci.yml]
   pull_request:
     branches: [main, develop]
-    paths: ["src/**", "tests/**", ".github/workflows/ci.yml"]
+    paths: [src/**, tests/**, .github/workflows/ci.yml]
   workflow_dispatch:
 
 jobs:
@@ -14,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -1,7 +1,7 @@
 # pyCirclizely: Circular visualization in Python, plotly implemented
 
 ![Python3](https://img.shields.io/badge/Language-Python3-steelblue)
-![OS](https://img.shields.io/badge/OS-_Windows_|_Mac_|_Linux-steelblue)
+![OS](https://img.shields.io/badge/OS-_Windows_%7C_Mac_%7C_Linux-steelblue)
 ![License](https://img.shields.io/badge/License-MIT-steelblue)
 
 ## Table of contents
