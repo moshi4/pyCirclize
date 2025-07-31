@@ -23,7 +23,7 @@ class Genbank:
 
     def __init__(
         self,
-        gbk_source: str | Path | TextIOWrapper | list[SeqRecord],
+        gbk_source: str | Path | StringIO | TextIOWrapper | list[SeqRecord],
         *,
         name: str | None = None,
         min_range: None = None,
@@ -32,7 +32,7 @@ class Genbank:
         """
         Parameters
         ----------
-        gbk_source : str | Path | TextIOWrapper | list[SeqRecord]
+        gbk_source : str | Path | StringIO | TextIOWrapper | list[SeqRecord]
             Genbank file or source
             (`*.gz`, `*.bz2`, `*.zip` compressed file can be readable)
         name : str | None, optional
@@ -392,13 +392,13 @@ class Genbank:
     ############################################################
 
     def _parse_gbk_source(
-        self, gbk_source: str | Path | TextIOWrapper
+        self, gbk_source: str | Path | StringIO | TextIOWrapper
     ) -> list[SeqRecord]:
         """Parse genbank source
 
         Parameters
         ----------
-        gbk_source : str | Path | TextIOWrapper
+        gbk_source : str | Path | StringIO | TextIOWrapper
             Genbank file or source
 
         Returns
