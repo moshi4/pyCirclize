@@ -22,24 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Install Python ${{ matrix.python-version }} & dependencies
-        run: |
-          rye pin ${{ matrix.python-version }}
-          rye sync --update-all --all-features
+        run: uv sync --all-extras --all-groups --upgrade --python ${{ matrix.python-version }}
 
       - name: Run ruff lint check
-        run: rye run ruff check --diff
+        run: uv run ruff check --diff
 
       - name: Run ruff format check
-        run: rye run ruff format --check --diff
+        run: uv run ruff format --check --diff
 
       - name: Run pytest
-        run: rye run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+        run: uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
 
       - name: Pytest Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
