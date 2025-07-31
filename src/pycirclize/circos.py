@@ -32,10 +32,10 @@ from pycirclize.patches import (
     Line,
 )
 from pycirclize.sector import Sector
+from pycirclize.tooltip import gen_gid, set_patch_tooltip, to_link_tooltip
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
 from pycirclize.utils.annotation import adjust_annotation
-from pycirclize.utils.tooltip import gen_gid, set_patch_tooltip, to_link_tooltip
 
 
 class Circos:

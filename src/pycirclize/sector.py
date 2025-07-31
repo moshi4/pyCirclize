@@ -14,9 +14,9 @@ from PIL import Image, ImageOps
 
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle, Line
+from pycirclize.tooltip import gen_gid
 from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
-from pycirclize.utils.tooltip import gen_gid
 
 
 class Sector:

@@ -19,9 +19,9 @@ from PIL import Image
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
 from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
+from pycirclize.tooltip import gen_gid, set_collection_tooltip, to_feature_tooltip
 from pycirclize.tree import TreeViz
 from pycirclize.utils.plot import select_textcolor
-from pycirclize.utils.tooltip import gen_gid, set_collection_tooltip, to_feature_tooltip
 
 if TYPE_CHECKING:
     # Avoid Sector <-> Track circular import error at runtime
