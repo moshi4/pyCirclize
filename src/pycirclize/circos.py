@@ -23,6 +23,7 @@ from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
+from pycirclize.annotation import adjust_annotation
 from pycirclize.parser import Bed, Matrix, RadarTable
 from pycirclize.patches import (
     ArcLine,
@@ -35,7 +36,6 @@ from pycirclize.sector import Sector
 from pycirclize.tooltip import gen_gid, set_patch_tooltip, to_link_tooltip
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
-from pycirclize.utils.annotation import adjust_annotation
 
 
 class Circos:
