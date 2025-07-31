@@ -37,6 +37,7 @@ from pycirclize.patches import (
 from pycirclize.sector import Sector
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
+from pycirclize.utils.tooltip import gen_gid, set_patch_tooltip, to_link_tooltip
 
 
 class Circos:
@@ -119,6 +120,7 @@ class Circos:
         self._rad_lim = (math.radians(start), math.radians(end))
         self._patches: list[Patch] = []
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
+        self._gid2tooltip: dict[str, str] = {}
         self._ax: PolarAxes | None = None
         self._show_axis_for_debug = show_axis_for_debug
 
@@ -173,6 +175,21 @@ class Circos:
     ############################################################
     # Public Method
     ############################################################
+
+    @classmethod
+    def set_tooltip_enabled(cls, enabled: bool = True):
+        """Enable/disable tooltip annotation using ipympl"""
+        if enabled:
+            try:
+                import ipympl  # noqa: F401
+                from IPython import get_ipython  # type: ignore
+
+                get_ipython().run_line_magic("matplotlib", "widget")
+                config.tooltip.enabled = True
+            except Exception:
+                warnings.warn("Failed to enable tooltip. To enable tooltip, an interactive python environment such as jupyter and ipympl installation are required.")  # fmt: skip  # noqa: E501
+        else:
+            config.tooltip.enabled = False
 
     @staticmethod
     def radar_chart(
@@ -309,6 +326,7 @@ class Circos:
                 marker_kws.setdefault("marker", "o")
                 marker_kws.setdefault("zorder", 2)
                 marker_kws.update(s=marker_size**2)
+                marker_kws.update(tooltip=radar_table.get_row_tooltip(row_name))
                 track.scatter(x, y, vmin=vmin, vmax=vmax, color=color, **marker_kws)
             if fill:
                 fill_kws = dict(arc=False, color=color, alpha=0.5)
@@ -858,6 +876,12 @@ class Circos:
             if (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
                 rad_start2, rad_end2 = rad_end2, rad_start2
 
+        # Set tooltip content
+        gid = gen_gid("link")
+        kwargs["gid"] = gid
+        tooltip = to_link_tooltip(sector_region1, sector_region2, direction)
+        self._gid2tooltip[gid] = tooltip
+
         # Create bezier curve path patch
         bezier_curve_link = BezierCurveLink(
             rad_start1,
@@ -1007,6 +1031,7 @@ class Circos:
         *,
         ax: PolarAxes | None = None,
         figsize: tuple[float, float] = (8, 8),
+        tooltip: bool = False,
     ) -> Figure:
         """Plot figure
 
@@ -1018,12 +1043,19 @@ class Circos:
             If None, figure and axes are newly created.
         figsize : tuple[float, float], optional
             Figure size
+        tooltip : bool, optional
+            If True, display tooltip on jupyter using `ipympl`.
+            In the case of plotting on user-defined axes(figure),
+            `Circos.set_tooltip_enabled()` must be called before
+            creating figure to display tooltip.
 
         Returns
         -------
         figure : Figure
             Circos matplotlib figure
         """
+        self.set_tooltip_enabled(tooltip)
+
         if ax is None:
             # Initialize Figure & PolarAxes
             fig, ax = self._initialize_figure(figsize=figsize, dpi=dpi)
@@ -1047,7 +1079,8 @@ class Circos:
             patch.set_clip_on(False)
             # Collection cannot handle `zorder`, `hatch`
             # Separate default or user-defined `zorder`, `hatch` property patch
-            if patch.get_zorder() == 1 and patch.get_hatch() is None:
+            zorder, hatch = patch.get_zorder(), patch.get_hatch()
+            if not config.tooltip.enabled and zorder == 1 and hatch is None:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
@@ -1060,6 +1093,10 @@ class Circos:
         # Adjust annotation text position
         if config.ann_adjust.enable:
             self._adjust_annotation()
+
+        # Display patch tooltip
+        if config.tooltip.enabled:
+            set_patch_tooltip(ax, ax.patches, self._get_all_gid2tooltip())
 
         return fig  # type: ignore
 
@@ -1218,6 +1255,22 @@ class Circos:
             All tree visualization instance list
         """
         return list(itertools.chain(*[t._trees for t in self.tracks]))
+
+    def _get_all_gid2tooltip(self) -> dict[str, str]:
+        """Get all gid & tooltip dict
+
+        Returns
+        -------
+        gid2tooltip : dict[str, str]
+            Group ID & tooltip dict
+        """
+        all_gid2tooltip: dict[str, str] = {}
+        all_gid2tooltip |= self._gid2tooltip
+        for sector in self.sectors:
+            all_gid2tooltip |= sector._gid2tooltip
+        for track in self.tracks:
+            all_gid2tooltip |= track._gid2tooltip
+        return all_gid2tooltip
 
     def _adjust_annotation(self) -> None:
         """Adjust annotation text position"""

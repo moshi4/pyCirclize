@@ -70,6 +70,23 @@ class _AnnotationAdjustConfig:
     """Max radian of Annotation position shift (default: `math.radians(3.0)`)"""
 
 
+class _TooltipConfig:
+    """Tooltip Display Config"""
+
+    enabled: ClassVar[bool] = False
+    """Enabled tooltip display"""
+    fontsize: ClassVar[int] = 9
+    """Font size (default: `9`)"""
+    fc: ClassVar[str | None] = None
+    """Facecolor (default: `cursor hover patch facecolor`)"""
+    lw: ClassVar[float] = 0.5
+    """Linewidth (default: `0.5`)"""
+    margin: ClassVar[float] = 15
+    """Margin between tooltip and cursor (default: `15`)"""
+    boxstyle: ClassVar[str] = "round"
+    """Boxstyle (default: `round`)"""
+
+
 clear_savefig: bool = True
 """
 By default, after saving a figure using the `savefig()` method, figure object is
@@ -78,6 +95,7 @@ If you want to display the figure on jupyter notebook using `savefig()` method,
 set clear_savefig=False.
 """
 ann_adjust = _AnnotationAdjustConfig
+tooltip = _TooltipConfig
 
 
 ###########################################################

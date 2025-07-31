@@ -3,9 +3,10 @@ from __future__ import annotations
 import math
 from typing import Any, Literal
 
-from matplotlib.colors import Normalize
+from matplotlib.colors import Normalize, to_rgb
 from matplotlib.projections import PolarAxes
 from matplotlib.transforms import Bbox
+from matplotlib.typing import ColorType
 
 
 def degrees(rad: float) -> float:
@@ -23,6 +24,9 @@ def degrees(rad: float) -> float:
     """
     # Radian to degree
     deg = math.degrees(rad)
+    min_thr = 1e-10
+    if abs(deg) < min_thr:
+        deg = 0
     # Normalize degree in 0 - 360 range
     deg = deg % 360
     # Negative to positive
@@ -63,6 +67,35 @@ def is_right_loc(rad: float) -> bool:
     """
     deg = math.degrees(rad)
     return -360 <= deg < -180 or 0 <= deg < 180
+
+
+def select_textcolor(fc: ColorType) -> str:
+    """Select `black` or `white` appropriate textcolor from facecolor relative luminance
+
+    Relative luminance: <https://www.w3.org/TR/WCAG21/#dfn-relative-luminance>
+
+    Parameters
+    ----------
+    fc : ColorType
+        Target facecolor
+
+    Returns
+    -------
+    textcolor : str
+        `black` or `white`
+    """
+
+    def calc_relative_luminance(color: ColorType) -> float:
+        """Calculate relative luminance (0.0 - 1.0)"""
+        color = to_rgb(color)
+        r, g, b = map(
+            lambda v: v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4,
+            color,
+        )
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    lum = calc_relative_luminance(fc)
+    return "black" if lum > 0.5 else "white"
 
 
 def is_ann_rad_shift_target_loc(rad: float) -> bool:

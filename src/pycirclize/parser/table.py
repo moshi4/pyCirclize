@@ -207,3 +207,11 @@ class RadarTable(Table):
         for row_name in self.row_names:
             row_name2values[row_name] = list(self.dataframe.loc[row_name])
         return row_name2values
+
+    def get_row_tooltip(self, target_row: str) -> list[str]:
+        """Get target row tooltip"""
+        tooltip: list[str] = []
+        values = self.row_name2values[target_row]
+        for col_name, v in zip(self.col_names, values):
+            tooltip.append(f"{target_row}\n{col_name}:{v}")
+        return tooltip
