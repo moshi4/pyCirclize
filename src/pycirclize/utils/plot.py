@@ -98,23 +98,6 @@ def select_textcolor(fc: ColorType) -> str:
     return "black" if lum > 0.5 else "white"
 
 
-def is_ann_rad_shift_target_loc(rad: float) -> bool:
-    """Check radian is annotation radian shift target or not
-
-    Parameters
-    ----------
-    rad : float
-        Annotation radian position
-
-    Returns
-    -------
-    result : bool
-        Target or not
-    """
-    deg = degrees(rad)
-    return 30 <= deg <= 150 or 210 <= deg <= 330
-
-
 def get_loc(
     rad: float,
 ) -> Literal["upper-right", "lower-right", "lower-left", "upper-left"]:
