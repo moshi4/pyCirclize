@@ -14,6 +14,7 @@ from matplotlib.patches import Patch, Rectangle
 from matplotlib.projections import PolarAxes
 
 from pycirclize import config
+from pycirclize.parser.bed import BedRecord
 from pycirclize.utils.plot import degrees, is_lower_loc, is_right_loc, select_textcolor
 
 
@@ -84,6 +85,17 @@ def to_node_tooltip(node: Clade) -> str:
     if node.confidence is not None:
         tooltip += f"\nBootstrap: {node.confidence}"
     return tooltip
+
+
+def to_cytoband_tooltip(rec: BedRecord) -> str:
+    """Convert cytoband bed record to tooltip text"""
+    return textwrap.dedent(
+        f"""
+        Cytoband: {rec.name} ({rec.chr})
+        Start: {rec.start:,}
+        End: {rec.end:,}
+        """
+    )[1:-1]
 
 
 def set_patch_tooltip(

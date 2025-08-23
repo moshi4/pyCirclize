@@ -33,7 +33,12 @@ from pycirclize.patches import (
     Line,
 )
 from pycirclize.sector import Sector
-from pycirclize.tooltip import gen_gid, set_patch_tooltip, to_link_tooltip
+from pycirclize.tooltip import (
+    gen_gid,
+    set_patch_tooltip,
+    to_cytoband_tooltip,
+    to_link_tooltip,
+)
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
 
@@ -644,7 +649,8 @@ class Circos:
             for rec in cytoband_records:
                 if sector.name == rec.chr:
                     color = cytoband_cmap.get(str(rec.score), "white")
-                    track.rect(rec.start, rec.end, fc=color)
+                    tooltip = to_cytoband_tooltip(rec)
+                    track.rect(rec.start, rec.end, tooltip=tooltip, fc=color)
 
     def get_sector(self, name: str) -> Sector:
         """Get sector by name
