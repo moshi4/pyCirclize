@@ -14,6 +14,7 @@ from PIL import Image, ImageOps
 
 from pycirclize import config, utils
 from pycirclize.patches import ArcLine, ArcRectangle, Line
+from pycirclize.tooltip import gen_gid
 from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
 
@@ -54,6 +55,7 @@ class Sector:
 
         # Plot data and functions
         self._patches: list[Patch] = []
+        self._gid2tooltip: dict[str, str] = {}
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
 
     ############################################################
@@ -217,7 +219,7 @@ class Sector:
 
         if not self.clockwise:
             x = (self.start + self.end) - x
-        size_ratio = self.rad_size / self.size
+        size_ratio = self.rad_size / self.size if self.size != 0 else 0
         x_from_start = x - self.start
         rad_from_start = x_from_start * size_ratio
         rad = min(self.rad_lim) + rad_from_start
@@ -334,6 +336,7 @@ class Sector:
         start: float | None = None,
         end: float | None = None,
         r_lim: tuple[float, float] | None = None,
+        tooltip: str | None = None,
         **kwargs,
     ) -> None:
         """Plot rectangle
@@ -346,6 +349,8 @@ class Sector:
             End position (x coordinate). If None, `sector.end` is set.
         r_lim : tuple[float, float] | None, optional
             Radius limit region. If None, (0, 100) is set.
+        tooltip : str | None, optional
+            Tooltip label
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -362,6 +367,12 @@ class Sector:
         radr = (min_rad, min(r_lim))
         width = max_rad - min_rad
         height = max(r_lim) - min(r_lim)
+
+        if tooltip:
+            gid = gen_gid("rect")
+            self._gid2tooltip[gid] = tooltip
+            kwargs["gid"] = gid
+
         self._patches.append(ArcRectangle(radr, width, height, **kwargs))
 
     def raster(

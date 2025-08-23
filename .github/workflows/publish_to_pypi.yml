@@ -15,13 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Build
-        run: rye build
+        run: uv build
 
       - name: Publish
-        run: rye publish -u $PYPI_USERNAME --token $PYPI_PASSWORD -y
+        run: uv publish -u $PYPI_USERNAME --token $PYPI_PASSWORD

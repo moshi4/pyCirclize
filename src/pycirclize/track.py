@@ -19,7 +19,9 @@ from PIL import Image
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
 from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
+from pycirclize.tooltip import gen_gid, set_collection_tooltip, to_feature_tooltip
 from pycirclize.tree import TreeViz
+from pycirclize.utils.plot import select_textcolor
 
 if TYPE_CHECKING:
     # Avoid Sector <-> Track circular import error at runtime
@@ -60,6 +62,7 @@ class Track:
 
         # Plot data and functions
         self._patches: list[Patch] = []
+        self._gid2tooltip: dict[str, str] = {}
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
         self._trees: list[TreeViz] = []
 
@@ -264,6 +267,7 @@ class Track:
         *,
         r_lim: tuple[float, float] | None = None,
         ignore_pad: bool = False,
+        tooltip: str | None = None,
         **kwargs,
     ) -> None:
         """Plot rectangle
@@ -281,6 +285,8 @@ class Track:
         ignore_pad : bool, optional
             If True, ignore track padding setting.
             If `r_lim` param is set by user, this option not works.
+        tooltip : str | None, optional
+            Tooltip label
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -299,6 +305,10 @@ class Track:
             radr, height = (rad, min(self.r_lim)), self.r_size
         else:
             radr, height = (rad, min(self.r_plot_lim)), self.r_plot_size
+        if tooltip:
+            gid = gen_gid("rect")
+            self._gid2tooltip[gid] = tooltip
+            kwargs["gid"] = gid
         arc_rect = ArcRectangle(radr, width, height, **kwargs)
         self._patches.append(arc_rect)
 
@@ -310,6 +320,7 @@ class Track:
         r_lim: tuple[float, float] | None = None,
         head_length: float = 2,
         shaft_ratio: float = 0.5,
+        tooltip: str | None = None,
         **kwargs,
     ) -> None:
         """Plot arrow
@@ -326,6 +337,8 @@ class Track:
             Arrow head length (Degree unit)
         shaft_ratio : float, optional
             Arrow shaft ratio (0 - 1.0)
+        tooltip : str | None, optional
+            Tooltip label
         **kwargs : dict, optional
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
@@ -340,6 +353,10 @@ class Track:
             if not min_range <= min(r_lim) < max(r_lim) <= max_range:
                 raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
             r, dr = min(r_lim), max(r_lim) - min(r_lim)
+        if tooltip:
+            gid = gen_gid("arrow")
+            self._gid2tooltip[gid] = tooltip
+            kwargs["gid"] = gid
         arc_arrow = ArcArrow(
             rad=rad_arrow_start,
             r=r,
@@ -776,6 +793,7 @@ class Track:
         *,
         vmin: float = 0,
         vmax: float | None = None,
+        tooltip: list[str] | None = None,
         **kwargs,
     ) -> None:
         """Plot scatter
@@ -790,8 +808,10 @@ class Track:
             Y min value
         vmax : float | None, optional
             Y max value. If None, `max(y)` is set.
+        tooltip : list[str] | None, optional
+            Tooltip labels. If None, y value labels are set.
         **kwargs : dict, optional
-            Axes.scatter properties (e.g. `ec="black", lw=1.0, ...`)
+            Axes.scatter properties (e.g. `s=9, ec="black", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.scatter.html>
         """
         # Check x, y list length
@@ -803,9 +823,12 @@ class Track:
         vmax = max(y) if vmax is None else vmax
         self._check_value_min_max(y, vmin, vmax)
         r = [self._y_to_r(v, vmin, vmax) for v in y]
+        labels = [str(v) for v in y] if tooltip is None else tooltip
 
         def plot_scatter(ax: PolarAxes) -> None:
-            ax.scatter(rad, r, **kwargs)  # type:ignore
+            scatter = ax.scatter(rad, r, **kwargs)  # type:ignore
+            if config.tooltip.enabled:
+                set_collection_tooltip(ax, scatter, labels)
 
         self._plot_funcs.append(plot_scatter)
 
@@ -866,7 +889,7 @@ class Track:
         rad_width = self.rad_size * (width / self.size)
 
         def plot_bar(ax: PolarAxes) -> None:
-            ax.bar(
+            bar = ax.bar(
                 rad,  # type: ignore
                 r_height,
                 rad_width,
@@ -874,6 +897,11 @@ class Track:
                 align=align,  # type: ignore
                 **kwargs,
             )
+            if config.tooltip.enabled:
+                for p, h in zip(bar.patches, height):
+                    gid = gen_gid("bar")
+                    p.set_gid(gid)
+                    self._gid2tooltip[gid] = str(h)
 
         self._plot_funcs.append(plot_bar)
 
@@ -1190,17 +1218,20 @@ class Track:
         # Plot heatmap
         colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]  # type: ignore
         norm = Normalize(vmin=vmin, vmax=vmax)
+        textcolor = text_kws.get("color")
         for row_idx, row in enumerate(data):
             for col_idx, v in enumerate(row):
                 # Plot heatmap rectangle
                 rect_start, rect_end = x_range_list[col_idx]
                 rect_r_lim = r_range_list[row_idx]
                 color = colormap(norm(v))
-                rect_kws.update(dict(fc=color, facecolor=color))
+                rect_kws.update(dict(fc=color, facecolor=color, tooltip=str(v)))
                 self.rect(rect_start, rect_end, r_lim=rect_r_lim, **rect_kws)
 
                 if show_value:
                     # Plot value text on heatmap rectangle
+                    if textcolor is None:
+                        text_kws["color"] = select_textcolor(color)
                     text_value = f"{v:.2f}" if isinstance(v, float) else str(v)
                     text_x = (rect_end + rect_start) / 2
                     text_r = sum(rect_r_lim) / 2
@@ -1397,10 +1428,11 @@ class Track:
                 continue
             if feature.location.strand == -1:
                 start, end = end, start
+            tooltip = to_feature_tooltip(feature)
             if plotstyle == "box":
-                self.rect(start, end, r_lim=r_lim, **kwargs)
+                self.rect(start, end, r_lim=r_lim, tooltip=tooltip, **kwargs)
             elif plotstyle == "arrow":
-                self.arrow(start, end, r_lim=r_lim, **kwargs)
+                self.arrow(start, end, r_lim=r_lim, tooltip=tooltip, **kwargs)
             else:
                 raise ValueError(f"{plotstyle=} is invalid ('box' or 'arrow').")
 

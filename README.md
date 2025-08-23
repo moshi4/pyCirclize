@@ -13,7 +13,7 @@
 - [Installation](#installation)
 - [API Usage](#api-usage)
 - [Code Example](#code-example)
-- [Not Implemented Features](#not-implemented-features)
+- [Tooltip Option](#tooltip-option)
 - [Star History](#star-history)
 
 ## Overview
@@ -29,7 +29,7 @@ More detailed documentation is available [here](https://moshi4.github.io/pyCircl
 
 ## Installation
 
-`Python 3.9 or later` is required for installation.
+`Python 3.10 or later` is required for installation.
 
 **Install PyPI package:**
 
@@ -139,7 +139,7 @@ for sector in circos.sectors:
         if gene_name is not None:
             labels.append(gene_name)
             label_pos_list.append(label_pos)
-    f_cds_track.xticks(label_pos_list, labels, label_size=6, label_orientation="vertical")
+            f_cds_track.annotate(label_pos, gene_name, label_size=6)
 
     # Plot xticks (interval = 10 Kb)
     r_cds_track.xticks_by_interval(
@@ -263,16 +263,23 @@ fig.savefig("example05.png")
 
 ![example05.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example05.png)  
 
-## Not Implemented Features
+## Tooltip Option
 
-List of features implemented in other Circos plotting tools but not yet implemented in pyCirclize.
-I may implement them when I feel like it.
+pyCirclize supports tooltip display in jupyter using [ipympl](https://github.com/matplotlib/ipympl).
+To enable tooltip, install pycirclize with ipympl and call `circos.plotfig(tooltip=True)` method.
+Tooltip option is tested on jupyter notebooks in VScode and JupyterLab.
 
-- Plot histogram
-- Plot boxplot
-- Plot violin
-- Plot curved text
-- Adjust overlap label position
+```shell
+pip install pycirclize[tooltip]
+# or
+conda install -c conda-forge pycirclize ipympl
+```
+
+> [!WARNING]
+> Interactive tooltip plots require live python kernel.
+> Be aware that tooltips are not always enabled in the notebook after plotting.
+
+![pyCirclize_tooltip.gif](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/pyCirclize_tooltip.gif)  
 
 ## Star History
 

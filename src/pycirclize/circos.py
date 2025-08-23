@@ -21,11 +21,9 @@ from matplotlib.colors import Colormap, Normalize
 from matplotlib.figure import Figure
 from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
-from matplotlib.text import Annotation, Text
-from matplotlib.transforms import Bbox
-from numpy.typing import NDArray
 
 from pycirclize import config, utils
+from pycirclize.annotation import adjust_annotation
 from pycirclize.parser import Bed, Matrix, RadarTable
 from pycirclize.patches import (
     ArcLine,
@@ -35,6 +33,12 @@ from pycirclize.patches import (
     Line,
 )
 from pycirclize.sector import Sector
+from pycirclize.tooltip import (
+    gen_gid,
+    set_patch_tooltip,
+    to_cytoband_tooltip,
+    to_link_tooltip,
+)
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
 
@@ -119,6 +123,7 @@ class Circos:
         self._rad_lim = (math.radians(start), math.radians(end))
         self._patches: list[Patch] = []
         self._plot_funcs: list[Callable[[PolarAxes], None]] = []
+        self._gid2tooltip: dict[str, str] = {}
         self._ax: PolarAxes | None = None
         self._show_axis_for_debug = show_axis_for_debug
 
@@ -173,6 +178,21 @@ class Circos:
     ############################################################
     # Public Method
     ############################################################
+
+    @classmethod
+    def set_tooltip_enabled(cls, enabled: bool = True):
+        """Enable/disable tooltip annotation using ipympl"""
+        if enabled:
+            try:
+                import ipympl  # noqa: F401
+                from IPython import get_ipython  # type: ignore
+
+                get_ipython().run_line_magic("matplotlib", "widget")
+                config.tooltip.enabled = True
+            except Exception:
+                warnings.warn("Failed to enable tooltip. To enable tooltip, an interactive python environment such as jupyter and ipympl installation are required.")  # fmt: skip  # noqa: E501
+        else:
+            config.tooltip.enabled = False
 
     @staticmethod
     def radar_chart(
@@ -309,6 +329,7 @@ class Circos:
                 marker_kws.setdefault("marker", "o")
                 marker_kws.setdefault("zorder", 2)
                 marker_kws.update(s=marker_size**2)
+                marker_kws.update(tooltip=radar_table.get_row_tooltip(row_name))
                 track.scatter(x, y, vmin=vmin, vmax=vmax, color=color, **marker_kws)
             if fill:
                 fill_kws = dict(arc=False, color=color, alpha=0.5)
@@ -628,7 +649,8 @@ class Circos:
             for rec in cytoband_records:
                 if sector.name == rec.chr:
                     color = cytoband_cmap.get(str(rec.score), "white")
-                    track.rect(rec.start, rec.end, fc=color)
+                    tooltip = to_cytoband_tooltip(rec)
+                    track.rect(rec.start, rec.end, tooltip=tooltip, fc=color)
 
     def get_sector(self, name: str) -> Sector:
         """Get sector by name
@@ -858,6 +880,12 @@ class Circos:
             if (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
                 rad_start2, rad_end2 = rad_end2, rad_start2
 
+        # Set tooltip content
+        gid = gen_gid("link")
+        kwargs["gid"] = gid
+        tooltip = to_link_tooltip(sector_region1, sector_region2, direction)
+        self._gid2tooltip[gid] = tooltip
+
         # Create bezier curve path patch
         bezier_curve_link = BezierCurveLink(
             rad_start1,
@@ -1007,6 +1035,7 @@ class Circos:
         *,
         ax: PolarAxes | None = None,
         figsize: tuple[float, float] = (8, 8),
+        tooltip: bool = False,
     ) -> Figure:
         """Plot figure
 
@@ -1018,12 +1047,19 @@ class Circos:
             If None, figure and axes are newly created.
         figsize : tuple[float, float], optional
             Figure size
+        tooltip : bool, optional
+            If True, display tooltip on jupyter using `ipympl`.
+            In the case of plotting on user-defined axes(figure),
+            `Circos.set_tooltip_enabled()` must be called before
+            creating figure to display tooltip.
 
         Returns
         -------
         figure : Figure
             Circos matplotlib figure
         """
+        self.set_tooltip_enabled(tooltip)
+
         if ax is None:
             # Initialize Figure & PolarAxes
             fig, ax = self._initialize_figure(figsize=figsize, dpi=dpi)
@@ -1047,7 +1083,8 @@ class Circos:
             patch.set_clip_on(False)
             # Collection cannot handle `zorder`, `hatch`
             # Separate default or user-defined `zorder`, `hatch` property patch
-            if patch.get_zorder() == 1 and patch.get_hatch() is None:
+            zorder, hatch = patch.get_zorder(), patch.get_hatch()
+            if not config.tooltip.enabled and zorder == 1 and hatch is None:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
@@ -1059,7 +1096,11 @@ class Circos:
 
         # Adjust annotation text position
         if config.ann_adjust.enable:
-            self._adjust_annotation()
+            adjust_annotation(ax)
+
+        # Display patch tooltip
+        if config.tooltip.enabled:
+            set_patch_tooltip(ax, ax.patches, self._get_all_gid2tooltip())
 
         return fig  # type: ignore
 
@@ -1219,113 +1260,18 @@ class Circos:
         """
         return list(itertools.chain(*[t._trees for t in self.tracks]))
 
-    def _adjust_annotation(self) -> None:
-        """Adjust annotation text position"""
-        # Get sorted annotation list for position adjustment
-        ann_list = self._get_sorted_ann_list()
-        if len(ann_list) == 0 or config.ann_adjust.max_iter <= 0:
-            return
-        if len(ann_list) > config.ann_adjust.limit:
-            warnings.warn(f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done.")  # fmt: skip  # noqa: E501
-            return
-
-        def get_ann_window_extent(ann: Annotation) -> Bbox:
-            return Text.get_window_extent(ann).expanded(*config.ann_adjust.expand)
-
-        # Iterate annotation position adjustment
-        self.ax.figure.draw_without_rendering()  # type: ignore
-        ann2rad_shift_candidates = self._get_ann2rad_shift_candidates(ann_list)
-        for idx, ann in enumerate(ann_list[1:], 1):
-            orig_rad, orig_r = ann.xyann
-            ann_bbox = get_ann_window_extent(ann)
-            adj_ann_list = ann_list[:idx]
-            adj_ann_bboxes = [get_ann_window_extent(ann) for ann in adj_ann_list]
-
-            # Adjust radian position
-            iter, max_iter = 0, config.ann_adjust.max_iter
-            if utils.plot.is_ann_rad_shift_target_loc(orig_rad):
-                for rad_shift_candidate in ann2rad_shift_candidates[str(ann)]:
-                    ann.xyann = (rad_shift_candidate, orig_r)
-                    ann_bbox = get_ann_window_extent(ann)
-                    if ann_bbox.count_overlaps(adj_ann_bboxes) == 0 or iter > max_iter:
-                        break
-                    else:
-                        ann.xyann = (orig_rad, orig_r)
-                    iter += 1
-
-            # Adjust radius position
-            while ann_bbox.count_overlaps(adj_ann_bboxes) > 0 and iter <= max_iter:
-                rad, r = ann.xyann
-                ann.xyann = (rad, r + config.ann_adjust.dr)
-                ann_bbox = get_ann_window_extent(ann)
-                iter += 1
-
-        # Plot annotation text bbox for developer check
-        # for ann in ann_list:
-        #     utils.plot.plot_bbox(get_ann_window_extent(ann), self.ax)
-
-    def _get_sorted_ann_list(self) -> list[Annotation]:
-        """Sorted annotation list
-
-        Sorting per 4 sections for adjusting annotation text position
-        """
-        ann_list = [t for t in self.ax.texts if isinstance(t, Annotation)]
-        loc2ann_list: dict[str, list[Annotation]] = defaultdict(list)
-        for ann in ann_list:
-            loc = utils.plot.get_loc(ann.xyann[0])
-            loc2ann_list[loc].append(ann)
-
-        def sort_by_ann_rad(ann: Annotation):
-            return utils.plot.degrees(ann.xyann[0])
-
-        return (
-            sorted(loc2ann_list["upper-right"], key=sort_by_ann_rad, reverse=True)
-            + sorted(loc2ann_list["lower-right"], key=sort_by_ann_rad, reverse=False)
-            + sorted(loc2ann_list["lower-left"], key=sort_by_ann_rad, reverse=True)
-            + sorted(loc2ann_list["upper-left"], key=sort_by_ann_rad, reverse=False)
-        )
-
-    def _get_ann2rad_shift_candidates(
-        self, ann_list: list[Annotation]
-    ) -> dict[str, NDArray[np.float64]]:
-        """Get candidate radian shift position of annotation text
-
-        Get the candidate radian position to shift of the target annotation
-        based on the radian positions of the previous and next annotations and
-        the maximum radian shift value.
-
-        Parameters
-        ----------
-        ann_list : list[Annotation]
-            Annotation list
+    def _get_all_gid2tooltip(self) -> dict[str, str]:
+        """Get all gid & tooltip dict
 
         Returns
         -------
-        ann2shift_rad_candidates : dict[str, NDArray[np.float64]]
-            Annotation & candidate radian shift position dict
+        gid2tooltip : dict[str, str]
+            Group ID & tooltip dict
         """
-        ann_list = sorted(ann_list, key=lambda a: utils.plot.degrees(a.xyann[0]))
-        ann2rad_shift_candidates: dict[str, NDArray[np.float64]] = {}
-        for idx, curr_ann in enumerate(ann_list):
-            # Get current, prev, next annotation info
-            curr_ann_rad = curr_ann.xyann[0]
-            prev_ann = curr_ann if idx == 0 else ann_list[idx - 1]
-            next_ann = curr_ann if idx == len(ann_list) - 1 else ann_list[idx + 1]
-            prev_ann_rad, next_ann_rad = prev_ann.xyann[0], next_ann.xyann[0]
-            # Get min-max radian shift position
-            if abs(curr_ann_rad - prev_ann_rad) > config.ann_adjust.max_rad_shift:
-                min_rad_shift = curr_ann_rad - config.ann_adjust.max_rad_shift
-            else:
-                min_rad_shift = prev_ann_rad
-            if abs(next_ann_rad - curr_ann_rad) > config.ann_adjust.max_rad_shift:
-                max_rad_shift = curr_ann_rad + config.ann_adjust.max_rad_shift
-            else:
-                max_rad_shift = next_ann_rad
-            # Calculate candidate radian positions between min-max radian shift position
-            # Sort candidate list in order of nearest to current annotation radian
-            drad = config.ann_adjust.drad
-            candidates = np.arange(min_rad_shift, max_rad_shift + drad, drad)
-            candidates = np.append(candidates, curr_ann_rad)
-            candidates = candidates[np.argsort(np.abs(candidates - curr_ann_rad))]
-            ann2rad_shift_candidates[str(curr_ann)] = candidates
-        return ann2rad_shift_candidates
+        all_gid2tooltip: dict[str, str] = {}
+        all_gid2tooltip |= self._gid2tooltip
+        for sector in self.sectors:
+            all_gid2tooltip |= sector._gid2tooltip
+        for track in self.tracks:
+            all_gid2tooltip |= track._gid2tooltip
+        return all_gid2tooltip
