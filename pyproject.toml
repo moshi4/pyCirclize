@@ -48,6 +48,7 @@ docs = [
     "mkdocstrings[python]>=0.19.0",
     "mkdocs-jupyter>=0.21.0",
     "mkdocs-material>=8.2",
+    "markdown-callouts>=0.4.0",
     "black>=22.3.0",
 ]
 genomics = ["pygenomeviz>=1.5.0"]
