@@ -139,7 +139,7 @@ for sector in circos.sectors:
         if gene_name is not None:
             labels.append(gene_name)
             label_pos_list.append(label_pos)
-    f_cds_track.xticks(label_pos_list, labels, label_size=6, label_orientation="vertical")
+            f_cds_track.annotate(label_pos, gene_name, label_size=6)
 
     # Plot xticks (interval = 10 Kb)
     r_cds_track.xticks_by_interval(
