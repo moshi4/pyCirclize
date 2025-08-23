@@ -13,7 +13,7 @@
 - [Installation](#installation)
 - [API Usage](#api-usage)
 - [Code Example](#code-example)
-- [Not Implemented Features](#not-implemented-features)
+- [Tooltip Option](#tooltip-option)
 - [Star History](#star-history)
 
 ## Overview
@@ -263,16 +263,23 @@ fig.savefig("example05.png")
 
 ![example05.png](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/example05.png)  
 
-## Not Implemented Features
+## Tooltip Option
 
-List of features implemented in other Circos plotting tools but not yet implemented in pyCirclize.
-I may implement them when I feel like it.
+pyCirclize supports tooltip display in jupyter using [ipympl](https://github.com/matplotlib/ipympl).
+To enable tooltip, install pycirclize with ipympl and call `circos.plotfig(tooltip=True)` method.
+Tooltip option is tested on jupyter notebooks in VScode and JupyterLab.
 
-- Plot histogram
-- Plot boxplot
-- Plot violin
-- Plot curved text
-- Adjust overlap label position
+```shell
+pip install pycirclize[tooltip]
+# or
+conda install -c conda-forge pycirclize ipympl
+```
+
+> [!WARNING]
+> Interactive tooltip plots require live python kernel.
+> Be aware that tooltips are not always enabled in the notebook after plotting.
+
+![pyCirclize_tooltip.gif](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/pyCirclize_tooltip.gif)  
 
 ## Star History
 
