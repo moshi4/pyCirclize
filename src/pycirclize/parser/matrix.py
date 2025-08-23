@@ -102,7 +102,7 @@ class Matrix:
         fromto2value = defaultdict(int)
         for row in fromto_table.itertuples():
             from_label, to_label, value = str(row[1]), str(row[2]), row[3]
-            if float(value) > 0:
+            if float(value) >= 0:
                 fromto = f"{from_label}-->{to_label}"
                 fromto2value[fromto] = value
                 label2value_sum[from_label] += value

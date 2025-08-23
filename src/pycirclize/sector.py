@@ -219,7 +219,7 @@ class Sector:
 
         if not self.clockwise:
             x = (self.start + self.end) - x
-        size_ratio = self.rad_size / self.size
+        size_ratio = self.rad_size / self.size if self.size != 0 else 0
         x_from_start = x - self.start
         rad_from_start = x_from_start * size_ratio
         rad = min(self.rad_lim) + rad_from_start
