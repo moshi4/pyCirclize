@@ -31,7 +31,8 @@ def gen_gid(prefix: str | None = None) -> str:
     gid : str
         Group ID
     """
-    return f"{prefix}-{uuid.uuid4()}" if prefix else str(uuid.uuid4())
+    gid = uuid.uuid4().hex
+    return f"{prefix}-{gid}" if prefix else gid
 
 
 def to_feature_tooltip(feature: SeqFeature) -> str:
