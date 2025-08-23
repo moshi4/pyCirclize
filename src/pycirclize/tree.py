@@ -15,6 +15,7 @@ from Bio.Phylo.BaseTree import Clade, Tree
 from matplotlib.patches import Rectangle
 
 from pycirclize import utils
+from pycirclize.tooltip import to_node_tooltip
 
 if TYPE_CHECKING:
     from pycirclize.track import Track
@@ -363,19 +364,28 @@ class TreeViz:
         rmin, rmax = self.track.r_plot_lim
         clade: Clade = next(self.tree.find_clades(target_node_name))
         descendent_nodes: list[Clade] = list(clade.find_clades())
+        tooltips = []
         for descendent_node in descendent_nodes:
             node_x, node_r = self.name2xr[str(descendent_node.name)]
             if descendent_node.is_terminal() and self._align_leaf_label:
                 node_r = rmax if self._outer else rmin
             x.append(node_x)
             r.append(node_r)
+            tooltips.append(to_node_tooltip(descendent_node))
 
         # If `descendent=False`, remove descendent nodes (x, r) coordinate
         if not descendent:
             x, r = [x[0]], [r[0]]
 
         self.track.scatter(
-            x, r, s=size**2, vmin=rmin, vmax=rmax, marker=marker, **kwargs
+            x,
+            r,
+            s=size**2,
+            vmin=rmin,
+            vmax=rmax,
+            tooltip=tooltips,
+            marker=marker,
+            **kwargs,
         )
 
     def set_node_label_props(self, target_node_label: str, **kwargs) -> None:

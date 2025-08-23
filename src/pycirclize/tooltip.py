@@ -5,6 +5,7 @@ import uuid
 from typing import Any, Sequence
 
 import numpy as np
+from Bio.Phylo.BaseTree import Clade
 from Bio.SeqFeature import SeqFeature
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.collections import Collection
@@ -75,6 +76,14 @@ def to_link_tooltip(
           {name1} {direction2symbol[direction]} {name2}
         """
     )[1:-1]
+
+
+def to_node_tooltip(node: Clade) -> str:
+    """Convert tree node to tooltip text"""
+    tooltip = f"Node: {node.name}\nLength: {node.branch_length}"
+    if node.confidence is not None:
+        tooltip += f"\nBootstrap: {node.confidence}"
+    return tooltip
 
 
 def set_patch_tooltip(
