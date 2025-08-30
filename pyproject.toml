@@ -93,10 +93,12 @@ ignore = [
     "D401",    # First line should be in imperative mood
     "D403",    # First word of the first line should be properly capitalized
     "D415",    # First line should end with a period, question mark, or exclamation point
+    "ANN002",  # Missing type annotation for *{name}
     "ANN003",  # Missing type annotation for **{name}
     "PTH123",  # open() should be replaced by Path.open()
     "PLR0913", # Too many arguments in function definition ({c_args} > {max_args})
     "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+    "PLW2901", # Outer {outer_kind} variable {name} overwritten by inner {inner_kind} target
     "UP038",   # Deprecated: Use X | Y in {} call instead of (X, Y)
 ]
 
