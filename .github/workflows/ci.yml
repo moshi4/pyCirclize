@@ -29,10 +29,10 @@ jobs:
         run: uv sync --all-extras --all-groups --upgrade --python ${{ matrix.python-version }}
 
       - name: Run ruff lint check
-        run: uv run ruff check --diff
+        run: uv run ruff check
 
       - name: Run ruff format check
-        run: uv run ruff format --check --diff
+        run: uv run ruff format
 
       - name: Run pytest
         run: uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
@@ -42,4 +42,4 @@ jobs:
         with:
           pytest-coverage-path: pytest-coverage.txt
           junitxml-path: pytest.xml
-        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' && !env.ACT }}
+        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' }}
