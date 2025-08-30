@@ -195,7 +195,13 @@ class Gff:
         )
         return [rec.to_seq_feature() for rec in gff_records]
 
-    def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
+    def extract_exon_features(
+        self,
+        feature_type: str = "mRNA",
+        *,
+        target_strand: int | None = None,
+        target_range: tuple[int, int] | None = None,
+    ) -> list[SeqFeature]:
         """Extract exon structure features
 
         Extract exons based on `parent feature` and `exon` ID-Parent relation
@@ -204,6 +210,10 @@ class Gff:
         ----------
         feature_type : str, optional
             Feature type (e.g. `mRNA`, `ncRNA` , etc...)
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        target_range : tuple[int, int] | None, optional
+            Extract target range. If None, extract regardless of range.
 
         Returns
         -------
@@ -251,7 +261,19 @@ class Gff:
 
             exon_features.append(exon_feature)
 
-        return exon_features
+        # Filter exon features by target strand & range
+        filter_exon_features = []
+        for feature in exon_features:
+            if target_strand is not None and feature.strand != target_strand:
+                continue
+            if target_range is not None:
+                start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
+                min_range, max_range = min(target_range), max(target_range)
+                if not min_range <= start <= end <= max_range:
+                    continue
+            filter_exon_features.append(feature)
+
+        return filter_exon_features
 
     ############################################################
     # Private Method
