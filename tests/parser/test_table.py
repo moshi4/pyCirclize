@@ -10,7 +10,7 @@ class TestStackedBarTable:
     """Test StackedBarTable Class"""
 
     @pytest.fixture
-    def sb_table(self):
+    def sb_table(self) -> StackedBarTable:
         """Initialize stacked bar table fixture"""
         table_df = pd.DataFrame(
             [
@@ -23,7 +23,7 @@ class TestStackedBarTable:
         )
         return StackedBarTable(table_df)
 
-    def test_properties(self, sb_table: StackedBarTable):
+    def test_properties(self, sb_table: StackedBarTable) -> None:
         """Test properties"""
         assert sb_table.row_names == ["row1", "row2", "row3"]
         assert sb_table.col_names == ["col1", "col2", "col3", "col4"]
@@ -56,7 +56,7 @@ class TestStackedBarTable:
         sb_table: StackedBarTable,
         track_size: float,
         expected_x_list: list[float],
-    ):
+    ) -> None:
         """Test `calc_bar_label_x_list()`"""
         x_list = sb_table.calc_bar_label_x_list(track_size)
         assert x_list == expected_x_list
@@ -73,7 +73,7 @@ class TestStackedBarTable:
         sb_table: StackedBarTable,
         track_r_lim: tuple[float, float],
         expected_r_list: list[float],
-    ):
+    ) -> None:
         """Test `calc_barh_label_r_list()`"""
         r_list = sb_table.calc_barh_label_r_list(track_r_lim)
         assert r_list == expected_r_list
@@ -91,7 +91,7 @@ class TestStackedBarTable:
         track_r_lim: tuple[float, float],
         width: float,
         expected_r_lim_list: list[tuple[float, float]],
-    ):
+    ) -> None:
         """Test `calc_barh_r_lim_list()`"""
         r_lim_list = sb_table.calc_barh_r_lim_list(track_r_lim, width)
         assert r_lim_list == expected_r_lim_list
@@ -101,7 +101,7 @@ class TestRaderTable:
     """Test RadarTable Class"""
 
     @pytest.fixture
-    def radar_table(self):
+    def radar_table(self) -> RadarTable:
         """Initialize radar table fixture"""
         table_df = pd.DataFrame(
             data=[
@@ -114,7 +114,7 @@ class TestRaderTable:
         )
         return RadarTable(table_df)
 
-    def test_row_name2values(self, radar_table: RadarTable):
+    def test_row_name2values(self, radar_table: RadarTable) -> None:
         """Test `row_name2values()`"""
         assert radar_table.row_name2values == dict(
             Hero=[80, 80, 80, 80, 80, 80],

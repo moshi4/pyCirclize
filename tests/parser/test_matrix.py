@@ -5,7 +5,7 @@ import pandas as pd
 from pycirclize.parser import Matrix
 
 
-def test_load_dataframe_matrix(matrix_df: pd.DataFrame):
+def test_load_dataframe_matrix(matrix_df: pd.DataFrame) -> None:
     """Test load panda dataframe matrix"""
     # Load pandas matrix dataframe
     matrix = Matrix(matrix_df)
@@ -22,7 +22,7 @@ def test_load_dataframe_matrix(matrix_df: pd.DataFrame):
     matrix.to_links()
 
 
-def test_parse_fromto_table(fromto_table_df: pd.DataFrame):
+def test_parse_fromto_table(fromto_table_df: pd.DataFrame) -> None:
     """Test parse from-to table"""
     # Parse from-to table dataframe
     matrix = Matrix.parse_fromto_table(fromto_table_df)
@@ -38,7 +38,7 @@ def test_parse_fromto_table(fromto_table_df: pd.DataFrame):
     matrix.to_links()
 
 
-def test_load_tsv_matrix(tsv_matrix_file: Path):
+def test_load_tsv_matrix(tsv_matrix_file: Path) -> None:
     """Test load tsv matrix"""
     # Load tsv format matrix file
     matrix = Matrix(tsv_matrix_file)
@@ -55,7 +55,7 @@ def test_load_tsv_matrix(tsv_matrix_file: Path):
     matrix.to_links()
 
 
-def test_load_csv_matrix(csv_matrix_file: Path):
+def test_load_csv_matrix(csv_matrix_file: Path) -> None:
     """Test load csv matrix"""
     # Load csv format matrix file
     matrix = Matrix(csv_matrix_file, delimiter=",")
@@ -72,7 +72,7 @@ def test_load_csv_matrix(csv_matrix_file: Path):
     matrix.to_links()
 
 
-def test_matrix_sort():
+def test_matrix_sort() -> None:
     """Test `matrix.sort()`"""
     matrix_df = pd.DataFrame(
         [
@@ -127,7 +127,7 @@ def test_matrix_sort():
     assert sort_matrix_df.equals(expected_sort_matrix_df)
 
 
-def test_to_fromto_table(tsv_matrix_file: Path):
+def test_to_fromto_table(tsv_matrix_file: Path) -> None:
     """Test `matrix.to_fromto_table()`"""
     matrix = Matrix(tsv_matrix_file)
     expected_table_df = pd.DataFrame(

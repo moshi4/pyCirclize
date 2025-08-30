@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import os
 from dataclasses import dataclass
 from io import StringIO, TextIOWrapper
 from pathlib import Path
@@ -52,7 +51,7 @@ def load_prokaryote_example_file(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "prokaryote"
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
@@ -112,7 +111,7 @@ def load_eukaryote_example_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "eukaryote" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():

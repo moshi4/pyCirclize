@@ -17,7 +17,7 @@ class Line(PathPatch):
         rad_lim: tuple[float, float],
         r_lim: tuple[float, float],
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -37,7 +37,7 @@ class Line(PathPatch):
             kwargs.update(dict(lw=0.5))
 
         # Set line path
-        verts = list(zip(rad_lim, r_lim))
+        verts = list(zip(rad_lim, r_lim, strict=True))
         super().__init__(Path(verts), **kwargs)  # type: ignore
 
 
@@ -49,7 +49,7 @@ class ArcLine(PathPatch):
         rad_lim: tuple[float, float],
         r_lim: tuple[float, float],
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -79,11 +79,11 @@ class ArcLine(PathPatch):
             arc_rads = [rad_start, rad_end]
         else:
             step = config.ARC_RADIAN_STEP
-            arc_rads = list(np.arange(rad_start, rad_end, step)) + [rad_end]
+            arc_rads = [*list(np.arange(rad_start, rad_end, step)), rad_end]
         arc_r_list = np.linspace(r_start, r_end, len(arc_rads), endpoint=True)
 
         # Set line path
-        verts = list(zip(arc_rads, arc_r_list))
+        verts = list(zip(arc_rads, arc_r_list, strict=True))
         super().__init__(Path(verts), **kwargs)  # type: ignore
 
 
@@ -96,7 +96,7 @@ class ArcRectangle(PathPatch):
         width: float,
         height: float,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -114,10 +114,15 @@ class ArcRectangle(PathPatch):
         max_rad, max_r = min_rad + width, min_r + height
         arc_rads = np.arange(min_rad, max_rad, config.ARC_RADIAN_STEP)
         arc_rads = np.append(arc_rads, max_rad)
-        bottom_arc_path = list(zip(arc_rads, [min_r] * len(arc_rads)))
-        upper_arc_path = list(zip(arc_rads[::-1], [max_r] * len(arc_rads)))
+
+        min_r_list = [min_r] * len(arc_rads)
+        bottom_arc_path = list(zip(arc_rads, min_r_list, strict=True))
+
+        max_r_list = [max_r] * len(arc_rads)
+        upper_arc_path = list(zip(arc_rads[::-1], max_r_list, strict=True))
+
         arc_rect_path = Path(
-            bottom_arc_path + upper_arc_path + [bottom_arc_path[0]],  # type: ignore
+            bottom_arc_path + upper_arc_path + [bottom_arc_path[0]],
             closed=True,
         )
         super().__init__(arc_rect_path, **kwargs)
@@ -135,7 +140,7 @@ class ArcArrow(PathPatch):
         head_length: float = np.pi / 90,
         shaft_ratio: float = 0.5,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -160,10 +165,9 @@ class ArcArrow(PathPatch):
         y_shaft_bottom = r + ((dr - shaft_size) / 2)
         y_shaft_upper = r + dr - ((dr - shaft_size) / 2)
 
-        is_forward = True if drad >= 0 else False
+        is_forward = drad >= 0
         drad = abs(drad)
-        if head_length > drad:
-            head_length = drad
+        head_length = min(head_length, drad)
         if is_forward:
             rad_shaft_tip = rad + (drad - head_length)
             rad_arrow_tip = rad + drad
@@ -185,10 +189,14 @@ class ArcArrow(PathPatch):
         shaft_arc_rads = np.arange(p1[0], p2[0], step)
         bottom_shaft_r_list = [p1[1]] * len(shaft_arc_rads)
         upper_shaft_r_list = [p7[1]] * len(shaft_arc_rads)
-        bottom_shaft_arc_path = list(zip(shaft_arc_rads, bottom_shaft_r_list))
-        upper_shaft_arc_path = list(zip(shaft_arc_rads[::-1], upper_shaft_r_list))
+        bottom_shaft_arc_path = list(
+            zip(shaft_arc_rads, bottom_shaft_r_list, strict=True)
+        )
+        upper_shaft_arc_path = list(
+            zip(shaft_arc_rads[::-1], upper_shaft_r_list, strict=True)
+        )
         arc_arrow_path = Path(
-            bottom_shaft_arc_path + [p2, p3, p4, p5, p6] + upper_shaft_arc_path + [p1],  # type: ignore
+            [*bottom_shaft_arc_path, p2, p3, p4, p5, p6, *upper_shaft_arc_path, p1],  # type: ignore
             closed=True,
         )
         super().__init__(arc_arrow_path, **kwargs)
@@ -209,7 +217,7 @@ class BezierCurveLink(PathPatch):
         direction: int = 0,
         arrow_length_ratio: float = 0.05,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -352,7 +360,7 @@ class BezierCurveLine(PathPatch):
         arrow_height: float = 3.0,
         arrow_width: float = 1.0,
         **kwargs,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

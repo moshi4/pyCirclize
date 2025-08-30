@@ -5,7 +5,7 @@ import pytest
 from pycirclize.parser import Gff
 
 
-def test_parse_complete_genome(prokaryote_testdata_dir: Path):
+def test_parse_complete_genome(prokaryote_testdata_dir: Path) -> None:
     """Test parse complete genome"""
     gff_file = prokaryote_testdata_dir / "enterobacteria_phage.gff"
     gff = Gff(gff_file)
@@ -25,7 +25,7 @@ def test_parse_complete_genome(prokaryote_testdata_dir: Path):
         ("mycoplasma_alvi_nocomment.gff.gz"),
     ],
 )
-def test_parse_contig_genomes(prokaryote_testdata_dir: Path, gff_filename: str):
+def test_parse_contig_genomes(prokaryote_testdata_dir: Path, gff_filename: str) -> None:
     """Test parse contig genomes"""
     gff_file = prokaryote_testdata_dir / gff_filename
     gff = Gff(gff_file)
@@ -41,16 +41,16 @@ def test_parse_contig_genomes(prokaryote_testdata_dir: Path, gff_filename: str):
     seqid_list = list(seqid2size.keys())
     size_list = list(seqid2size.values())
 
-    assert gff.target_seqid == list(seqid2size.keys())[0]
+    assert gff.target_seqid == next(iter(seqid2size.keys()))
     assert gff.range_size == size_list[0]
     assert gff.seq_region == (0, size_list[0])
     assert gff.seqid_list == seqid_list
     assert gff.get_seqid2size() == seqid2size
 
     seqid2cds_features = gff.get_seqid2features()
-    first_contig_cds_features = list(seqid2cds_features.values())[0]
+    first_contig_cds_features = next(iter(seqid2cds_features.values()))
     assert len(first_contig_cds_features) == 204
 
     seqid2trna_features = gff.get_seqid2features("tRNA")
-    first_contig_trna_features = list(seqid2trna_features.values())[0]
+    first_contig_trna_features = next(iter(seqid2trna_features.values()))
     assert len(first_contig_trna_features) == 12

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
 import matplotlib as mpl
 import numpy as np
-from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, to_hex
 from PIL import Image
+
+if TYPE_CHECKING:
+    from Bio.SeqFeature import SeqFeature
 
 
 class ColorCycler:
@@ -173,4 +176,4 @@ def is_pseudo_feature(feature: SeqFeature) -> bool:
         pseudo check result
     """
     quals = feature.qualifiers
-    return True if "pseudo" in quals or "pseudogene" in quals else False
+    return "pseudo" in quals or "pseudogene" in quals

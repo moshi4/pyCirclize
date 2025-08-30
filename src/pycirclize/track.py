@@ -2,31 +2,33 @@ from __future__ import annotations
 
 import math
 import textwrap
+from collections.abc import Callable, Sequence
 from copy import deepcopy
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Sequence
+from typing import TYPE_CHECKING, Any
 
 import matplotlib as mpl
 import numpy as np
-import pandas as pd
-from Bio.Phylo.BaseTree import Tree
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, Normalize
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
-from PIL import Image
 
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
 from pycirclize.patches import ArcArrow, ArcLine, ArcRectangle
 from pycirclize.tooltip import gen_gid, set_collection_tooltip, to_feature_tooltip
 from pycirclize.tree import TreeViz
-from pycirclize.typing import Numeric, NumericArrayLike
 from pycirclize.utils.plot import select_textcolor
 
 if TYPE_CHECKING:
-    # Avoid Sector <-> Track circular import error at runtime
+    from pathlib import Path
+
+    import pandas as pd
+    from Bio.Phylo.BaseTree import Tree
+    from matplotlib.patches import Patch
+    from matplotlib.projections.polar import PolarAxes
+    from PIL import Image
+
     from pycirclize.sector import Sector
+    from pycirclize.typing import Numeric, NumericArrayLike
 
 
 class Track:
@@ -38,7 +40,7 @@ class Track:
         r_lim: tuple[float, float],
         r_pad_ratio: float,
         parent_sector: Sector,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -418,7 +420,7 @@ class Track:
         min_r = max(self.r_lim) if min_r is None else min_r
         max_r = min_r + 5 if max_r is None else max_r
         if min_r > max_r:
-            ValueError(f"{max_r=} must be larger than {min_r=}.")
+            raise ValueError(f"{max_r=} must be larger than {min_r=}.")
         rad = self.x_to_rad(x)
         xy, xytext = (rad, min_r), (rad, max_r)
 
@@ -490,7 +492,7 @@ class Track:
         # Plot xticks & labels
         r = max(self.r_lim) if outer else min(self.r_lim)
         tick_r_lim = (r, r + tick_length) if outer else (r - tick_length, r)
-        for x_pos, label in zip(x, labels):
+        for x_pos, label in zip(x, labels, strict=True):
             # Plot xticks
             if tick_length > 0:
                 self._simpleline((x_pos, x_pos), tick_r_lim, **line_kws)
@@ -571,8 +573,8 @@ class Track:
         start_pos, end_pos = self.start - (self.start % interval), self.end + interval
         for x in np.arange(start_pos, end_pos, interval):
             if self.start <= x <= self.end:
-                x = int(x) if isinstance(interval, int) else float(x)
-                x_list.append(x)
+                cast_type = int if isinstance(interval, int) else float
+                x_list.append(cast_type(x))
 
         # Setup xticks labels
         labels = None
@@ -654,7 +656,7 @@ class Track:
 
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
-        for r_pos, label in zip(r, labels):
+        for r_pos, label in zip(r, labels, strict=True):
             # Set plot properties
             x_tick_length = (self.size / self.deg_size) * tick_length
             x_label_margin = (self.size / self.deg_size) * label_margin
@@ -706,7 +708,8 @@ class Track:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
         """
         # Check argument values
-        if y_grid_num is not None and not y_grid_num >= 2:
+        min_grid_num = 2
+        if y_grid_num is not None and not y_grid_num >= min_grid_num:
             raise ValueError(f"{y_grid_num=} is invalid (y_grid_num >= 2).")
         if x_grid_interval is not None and not x_grid_interval > 0:
             raise ValueError(f"{x_grid_interval=} is invalid (x_grid_interval > 0).")
@@ -899,7 +902,7 @@ class Track:
                 **kwargs,
             )
             if config.tooltip.enabled:
-                for p, h in zip(bar.patches, height):
+                for p, h in zip(bar.patches, height, strict=True):
                     gid = gen_gid("bar")
                     p.set_gid(gid)
                     self._gid2tooltip[gid] = str(h)
@@ -980,7 +983,8 @@ class Track:
         heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
 
         # Plot bars
-        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+        col_names = sb_table.col_names
+        for col_name, height, bottom in zip(col_names, heights, bottoms, strict=True):
             color = col_name2color[col_name]
             self.bar(x, height, width, bottom, vmax=vmax, fc=color, **bar_kws)
 
@@ -988,7 +992,7 @@ class Track:
         if show_label:
             x_list = sb_table.calc_bar_label_x_list(self.size)
             row_name2sum = sb_table.row_name2sum
-            for label, x in zip(sb_table.row_names, x_list):
+            for label, x in zip(sb_table.row_names, x_list, strict=True):
                 # Calculate label r position
                 if label_pos == "top":
                     bar_r_height = self.r_size * (row_name2sum[label] / vmax)
@@ -1065,9 +1069,10 @@ class Track:
         heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
 
         # Plot bars
-        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+        col_names = sb_table.col_names
+        for col_name, height, bottom in zip(col_names, heights, bottoms, strict=True):
             color = col_name2color[col_name]
-            for r_lim, h, b in zip(r_lim_list, height, bottom):
+            for r_lim, h, b in zip(r_lim_list, height, bottom, strict=True):
                 self.rect(b, b + h, r_lim=r_lim, fc=color, **bar_kws)
 
         return sb_table
@@ -1108,7 +1113,7 @@ class Track:
         if isinstance(y2, (Sequence, np.ndarray)):
             y_all = list(y1) + list(y2)
         else:
-            y_all = list(y1) + [y2]
+            y_all = [*list(y1), y2]
             y2 = [float(y2)] * len(x)
         vmin = min(y_all) if vmin is None else vmin
         vmax = max(y_all) if vmax is None else vmax
@@ -1212,8 +1217,7 @@ class Track:
             min_range = start + (unit_x_size * i)
             max_range = min_range + unit_x_size
             # Avoid max_range exceeds `track.end` value
-            if max_range > self.end:
-                max_range = self.end
+            max_range = min(max_range, self.end)
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
@@ -1296,7 +1300,7 @@ class Track:
         rad_list = np.linspace(rad_start, rad_end, resize_img.width)
         r_list = np.linspace(r_end, r_start, resize_img.height)
 
-        def plot_raster(ax: PolarAxes):
+        def plot_raster(ax: PolarAxes) -> None:
             ax.pcolormesh(rad_list, r_list, np.array(resize_img), **kwargs)
 
         self._plot_funcs.append(plot_raster)
@@ -1407,9 +1411,8 @@ class Track:
 
         if r_lim is None:
             r_lim = self.r_plot_lim
-        else:
-            if not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
-                raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
+        elif not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
+            raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
 
         for feature in features:
             # Set qualifier tag facecolor if exists
@@ -1494,7 +1497,7 @@ class Track:
                 step = config.ARC_RADIAN_STEP / 10
                 if rad1 > rad2:
                     step *= -1
-                arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
+                arc_rad = [*list(np.arange(rad1, rad2, step)), rad2]
                 all_arc_rad.extend(arc_rad)
                 arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
                 all_arc_r.extend(arc_r)
@@ -1547,11 +1550,10 @@ class Track:
             for v in value:
                 if not vmin <= v <= vmax:
                     raise ValueError(f"value={v} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
-        else:
-            if not vmin <= value <= vmax:
-                raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
+        elif not vmin <= value <= vmax:
+            raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
 
-    def __str__(self):
+    def __str__(self) -> str:
         min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)
         min_r_lim, max_r_lim = min(self.r_lim), max(self.r_lim)
         return textwrap.dedent(

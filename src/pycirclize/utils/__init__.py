@@ -14,14 +14,14 @@ from pycirclize.utils.helper import (
 )
 
 __all__ = [
-    "plot",
-    "fetch_genbank_by_accid",
-    "load_eukaryote_example_dataset",
-    "load_prokaryote_example_file",
-    "load_example_image_file",
-    "load_example_tree_file",
     "ColorCycler",
     "calc_group_spaces",
+    "fetch_genbank_by_accid",
     "is_pseudo_feature",
+    "load_eukaryote_example_dataset",
+    "load_example_image_file",
+    "load_example_tree_file",
     "load_image",
+    "load_prokaryote_example_file",
+    "plot",
 ]

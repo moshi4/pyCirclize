@@ -12,7 +12,7 @@ def sector() -> Sector:
     return Sector("test", 1000, (0, math.pi))
 
 
-def test_property():
+def test_property() -> None:
     """Test sector property"""
     # Case1: Set int size
     name, size, rad_lim = "test", 1000, (0, math.pi)
@@ -39,7 +39,7 @@ def test_property():
     assert sector_case2.center == 600
 
 
-def test_add_track(sector: Sector):
+def test_add_track(sector: Sector) -> None:
     """Test add_track()"""
     sector.add_track((90, 100), name="Test01")
     sector.add_track((80, 90))
@@ -47,7 +47,7 @@ def test_add_track(sector: Sector):
     assert [t.name for t in sector.tracks] == ["Test01", "Track02"]
 
 
-def test_get_track(sector: Sector):
+def test_get_track(sector: Sector) -> None:
     """Test `get_track()`"""
     # Case1: No tracks (Error)
     with pytest.raises(ValueError):
@@ -61,7 +61,7 @@ def test_get_track(sector: Sector):
     sector.get_track("Track02")
 
 
-def test_get_lowest_r(sector: Sector):
+def test_get_lowest_r(sector: Sector) -> None:
     """Test `get_lowest_r()`"""
     # Case1: No tracks
     assert sector.get_lowest_r() == config.MAX_R
@@ -71,7 +71,7 @@ def test_get_lowest_r(sector: Sector):
     assert sector.get_lowest_r() == 50
 
 
-def test_x_to_pad():
+def test_x_to_pad() -> None:
     """Test `x_to_pad()`"""
     # Case1: Set int size
     sector = Sector("test", 1000, (0, math.pi))

@@ -28,7 +28,7 @@ class Genbank:
         name: str | None = None,
         min_range: None = None,
         max_range: None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -63,7 +63,10 @@ class Genbank:
             raise ValueError("Failed to get genbank name.")
 
         if min_range or max_range:
-            warnings.warn("min_range & max_range is no longer used in Genbank parser.")
+            warnings.warn(
+                "min_range & max_range is no longer used in Genbank parser.",
+                stacklevel=2,
+            )
 
         if len(self.records) == 0:
             raise ValueError(f"Failed to parse {gbk_source} as Genbank file.")
@@ -161,7 +164,7 @@ class Genbank:
             step_size = int(len(seq) / 1000)
         if window_size == 0 or step_size == 0:
             window_size, step_size = len(seq), int(len(seq) / 2)
-        pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
+        pos_list = [*list(range(0, len(seq), step_size)), len(seq)]
         for pos in pos_list:
             window_start_pos = pos - int(window_size / 2)
             window_end_pos = pos + int(window_size / 2)
@@ -215,7 +218,7 @@ class Genbank:
             step_size = int(len(seq) / 1000)
         if window_size == 0 or step_size == 0:
             window_size, step_size = len(seq), int(len(seq) / 2)
-        pos_list = list(range(0, len(seq), step_size)) + [len(seq)]
+        pos_list = [*list(range(0, len(seq), step_size)), len(seq)]
         for pos in pos_list:
             window_start_pos = pos - int(window_size / 2)
             window_end_pos = pos + int(window_size / 2)
@@ -326,7 +329,7 @@ class Genbank:
             Extracted features
         """
         seqid2features = self.get_seqid2features(feature_type, target_strand)
-        first_record_features = list(seqid2features.values())[0]
+        first_record_features = next(iter(seqid2features.values()))
         if target_range:
             target_features = []
             for feature in first_record_features:
@@ -415,10 +418,9 @@ class Genbank:
                 with bz2.open(gbk_source, mode="rt", encoding="utf-8") as f:
                     return list(SeqIO.parse(f, "genbank"))
             elif Path(gbk_source).suffix == ".zip":
-                with zipfile.ZipFile(gbk_source) as zip:
-                    with zip.open(zip.namelist()[0]) as f:
-                        io = TextIOWrapper(f, encoding="utf-8")
-                        return list(SeqIO.parse(io, "genbank"))
+                with zipfile.ZipFile(gbk_source) as z, z.open(z.namelist()[0]) as f:
+                    io = TextIOWrapper(f, encoding="utf-8")
+                    return list(SeqIO.parse(io, "genbank"))
             else:
                 with open(gbk_source, encoding="utf-8") as f:
                     return list(SeqIO.parse(f, "genbank"))
@@ -445,9 +447,9 @@ class Genbank:
         else:
             start = int(feature.location.parts[0].start)  # type: ignore
             end = int(feature.location.parts[-1].end)  # type: ignore
-        return True if start > end else False
+        return start > end
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = f"{self.name}: {len(self.records)} records\n"
         for num, (seqid, size) in enumerate(self.get_seqid2size().items(), 1):
             text += f"{num:02d}. {seqid} ({size:,} bp)\n"

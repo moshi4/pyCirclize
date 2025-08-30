@@ -25,7 +25,7 @@ def track() -> Track:
     return track
 
 
-def test_track_property(track: Track):
+def test_track_property(track: Track) -> None:
     """Test track property"""
     assert track.name == "Track01"
     assert track.size == 1000
