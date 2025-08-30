@@ -5,7 +5,7 @@ import textwrap
 import warnings
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import numpy as np
 from matplotlib.patches import Patch
@@ -42,7 +42,7 @@ class Sector:
             Sector coordinate direction (clockwise or anti-clockwise).
         """
         self._name = name
-        if isinstance(size, (tuple, list)):
+        if isinstance(size, Sequence):
             start, end = size[0], size[1]
         else:
             start, end = 0, size
@@ -327,7 +327,7 @@ class Sector:
         start = self.start if start is None else start
         end = self.end if end is None else end
         rad_lim = (self.x_to_rad(start), self.x_to_rad(end))
-        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        r_lim = r if isinstance(r, Sequence) else (r, r)
         LinePatch = ArcLine if arc else Line
         self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 

@@ -8,7 +8,7 @@ from collections import defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,6 +41,7 @@ from pycirclize.tooltip import (
 )
 from pycirclize.track import Track
 from pycirclize.tree import TreeViz
+from pycirclize.typing import Numeric
 
 
 class Circos:
@@ -48,11 +49,11 @@ class Circos:
 
     def __init__(
         self,
-        sectors: Mapping[str, int | float | tuple[float, float]],
+        sectors: Mapping[str, Numeric | tuple[Numeric, Numeric]],
         start: float = 0,
         end: float = 360,
         *,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
@@ -60,13 +61,13 @@ class Circos:
         """
         Parameters
         ----------
-        sectors : Mapping[str, int | float | tuple[float, float]]
+        sectors : Mapping[str, Numeric | tuple[Numeric, Numeric]]
             Sector name & size (or range) dict
         start : float, optional
             Plot start degree (`-360 <= start < end <= 360`)
         end : float, optional
             Plot end degree (`-360 <= start < end <= 360`)
-        space : float | list[float], optional
+        space : Numeric | Sequence[Numeric], optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -83,7 +84,7 @@ class Circos:
         # Calculate sector region & add sector
         whole_deg_size = end - start
         space_num = len(sectors) if endspace else len(sectors) - 1
-        if isinstance(space, (list, tuple)):
+        if isinstance(space, Sequence):
             if len(space) != space_num:
                 raise ValueError(f"{space=} is invalid.\nLength of space list must be {space_num}.")  # fmt: skip  # noqa: E501
             space_list = list(space) + [0]
@@ -296,7 +297,7 @@ class Circos:
                 raise ValueError(f"{grid_interval_ratio=} is invalid.")
             # Plot horizontal grid line & label
             stop, step = vmax + (size / 1000), size * grid_interval_ratio
-            for v in np.arange(vmin, stop, step):
+            for v in np.arange(vmin, stop, step, dtype=np.float64):
                 y = [v] * len(x)
                 track.line(x, y, vmin=vmin, vmax=vmax, arc=circular, **grid_line_kws)
                 if show_grid_label:
@@ -358,7 +359,7 @@ class Circos:
         *,
         start: float = 0,
         end: float = 360,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         r_lim: tuple[float, float] = (97, 100),
         cmap: str | dict[str, str] = "viridis",
@@ -382,7 +383,7 @@ class Circos:
             Plot start degree (-360 <= start < end <= 360)
         end : float, optional
             Plot end degree (-360 <= start < end <= 360)
-        space : float | list[float], optional
+        space : Numeric | NumericSequence, optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -579,7 +580,7 @@ class Circos:
         start: float = 0,
         end: float = 360,
         *,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         sector2clockwise: dict[str, bool] | None = None,
     ) -> Circos:
@@ -595,7 +596,7 @@ class Circos:
             Plot start degree (-360 <= start < end <= 360)
         end : float, optional
             Plot end degree (-360 <= start < end <= 360)
-        space : float | list[float], optional
+        space : float | Sequence[float], optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -781,7 +782,7 @@ class Circos:
         """
         deg_lim = self.deg_lim if deg_lim is None else deg_lim
         rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
-        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        r_lim = r if isinstance(r, Sequence) else (r, r)
         LinePatch = ArcLine if arc else Line
         self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
@@ -1164,12 +1165,12 @@ class Circos:
 
     def _to_sector2range(
         self,
-        sectors: Mapping[str, int | float | tuple[float, float]],
+        sectors: Mapping[str, Numeric | tuple[Numeric, Numeric]],
     ) -> dict[str, tuple[float, float]]:
         """Convert sectors to sector2range"""
         sector2range: dict[str, tuple[float, float]] = {}
         for name, value in sectors.items():
-            if isinstance(value, (tuple, list)):
+            if isinstance(value, Sequence):
                 sector_start, sector_end = value
                 if not sector_start < sector_end:
                     raise ValueError(f"{sector_end=} must be larger than {sector_start=}.")  # fmt: skip  # noqa: E501
