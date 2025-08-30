@@ -193,7 +193,6 @@ def _get_mouse_segment_idx(e: MouseEvent) -> int:
     return int(deg // SEG_DEG)
 
 
-# """Set collection tooltip annotation"""
 def set_collection_tooltip(ax: PolarAxes, coll: Collection, labels: list[str]) -> None:
     """Set collection tooltip annotation
 
