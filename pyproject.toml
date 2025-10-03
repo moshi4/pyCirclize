@@ -62,7 +62,6 @@ addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
 testpaths = ["tests"]
 
 [tool.ruff]
-include = ["src/**.py", "tests/**.py"]
 line-length = 88
 
 # Lint Rules: https://docs.astral.sh/ruff/rules/
