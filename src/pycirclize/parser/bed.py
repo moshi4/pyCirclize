@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class Bed:
     """BED Parser Class"""
 
-    def __init__(self, bed_file: str | Path):
+    def __init__(self, bed_file: str | Path) -> None:
         """
         Parameters
         ----------

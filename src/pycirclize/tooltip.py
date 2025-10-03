@@ -2,20 +2,25 @@ from __future__ import annotations
 
 import textwrap
 import uuid
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from Bio.Phylo.BaseTree import Clade
-from Bio.SeqFeature import SeqFeature
-from matplotlib.backend_bases import MouseEvent
-from matplotlib.collections import Collection
 from matplotlib.colors import is_color_like, to_rgb
 from matplotlib.patches import Patch, Rectangle
-from matplotlib.projections import PolarAxes
 
 from pycirclize import config
-from pycirclize.parser.bed import BedRecord
 from pycirclize.utils.plot import degrees, is_lower_loc, is_right_loc, select_textcolor
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from Bio.Phylo.BaseTree import Clade
+    from Bio.SeqFeature import SeqFeature
+    from matplotlib.backend_bases import MouseEvent
+    from matplotlib.collections import Collection
+    from matplotlib.projections import PolarAxes
+
+    from pycirclize.parser.bed import BedRecord
 
 
 def gen_gid(prefix: str | None = None) -> str:
@@ -127,7 +132,7 @@ def set_patch_tooltip(
     target_patches = [p for p in patches if p.get_gid()]
     seg_patches_list = _segmentize_patches(target_patches)
 
-    def hover(e: MouseEvent):
+    def hover(e: MouseEvent) -> None:
         # Remove previous tooltip annotation if exists
         for ann in ax.texts:
             if ann.get_gid() == gid:
@@ -193,7 +198,6 @@ def _get_mouse_segment_idx(e: MouseEvent) -> int:
     return int(deg // SEG_DEG)
 
 
-# """Set collection tooltip annotation"""
 def set_collection_tooltip(ax: PolarAxes, coll: Collection, labels: list[str]) -> None:
     """Set collection tooltip annotation
 
@@ -208,7 +212,7 @@ def set_collection_tooltip(ax: PolarAxes, coll: Collection, labels: list[str]) -
     """
     gid = gen_gid("collection-tooltip")
 
-    def hover(e: MouseEvent):
+    def hover(e: MouseEvent) -> None:
         # Remove previous tooltip annotation if exists
         for ann in ax.texts:
             if ann.get_gid() == gid:

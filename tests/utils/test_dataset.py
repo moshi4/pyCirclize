@@ -34,7 +34,7 @@ def check_network_conn(url: str = "https://github.com/moshi4/pyCirclize") -> boo
     condition=not check_network_conn(),
     reason="No network connection.",
 )
-def test_load_prokaryote_example_file():
+def test_load_prokaryote_example_file() -> None:
     """Test `load_prokaryote_example_file()`"""
     gbk_file = load_prokaryote_example_file("enterobacteria_phage.gbk")
     assert gbk_file.exists()
@@ -44,14 +44,14 @@ def test_load_prokaryote_example_file():
     condition=not check_network_conn(),
     reason="No network connection.",
 )
-def test_load_eukaryote_example_dataset():
+def test_load_eukaryote_example_dataset() -> None:
     """Test `load_eukaryote_example_dataset()`"""
     bed_file, cytoband_file, _ = load_eukaryote_example_dataset("hg38")
     assert bed_file.exists()
     assert cytoband_file.exists()
 
 
-def test_load_example_image_file():
+def test_load_example_image_file() -> None:
     """Test `load_example_image_file()`"""
     # 1. Normal scenario
     image_file = load_example_image_file("python_logo.png")
@@ -62,7 +62,7 @@ def test_load_example_image_file():
         load_example_image_file("noexists.png")
 
 
-def test_load_example_tree_file():
+def test_load_example_tree_file() -> None:
     """Test `load_example_tree_file()`"""
     # 1. Success case
     tree_file = load_example_tree_file("alphabet.nwk")

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import io
-import os
 from collections import Counter, defaultdict
 from copy import deepcopy
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -18,6 +17,8 @@ from pycirclize import utils
 from pycirclize.tooltip import to_node_tooltip
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from pycirclize.track import Track
 
 
@@ -43,7 +44,7 @@ class TreeViz:
         align_line_kws: dict[str, Any] | None = None,
         label_formatter: Callable[[str], str] | None = None,
         track: Track,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -187,7 +188,7 @@ class TreeViz:
             # Load tree file from URL
             treeio = io.StringIO(urlopen(data).read().decode(encoding="utf-8"))
             return Phylo.read(treeio, format=format)
-        elif isinstance(data, (str, Path)) and os.path.isfile(data):
+        elif isinstance(data, (str, Path)) and Path(data).is_file():
             # Load tree file
             with open(data, encoding="utf-8") as f:
                 return Phylo.read(f, format=format)
@@ -601,8 +602,7 @@ class TreeViz:
             if node == self.tree.root:
                 parent_node = node
             else:
-                tree_path = self.tree.get_path(node.name)
-                tree_path = [self.tree.root] + tree_path  # type: ignore
+                tree_path = [self.tree.root, *self.tree.get_path(node.name)]  # type: ignore
                 parent_node: Clade = tree_path[-2]
 
             # Get child node xr coordinates

@@ -5,21 +5,17 @@ import math
 import textwrap
 import warnings
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Callable, Sequence
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from Bio.Phylo.BaseTree import Tree
-from matplotlib.axes import Axes
 from matplotlib.collections import PatchCollection
 from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Colormap, Normalize
-from matplotlib.figure import Figure
-from matplotlib.patches import Patch
 from matplotlib.projections.polar import PolarAxes
 
 from pycirclize import config, utils
@@ -39,8 +35,18 @@ from pycirclize.tooltip import (
     to_cytoband_tooltip,
     to_link_tooltip,
 )
-from pycirclize.track import Track
 from pycirclize.tree import TreeViz
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from Bio.Phylo.BaseTree import Tree
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+    from matplotlib.patches import Patch
+
+    from pycirclize.track import Track
+    from pycirclize.typing import Numeric
 
 
 class Circos:
@@ -48,25 +54,25 @@ class Circos:
 
     def __init__(
         self,
-        sectors: Mapping[str, int | float | tuple[float, float]],
+        sectors: Mapping[str, Numeric | tuple[Numeric, Numeric]],
         start: float = 0,
         end: float = 360,
         *,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         sector2clockwise: dict[str, bool] | None = None,
         show_axis_for_debug: bool = False,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
-        sectors : Mapping[str, int | float | tuple[float, float]]
+        sectors : Mapping[str, Numeric | tuple[Numeric, Numeric]]
             Sector name & size (or range) dict
         start : float, optional
             Plot start degree (`-360 <= start < end <= 360`)
         end : float, optional
             Plot end degree (`-360 <= start < end <= 360`)
-        space : float | list[float], optional
+        space : Numeric | Sequence[Numeric], optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -83,10 +89,10 @@ class Circos:
         # Calculate sector region & add sector
         whole_deg_size = end - start
         space_num = len(sectors) if endspace else len(sectors) - 1
-        if isinstance(space, (list, tuple)):
+        if isinstance(space, Sequence):
             if len(space) != space_num:
                 raise ValueError(f"{space=} is invalid.\nLength of space list must be {space_num}.")  # fmt: skip  # noqa: E501
-            space_list = list(space) + [0]
+            space_list = [*list(space), 0]
             space_deg_size = sum(space)
         else:
             space_list = [space] * space_num + [0]
@@ -180,22 +186,22 @@ class Circos:
     ############################################################
 
     @classmethod
-    def set_tooltip_enabled(cls, enabled: bool = True):
+    def set_tooltip_enabled(cls, enabled: bool = True) -> None:
         """Enable/disable tooltip annotation using ipympl"""
         if enabled:
             try:
-                import ipympl  # noqa: F401
-                from IPython import get_ipython  # type: ignore
+                import ipympl  # noqa: F401, PLC0415
+                from IPython import get_ipython  # noqa: PLC0415
 
                 get_ipython().run_line_magic("matplotlib", "widget")
                 config.tooltip.enabled = True
             except Exception:
-                warnings.warn("Failed to enable tooltip. To enable tooltip, an interactive python environment such as jupyter and ipympl installation are required.")  # fmt: skip  # noqa: E501
+                warnings.warn("Failed to enable tooltip. To enable tooltip, an interactive python environment such as jupyter and ipympl installation are required.", stacklevel=2)  # fmt: skip  # noqa: E501
         else:
             config.tooltip.enabled = False
 
     @staticmethod
-    def radar_chart(
+    def radar_chart(  # noqa: PLR0912, PLR0915
         table: str | Path | pd.DataFrame | RadarTable,
         *,
         r_lim: tuple[float, float] = (0, 100),
@@ -266,6 +272,7 @@ class Circos:
         circos : Circos
             Circos instance initialized for radar chart
         """
+        # TODO: Refactor complex codes
         if not vmin < vmax:
             raise ValueError(f"vmax must be larger than vmin ({vmin=}, {vmax=})")
         size = vmax - vmin
@@ -296,7 +303,7 @@ class Circos:
                 raise ValueError(f"{grid_interval_ratio=} is invalid.")
             # Plot horizontal grid line & label
             stop, step = vmax + (size / 1000), size * grid_interval_ratio
-            for v in np.arange(vmin, stop, step):
+            for v in np.arange(vmin, stop, step, dtype=np.float64):
                 y = [v] * len(x)
                 track.line(x, y, vmin=vmin, vmax=vmax, arc=circular, **grid_line_kws)
                 if show_grid_label:
@@ -305,8 +312,8 @@ class Circos:
                     if grid_label_formatter:
                         text = grid_label_formatter(v)
                     else:
-                        v = float(f"{v:.9f}")  # Correct rounding error
-                        text = f"{v:.0f}" if math.isclose(int(v), float(v)) else str(v)
+                        v2 = float(f"{v:.9f}")  # Correct rounding error
+                        text = f"{v2:.0f}" if math.isclose(int(v2), v2) else str(v2)
                     track.text(text, 0, r, **grid_label_kws)
             # Plot vertical grid line
             for p in x[:-1]:
@@ -318,7 +325,7 @@ class Circos:
         else:
             row_name2color = cmap
         for row_name, values in radar_table.row_name2values.items():
-            y = values + [values[0]]
+            y = [*values, values[0]]
             color = row_name2color[row_name]
             line_kws = line_kws_handler(row_name) if line_kws_handler else {}
             line_kws.setdefault("lw", 1.0)
@@ -358,7 +365,7 @@ class Circos:
         *,
         start: float = 0,
         end: float = 360,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         r_lim: tuple[float, float] = (97, 100),
         cmap: str | dict[str, str] = "viridis",
@@ -382,7 +389,7 @@ class Circos:
             Plot start degree (-360 <= start < end <= 360)
         end : float, optional
             Plot end degree (-360 <= start < end <= 360)
-        space : float | list[float], optional
+        space : Numeric | NumericSequence, optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -440,13 +447,12 @@ class Circos:
         if isinstance(cmap, str):
             utils.ColorCycler.set_cmap(cmap)
             colors = utils.ColorCycler.get_color_list(len(names))
-            name2color = dict(zip(names, colors))
+            name2color = dict(zip(names, colors, strict=True))
+        elif isinstance(cmap, defaultdict):
+            name2color = cmap
         else:
-            if isinstance(cmap, defaultdict):
-                name2color = cmap
-            else:
-                name2color: dict[str, str] = defaultdict(lambda: "grey")
-                name2color.update(cmap)
+            name2color: dict[str, str] = defaultdict(lambda: "grey")
+            name2color.update(cmap)
 
         # Initialize circos sectors
         circos = Circos(matrix.to_sectors(), start, end, space=space, endspace=endspace)
@@ -579,7 +585,7 @@ class Circos:
         start: float = 0,
         end: float = 360,
         *,
-        space: float | list[float] = 0,
+        space: Numeric | Sequence[Numeric] = 0,
         endspace: bool = True,
         sector2clockwise: dict[str, bool] | None = None,
     ) -> Circos:
@@ -595,7 +601,7 @@ class Circos:
             Plot start degree (-360 <= start < end <= 360)
         end : float, optional
             Plot end degree (-360 <= start < end <= 360)
-        space : float | list[float], optional
+        space : float | Sequence[float], optional
             Space degree(s) between sector
         endspace : bool, optional
             If True, insert space after the end sector
@@ -781,7 +787,7 @@ class Circos:
         """
         deg_lim = self.deg_lim if deg_lim is None else deg_lim
         rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
-        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        r_lim = r if isinstance(r, Sequence) else (r, r)
         LinePatch = ArcLine if arc else Line
         self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
@@ -875,10 +881,8 @@ class Circos:
         if "lw" not in kwargs and "linewidth" not in kwargs:
             kwargs.update(dict(lw=0.1))
 
-        if not allow_twist:
-            # Resolve twist
-            if (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
-                rad_start2, rad_end2 = rad_end2, rad_start2
+        if not allow_twist and (rad_end1 - rad_start1) * (rad_end2 - rad_start2) > 0:
+            rad_start2, rad_end2 = rad_end2, rad_start2
 
         # Set tooltip content
         gid = gen_gid("link")
@@ -1164,12 +1168,12 @@ class Circos:
 
     def _to_sector2range(
         self,
-        sectors: Mapping[str, int | float | tuple[float, float]],
+        sectors: Mapping[str, Numeric | tuple[Numeric, Numeric]],
     ) -> dict[str, tuple[float, float]]:
         """Convert sectors to sector2range"""
         sector2range: dict[str, tuple[float, float]] = {}
         for name, value in sectors.items():
-            if isinstance(value, (tuple, list)):
+            if isinstance(value, Sequence):
                 sector_start, sector_end = value
                 if not sector_start < sector_end:
                     raise ValueError(f"{sector_end=} must be larger than {sector_start=}.")  # fmt: skip  # noqa: E501

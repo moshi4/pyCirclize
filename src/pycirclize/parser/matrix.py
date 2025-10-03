@@ -14,7 +14,7 @@ class Matrix:
         matrix: str | Path | pd.DataFrame,
         *,
         delimiter: str = "\t",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -30,8 +30,8 @@ class Matrix:
         # Calculate data size & link positions
         rev_matrix = matrix.iloc[::-1, ::-1]
         name2size, links = defaultdict(float), []
-        for row_name, row in zip(rev_matrix.index, rev_matrix.values):
-            for col_name, value in zip(rev_matrix.columns, row):
+        for row_name, row in zip(rev_matrix.index, rev_matrix.values, strict=True):
+            for col_name, value in zip(rev_matrix.columns, row, strict=True):
                 if value <= 0:
                     continue
                 row_size, col_size = name2size[row_name], name2size[col_name]
@@ -110,21 +110,17 @@ class Matrix:
         all_labels = list(map(str, label2value_sum.keys()))
 
         # Set user specified label order
-        if order is not None:
-            if isinstance(order, (list, tuple)):
-                if set(all_labels) == set(order):
-                    all_labels = order
-                else:
-                    raise ValueError(f"'order' is not match 'all_labels' in from-to table.\n{order=}\n{all_labels=}")  # fmt: skip  # noqa: E501
-            elif isinstance(order, str) and order in ("asc", "desc"):
-                items = label2value_sum.items()
-                if order == "asc":
-                    sorted_items = sorted(items, key=lambda v: v[1])
-                elif order == "desc":
-                    sorted_items = sorted(items, key=lambda v: v[1], reverse=True)
-                all_labels = [item[0] for item in sorted_items]
+        if isinstance(order, (list, tuple)):
+            if set(all_labels) == set(order):
+                all_labels = order
             else:
-                raise ValueError(f"{order=} is invalid (list[str]|`asc`|`desc`).")
+                raise ValueError(f"'order' is not match 'all_labels' in from-to table.\n{order=}\n{all_labels=}")  # fmt: skip  # noqa: E501
+        elif order in ("asc", "desc"):
+            items = label2value_sum.items()
+            sorted_items = sorted(items, key=lambda v: v[1], reverse=order == "desc")
+            all_labels = [item[0] for item in sorted_items]
+        elif order is not None:
+            raise ValueError(f"{order=} is invalid (list[str]|`asc`|`desc`).")
 
         # Convert from-to table to matrix
         matrix_data = []
@@ -231,5 +227,5 @@ class Matrix:
                     fromto_table_data.append([row_name, col_name, value])
         return pd.DataFrame(fromto_table_data, columns=["from", "to", "value"])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.dataframe)

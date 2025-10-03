@@ -17,13 +17,13 @@ def fig_outfile(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def hg38_testdata_dir(testdata_dir: Path):
+def hg38_testdata_dir(testdata_dir: Path) -> Path:
     """hg38 dataset directory fixture"""
     return testdata_dir / "eukaryote" / "hg38"
 
 
 @pytest.fixture
-def prokaryote_testdata_dir(testdata_dir: Path):
+def prokaryote_testdata_dir(testdata_dir: Path) -> Path:
     """Prokaryote test file directory"""
     return testdata_dir / "prokaryote"
 

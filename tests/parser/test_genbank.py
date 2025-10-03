@@ -3,7 +3,7 @@ from pathlib import Path
 from pycirclize.parser import Genbank
 
 
-def test_parse_complete_genome(prokaryote_testdata_dir: Path):
+def test_parse_complete_genome(prokaryote_testdata_dir: Path) -> None:
     """Test parse complete genome"""
     gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
     gbk = Genbank(gbk_file)
@@ -16,7 +16,7 @@ def test_parse_complete_genome(prokaryote_testdata_dir: Path):
     assert gbk.get_seqid2size() == {seqid: max_genome_size}
 
 
-def test_parse_contig_genomes(prokaryote_testdata_dir: Path):
+def test_parse_contig_genomes(prokaryote_testdata_dir: Path) -> None:
     """Test parse contig genomes"""
     gbk_file = prokaryote_testdata_dir / "mycoplasma_alvi.gbk.gz"
     gbk = Genbank(gbk_file)
@@ -36,15 +36,15 @@ def test_parse_contig_genomes(prokaryote_testdata_dir: Path):
     assert gbk.get_seqid2size() == seqid2size
 
     seqid2cds_features = gbk.get_seqid2features()
-    first_contig_cds_features = list(seqid2cds_features.values())[0]
+    first_contig_cds_features = next(iter(seqid2cds_features.values()))
     assert len(first_contig_cds_features) == 204
 
     seqid2trna_features = gbk.get_seqid2features("tRNA")
-    first_contig_trna_features = list(seqid2trna_features.values())[0]
+    first_contig_trna_features = next(iter(seqid2trna_features.values()))
     assert len(first_contig_trna_features) == 12
 
 
-def test_calc_gc(prokaryote_testdata_dir: Path):
+def test_calc_gc(prokaryote_testdata_dir: Path) -> None:
     """Test GCskew, GCcontent calculation"""
     gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
     gbk = Genbank(gbk_file)
@@ -58,7 +58,7 @@ def test_calc_gc(prokaryote_testdata_dir: Path):
     gbk.calc_gc_content(seq=seq)
 
 
-def test_write_cds_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
+def test_write_cds_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path) -> None:
     """Test `gbk.write_cds_fasta()` (only check properly output file)"""
     gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
     gbk = Genbank(gbk_file)
@@ -66,7 +66,7 @@ def test_write_cds_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_genome_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path):
+def test_genome_fasta(prokaryote_testdata_dir: Path, fig_outfile: Path) -> None:
     """Test `gbk.write_genome_fasta()` (only check properly output file)"""
     gbk_file = prokaryote_testdata_dir / "enterobacteria_phage.gbk"
     gbk = Genbank(gbk_file)

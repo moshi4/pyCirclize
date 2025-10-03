@@ -3,7 +3,7 @@ import pytest
 from pycirclize.utils import ColorCycler, calc_group_spaces
 
 
-def test_color_cycler():
+def test_color_cycler() -> None:
     """Test color cycler"""
     # Check get color list length
     ColorCycler.set_cmap("tab10")
@@ -31,7 +31,7 @@ def test_color_cycler():
     assert len(ColorCycler.get_color_list()) == 20
 
 
-def test_calc_group_spaces():
+def test_calc_group_spaces() -> None:
     """Test `calc_group_spaces`"""
     # Case1. Blank list (error)
     with pytest.raises(ValueError):

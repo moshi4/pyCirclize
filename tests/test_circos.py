@@ -5,7 +5,7 @@ import pytest
 from pycirclize import Circos
 
 
-def test_circos_init():
+def test_circos_init() -> None:
     """Test circos initialization"""
     circos = Circos({"A": 10, "B": 20, "C": 15})
     assert [s.name for s in circos.sectors] == ["A", "B", "C"]
@@ -25,7 +25,7 @@ def test_circos_init():
         (200, 400),  # End > 360
     ],
 )
-def test_circos_init_range_error(start: float, end: float):
+def test_circos_init_range_error(start: float, end: float) -> None:
     """Test circos initialization range error"""
     with pytest.raises(ValueError):
         Circos({s: 10 for s in "ABC"}, start=start, end=end)
@@ -47,7 +47,9 @@ def test_circos_init_range_error(start: float, end: float):
         ([5, 10, 15], False, False),
     ],
 )
-def test_circos_init_space_list(space: list[float], endspace: bool, success: bool):
+def test_circos_init_space_list(
+    space: list[float], endspace: bool, success: bool
+) -> None:
     """Test circos initialization space list length error"""
     sectors = {s: 10 for s in "ABC"}
     if success:
@@ -57,19 +59,19 @@ def test_circos_init_space_list(space: list[float], endspace: bool, success: boo
             Circos({s: 10 for s in "ABC"}, space=space, endspace=endspace)
 
 
-def test_get_sector():
+def test_get_sector() -> None:
     """Test `get_sector()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors)
     # Case1: Successfully get sector
-    for sector_name in sectors.keys():
+    for sector_name in sectors:
         circos.get_sector(sector_name)
     # Case2: Failed to get sector
     with pytest.raises(ValueError):
         circos.get_sector("error")
 
 
-def test_get_group_sectors_deg_lim():
+def test_get_group_sectors_deg_lim() -> None:
     """Test `get_group_sectors_deg_lim()`"""
     sectors = dict(A=10, B=10, C=10, D=10, E=10, F=10, G=10, H=10)
 
@@ -84,7 +86,7 @@ def test_get_group_sectors_deg_lim():
     assert tuple(map(round, group2_deg_lim)) == (180, 340)
 
 
-def test_ax_property():
+def test_ax_property() -> None:
     """Test `circos.ax` property"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors)

@@ -5,9 +5,9 @@ from pycirclize.parser.matrix import Matrix
 from pycirclize.parser.table import RadarTable, StackedBarTable
 
 __all__ = [
+    "Bed",
     "Genbank",
     "Gff",
-    "Bed",
     "Matrix",
     "RadarTable",
     "StackedBarTable",

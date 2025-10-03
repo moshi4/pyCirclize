@@ -24,7 +24,7 @@ class Gff:
         target_seqid: str | None = None,
         min_range: None = None,
         max_range: None = None,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -45,7 +45,9 @@ class Gff:
         self._seq_region = (start, end)
 
         if min_range or max_range:
-            warnings.warn("min_range & max_range is no longer used in Gff parser.")
+            warnings.warn(
+                "min_range & max_range is no longer used in Gff parser.", stacklevel=2
+            )
 
     ############################################################
     # Property
@@ -193,7 +195,13 @@ class Gff:
         )
         return [rec.to_seq_feature() for rec in gff_records]
 
-    def extract_exon_features(self, feature_type: str = "mRNA") -> list[SeqFeature]:
+    def extract_exon_features(
+        self,
+        feature_type: str = "mRNA",
+        *,
+        target_strand: int | None = None,
+        target_range: tuple[int, int] | None = None,
+    ) -> list[SeqFeature]:
         """Extract exon structure features
 
         Extract exons based on `parent feature` and `exon` ID-Parent relation
@@ -202,6 +210,10 @@ class Gff:
         ----------
         feature_type : str, optional
             Feature type (e.g. `mRNA`, `ncRNA` , etc...)
+        target_strand : int | None, optional
+            Extract target strand. If None, extract regardless of strand.
+        target_range : tuple[int, int] | None, optional
+            Extract target range. If None, extract regardless of range.
 
         Returns
         -------
@@ -218,13 +230,16 @@ class Gff:
                 if parent_id is None:
                     continue
                 parent_id2record[parent_id] = rec
-            if rec.type == "exon":
-                if parent_id is not None and parent_id == rec.attrs["Parent"][0]:
-                    parent_id2exons[parent_id].append(rec)
+            if (
+                rec.type == "exon"
+                and parent_id is not None
+                and parent_id == rec.attrs["Parent"][0]
+            ):
+                parent_id2exons[parent_id].append(rec)
 
         # Set exon features
         exon_features: list[SeqFeature] = []
-        for parent_id in parent_id2record.keys():
+        for parent_id, _ in parent_id2record.items():
             parent_record = parent_id2record[parent_id]
             exons = parent_id2exons[parent_id]
 
@@ -246,7 +261,19 @@ class Gff:
 
             exon_features.append(exon_feature)
 
-        return exon_features
+        # Filter exon features by target strand & range
+        filter_exon_features = []
+        for feature in exon_features:
+            if target_strand is not None and feature.strand != target_strand:
+                continue
+            if target_range is not None:
+                start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
+                min_range, max_range = min(target_range), max(target_range)
+                if not min_range <= start <= end <= max_range:
+                    continue
+            filter_exon_features.append(feature)
+
+        return filter_exon_features
 
     ############################################################
     # Private Method
@@ -286,10 +313,9 @@ class Gff:
             with bz2.open(gff_file, mode="rt", encoding="utf-8") as f:
                 gff_records, start, end = self._parse_gff_textio(f, target_seqid)
         elif gff_file.suffix == ".zip":
-            with zipfile.ZipFile(gff_file) as zip:
-                with zip.open(zip.namelist()[0]) as f:
-                    io = TextIOWrapper(f, encoding="utf-8")
-                    gff_records, start, end = self._parse_gff_textio(io, target_seqid)
+            with zipfile.ZipFile(gff_file) as z, z.open(z.namelist()[0]) as f:
+                io = TextIOWrapper(f, encoding="utf-8")
+                gff_records, start, end = self._parse_gff_textio(io, target_seqid)
         else:
             with open(gff_file, encoding="utf-8") as f:
                 gff_records, start, end = self._parse_gff_textio(f, target_seqid)
@@ -340,12 +366,15 @@ class Gff:
         for seqid in seqid_list:
             start, end = None, None
             for line in gff_all_lines:
-                if line.startswith("##sequence-region"):
+                if (
+                    line.startswith("##sequence-region")
+                    and len(line.split()) == 4
+                    and line.split()[1] == seqid
+                ):
                     # e.g. `##sequence-region NC_XXXXXX 1 10000` (seqid, start, end)
-                    if len(line.split()) == 4 and line.split()[1] == seqid:
-                        start, end = line.split()[2:4]
-                        start, end = int(start) - 1, int(end)
-                        break
+                    start, end = line.split()[2:4]
+                    start, end = int(start) - 1, int(end)
+                    break
             if start is None or end is None:
                 seqid_gff_records = [rec for rec in gff_records if rec.seqid == seqid]
                 start, end = 0, max([r.end for r in seqid_gff_records])
@@ -390,10 +419,7 @@ class GffRecord:
         check_result : bool
             Check result
         """
-        if min_range <= self.start <= self.end <= max_range:
-            return True
-        else:
-            return False
+        return min_range <= self.start <= self.end <= max_range
 
     def to_seq_feature(self) -> SeqFeature:
         """Convert GffRecord to SeqFeature (1-based to 0-based coordinate)"""
@@ -450,10 +476,7 @@ class GffRecord:
         check_result : bool
             Check result
         """
-        if line.startswith("#") or len(line.split("\t")) < 9:
-            return False
-        else:
-            return True
+        return not (line.startswith("#") or len(line.split("\t")) < 9)
 
     @staticmethod
     def parse_gff_line(gff_line: str) -> GffRecord:

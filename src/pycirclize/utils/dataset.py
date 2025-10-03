@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import os
 from dataclasses import dataclass
 from io import StringIO, TextIOWrapper
 from pathlib import Path
@@ -52,7 +51,7 @@ def load_prokaryote_example_file(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "prokaryote"
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
@@ -112,7 +111,7 @@ def load_eukaryote_example_dataset(
         package_name = __name__.split(".")[0]
         cache_base_dir = Path.home() / ".cache" / package_name
         cache_dir = cache_base_dir / "eukaryote" / name
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir.mkdir(parents=True, exist_ok=True)
     else:
         cache_dir = Path(cache_dir)
         if not cache_dir.exists():
@@ -191,7 +190,7 @@ def fetch_genbank_by_accid(
     accid: str,
     gbk_outfile: str | Path | None = None,
     email: str | None = None,
-) -> TextIOWrapper:
+) -> StringIO:
     """Fetch genbank text by `Accession ID`
 
     Parameters
@@ -205,7 +204,7 @@ def fetch_genbank_by_accid(
 
     Returns
     -------
-    TextIOWrapper
+    gbk_str_io : StringIO
         Genbank data
 
     Examples
@@ -220,13 +219,12 @@ def fetch_genbank_by_accid(
         rettype="gbwithparts",
         retmode="text",
     )
+    gbk_text = gbk_fetch_data.read()
     if gbk_outfile is not None:
-        gbk_text = gbk_fetch_data.read()
         with open(gbk_outfile, "w", encoding="utf-8") as f:
             f.write(gbk_text)
-        gbk_fetch_data = StringIO(gbk_text)
 
-    return gbk_fetch_data
+    return StringIO(gbk_text)
 
 
 @dataclass

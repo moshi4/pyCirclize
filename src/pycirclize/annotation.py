@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import warnings
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import numpy as np
-from matplotlib.projections.polar import PolarAxes
 from matplotlib.text import Annotation, Text
-from matplotlib.transforms import Bbox
-from numpy.typing import NDArray
 
 from pycirclize import config, utils
 from pycirclize.utils.plot import degrees
+
+if TYPE_CHECKING:
+    from matplotlib.projections.polar import PolarAxes
+    from matplotlib.transforms import Bbox
+    from numpy.typing import NDArray
 
 
 def adjust_annotation(ax: PolarAxes) -> None:
@@ -20,7 +23,10 @@ def adjust_annotation(ax: PolarAxes) -> None:
     if len(ann_list) == 0 or config.ann_adjust.max_iter <= 0:
         return
     if len(ann_list) > config.ann_adjust.limit:
-        warnings.warn(f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done.")  # fmt: skip  # noqa: E501
+        warnings.warn(
+            f"Too many annotations(={len(ann_list)}). Annotation position adjustment is not done.",  # noqa: E501
+            stacklevel=2,
+        )
         return
 
     def get_ann_window_extent(ann: Annotation) -> Bbox:
@@ -70,7 +76,7 @@ def _get_sorted_ann_list(ax: PolarAxes) -> list[Annotation]:
         loc = utils.plot.get_loc(ann.xyann[0])
         loc2ann_list[loc].append(ann)
 
-    def sort_by_ann_rad(ann: Annotation):
+    def sort_by_ann_rad(ann: Annotation) -> float:
         return utils.plot.degrees(ann.xyann[0])
 
     return (

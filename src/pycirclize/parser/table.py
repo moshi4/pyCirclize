@@ -15,7 +15,7 @@ class Table:
         table_data: str | Path | pd.DataFrame,
         *,
         delimiter: str = "\t",
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -85,7 +85,7 @@ class Table:
         ColorCycler.set_cmap(cmap)
         return {n: ColorCycler.get_color() for n in self.row_names}
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.dataframe)
 
 
@@ -104,7 +104,7 @@ class StackedBarTable(Table):
     def row_name2sum(self) -> dict[str, float]:
         """Row name & sum dict"""
         row_sum_list = list(map(sum, self.dataframe.itertuples(index=False)))
-        return dict(zip(self.row_names, row_sum_list))
+        return dict(zip(self.row_names, row_sum_list, strict=True))
 
     @property
     def stacked_bar_heights(self) -> list[list[float]]:
@@ -212,6 +212,6 @@ class RadarTable(Table):
         """Get target row tooltip"""
         tooltip: list[str] = []
         values = self.row_name2values[target_row]
-        for col_name, v in zip(self.col_names, values):
+        for col_name, v in zip(self.col_names, values, strict=True):
             tooltip.append(f"{target_row}\n{col_name}:{v}")
         return tooltip

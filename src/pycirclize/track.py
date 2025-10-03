@@ -2,19 +2,14 @@ from __future__ import annotations
 
 import math
 import textwrap
+from collections.abc import Callable, Sequence
 from copy import deepcopy
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import matplotlib as mpl
 import numpy as np
-import pandas as pd
-from Bio.Phylo.BaseTree import Tree
 from Bio.SeqFeature import SeqFeature
 from matplotlib.colors import Colormap, Normalize
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
-from PIL import Image
 
 from pycirclize import config, utils
 from pycirclize.parser import StackedBarTable
@@ -24,8 +19,16 @@ from pycirclize.tree import TreeViz
 from pycirclize.utils.plot import select_textcolor
 
 if TYPE_CHECKING:
-    # Avoid Sector <-> Track circular import error at runtime
+    from pathlib import Path
+
+    import pandas as pd
+    from Bio.Phylo.BaseTree import Tree
+    from matplotlib.patches import Patch
+    from matplotlib.projections.polar import PolarAxes
+    from PIL import Image
+
     from pycirclize.sector import Sector
+    from pycirclize.typing import Numeric, NumericArrayLike
 
 
 class Track:
@@ -37,7 +40,7 @@ class Track:
         r_lim: tuple[float, float],
         r_pad_ratio: float,
         parent_sector: Sector,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -417,7 +420,7 @@ class Track:
         min_r = max(self.r_lim) if min_r is None else min_r
         max_r = min_r + 5 if max_r is None else max_r
         if min_r > max_r:
-            ValueError(f"{max_r=} must be larger than {min_r=}.")
+            raise ValueError(f"{max_r=} must be larger than {min_r=}.")
         rad = self.x_to_rad(x)
         xy, xytext = (rad, min_r), (rad, max_r)
 
@@ -436,7 +439,7 @@ class Track:
 
     def xticks(
         self,
-        x: list[int] | list[float] | np.ndarray,
+        x: NumericArrayLike,
         labels: list[str] | None = None,
         *,
         tick_length: float = 2,
@@ -455,7 +458,7 @@ class Track:
 
         Parameters
         ----------
-        x : list[int] | list[float] | np.ndarray
+        x : NumericArrayLike
             X coordinates
         labels : list[str] | None, optional
             Labels on xticks. If None, only plot ticks line.
@@ -489,7 +492,7 @@ class Track:
         # Plot xticks & labels
         r = max(self.r_lim) if outer else min(self.r_lim)
         tick_r_lim = (r, r + tick_length) if outer else (r - tick_length, r)
-        for x_pos, label in zip(x, labels):
+        for x_pos, label in zip(x, labels, strict=True):
             # Plot xticks
             if tick_length > 0:
                 self._simpleline((x_pos, x_pos), tick_r_lim, **line_kws)
@@ -512,7 +515,7 @@ class Track:
 
     def xticks_by_interval(
         self,
-        interval: int | float,
+        interval: Numeric,
         *,
         tick_length: float = 2,
         outer: bool = True,
@@ -534,7 +537,7 @@ class Track:
 
         Parameters
         ----------
-        interval : int | float
+        interval : Numeric
             Xticks interval
         tick_length : float, optional
             Tick length (Radius unit)
@@ -570,8 +573,8 @@ class Track:
         start_pos, end_pos = self.start - (self.start % interval), self.end + interval
         for x in np.arange(start_pos, end_pos, interval):
             if self.start <= x <= self.end:
-                x = int(x) if isinstance(interval, int) else float(x)
-                x_list.append(x)
+                cast_type = int if isinstance(interval, int) else float
+                x_list.append(cast_type(x))
 
         # Setup xticks labels
         labels = None
@@ -598,7 +601,7 @@ class Track:
 
     def yticks(
         self,
-        y: list[int] | list[float] | np.ndarray,
+        y: NumericArrayLike,
         labels: list[str] | None = None,
         *,
         vmin: float = 0,
@@ -614,7 +617,7 @@ class Track:
 
         Parameters
         ----------
-        y : list[int] | list[float] | np.ndarray
+        y : NumericArrayLike
             Y coordinates
         labels : list[str] | None, optional
             Labels on yticks. If None, only plot ticks line.
@@ -653,7 +656,7 @@ class Track:
 
         # Plot yticks & labels
         r = [self._y_to_r(v, vmin, vmax) for v in y]
-        for r_pos, label in zip(r, labels):
+        for r_pos, label in zip(r, labels, strict=True):
             # Set plot properties
             x_tick_length = (self.size / self.deg_size) * tick_length
             x_label_margin = (self.size / self.deg_size) * label_margin
@@ -705,7 +708,8 @@ class Track:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.plot.html>
         """
         # Check argument values
-        if y_grid_num is not None and not y_grid_num >= 2:
+        min_grid_num = 2
+        if y_grid_num is not None and not y_grid_num >= min_grid_num:
             raise ValueError(f"{y_grid_num=} is invalid (y_grid_num >= 2).")
         if x_grid_interval is not None and not x_grid_interval > 0:
             raise ValueError(f"{x_grid_interval=} is invalid (x_grid_interval > 0).")
@@ -721,7 +725,7 @@ class Track:
             vmin, vmax = 0, y_grid_num - 1
             for y_grid_idx in range(y_grid_num):
                 x = [self.start, self.end]
-                y: list[float] = [y_grid_idx, y_grid_idx]
+                y = [y_grid_idx, y_grid_idx]
                 self.line(x, y, vmin=vmin, vmax=vmax, **kwargs)
 
         # Plot x-axis grid line
@@ -738,8 +742,8 @@ class Track:
 
     def line(
         self,
-        x: list[float] | np.ndarray,
-        y: list[float] | np.ndarray,
+        x: NumericArrayLike,
+        y: NumericArrayLike,
         *,
         vmin: float = 0,
         vmax: float | None = None,
@@ -750,9 +754,9 @@ class Track:
 
         Parameters
         ----------
-        x : list[float] | np.ndarray
+        x : NumericArrayLike
             X coordinates
-        y : list[float] | np.ndarray
+        y : NumericArrayLike
             Y coordinates
         vmin : float, optional
             Y min value
@@ -781,6 +785,10 @@ class Track:
         else:
             plot_rad, plot_r = rad, r
 
+        # Set default line width
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.5)
+
         def plot_line(ax: PolarAxes) -> None:
             ax.plot(plot_rad, plot_r, **kwargs)
 
@@ -788,8 +796,8 @@ class Track:
 
     def scatter(
         self,
-        x: list[float] | np.ndarray,
-        y: list[float] | np.ndarray,
+        x: NumericArrayLike,
+        y: NumericArrayLike,
         *,
         vmin: float = 0,
         vmax: float | None = None,
@@ -800,9 +808,9 @@ class Track:
 
         Parameters
         ----------
-        x : list[float] | np.ndarray
+        x : NumericArrayLike
             X position list
-        y : list[float] | np.ndarray
+        y : NumericArrayLike
             Y position list
         vmin : float, optional
             Y min value
@@ -825,6 +833,12 @@ class Track:
         r = [self._y_to_r(v, vmin, vmax) for v in y]
         labels = [str(v) for v in y] if tooltip is None else tooltip
 
+        # Set default marker size and line width
+        if "s" not in kwargs and "sizes" not in kwargs:
+            kwargs.setdefault("s", 3**2)
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
+
         def plot_scatter(ax: PolarAxes) -> None:
             scatter = ax.scatter(rad, r, **kwargs)  # type:ignore
             if config.tooltip.enabled:
@@ -834,10 +848,10 @@ class Track:
 
     def bar(
         self,
-        x: list[float] | np.ndarray,
-        height: list[float] | np.ndarray,
+        x: NumericArrayLike,
+        height: NumericArrayLike,
         width: float = 0.8,
-        bottom: float | list[float] | np.ndarray = 0,
+        bottom: Numeric | NumericArrayLike = 0,
         align: str = "center",
         *,
         vmin: float = 0,
@@ -848,13 +862,13 @@ class Track:
 
         Parameters
         ----------
-        x : list[float] | np.ndarray
+        x : NumericArrayLike
             Bar x coordinates
-        height : list[float] | np.ndarray
+        height : NumericArrayLike
             Bar heights
         width : float, optional
             Bar width
-        bottom : float | np.ndarray, optional
+        bottom : Numeric | NumericArrayLike
             Bar bottom(s)
         align : str, optional
             Bar alignment type (`center` or `edge`)
@@ -871,7 +885,7 @@ class Track:
             raise ValueError(f"List length is not match ({len(x)=}, {len(height)=})")
 
         # Calculate top & vmax
-        if isinstance(bottom, (list, tuple, np.ndarray)):
+        if isinstance(bottom, (Sequence, np.ndarray)):
             bottom = np.array(bottom)
         else:
             bottom = np.array([bottom])
@@ -898,7 +912,7 @@ class Track:
                 **kwargs,
             )
             if config.tooltip.enabled:
-                for p, h in zip(bar.patches, height):
+                for p, h in zip(bar.patches, height, strict=True):
                     gid = gen_gid("bar")
                     p.set_gid(gid)
                     self._gid2tooltip[gid] = str(h)
@@ -979,7 +993,8 @@ class Track:
         heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
 
         # Plot bars
-        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+        col_names = sb_table.col_names
+        for col_name, height, bottom in zip(col_names, heights, bottoms, strict=True):
             color = col_name2color[col_name]
             self.bar(x, height, width, bottom, vmax=vmax, fc=color, **bar_kws)
 
@@ -987,7 +1002,7 @@ class Track:
         if show_label:
             x_list = sb_table.calc_bar_label_x_list(self.size)
             row_name2sum = sb_table.row_name2sum
-            for label, x in zip(sb_table.row_names, x_list):
+            for label, x in zip(sb_table.row_names, x_list, strict=True):
                 # Calculate label r position
                 if label_pos == "top":
                     bar_r_height = self.r_size * (row_name2sum[label] / vmax)
@@ -1064,18 +1079,19 @@ class Track:
         heights, bottoms = sb_table.stacked_bar_heights, sb_table.stacked_bar_bottoms
 
         # Plot bars
-        for col_name, height, bottom in zip(sb_table.col_names, heights, bottoms):
+        col_names = sb_table.col_names
+        for col_name, height, bottom in zip(col_names, heights, bottoms, strict=True):
             color = col_name2color[col_name]
-            for r_lim, h, b in zip(r_lim_list, height, bottom):
+            for r_lim, h, b in zip(r_lim_list, height, bottom, strict=True):
                 self.rect(b, b + h, r_lim=r_lim, fc=color, **bar_kws)
 
         return sb_table
 
     def fill_between(
         self,
-        x: list[float] | np.ndarray,
-        y1: list[float] | np.ndarray,
-        y2: float | list[float] | np.ndarray = 0,
+        x: NumericArrayLike,
+        y1: NumericArrayLike,
+        y2: Numeric | NumericArrayLike = 0,
         *,
         vmin: float = 0,
         vmax: float | None = None,
@@ -1086,11 +1102,11 @@ class Track:
 
         Parameters
         ----------
-        x : list[float] | np.ndarray
+        x : NumericArrayLike
             X coordinates
-        y1 : list[float] | np.ndarray
+        y1 : NumericArrayLike
             Y coordinates (first curve definition)
-        y2 : float | list[float] | np.ndarray, optional
+        y2 : Numeric | NumericArrayLike
             Y coordinate[s] (second curve definition)
         vmin : float, optional
             Y min value
@@ -1104,10 +1120,10 @@ class Track:
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.fill_between.html>
         """
         rad = list(map(self.x_to_rad, x))
-        if isinstance(y2, (list, tuple, np.ndarray)):
+        if isinstance(y2, (Sequence, np.ndarray)):
             y_all = list(y1) + list(y2)
         else:
-            y_all = list(y1) + [y2]
+            y_all = [*list(y1), y2]
             y2 = [float(y2)] * len(x)
         vmin = min(y_all) if vmin is None else vmin
         vmax = max(y_all) if vmax is None else vmax
@@ -1121,6 +1137,10 @@ class Track:
         else:
             plot_rad, plot_r, plot_r2 = rad, r, r2
 
+        # Set default line width
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
+
         def plot_fill_between(ax: PolarAxes) -> None:
             ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)  # type: ignore
 
@@ -1128,7 +1148,7 @@ class Track:
 
     def heatmap(
         self,
-        data: list | np.ndarray,
+        data: NumericArrayLike,
         *,
         vmin: float | None = None,
         vmax: float | None = None,
@@ -1144,7 +1164,7 @@ class Track:
 
         Parameters
         ----------
-        data : list | np.ndarray
+        data : NumericArrayLike
             Numerical list, numpy 1d or 2d array
         vmin : float | None, optional
             Min value for heatmap plot. If None, `np.min(data)` is set.
@@ -1211,8 +1231,7 @@ class Track:
             min_range = start + (unit_x_size * i)
             max_range = min_range + unit_x_size
             # Avoid max_range exceeds `track.end` value
-            if max_range > self.end:
-                max_range = self.end
+            max_range = min(max_range, self.end)
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
@@ -1295,7 +1314,7 @@ class Track:
         rad_list = np.linspace(rad_start, rad_end, resize_img.width)
         r_list = np.linspace(r_end, r_start, resize_img.height)
 
-        def plot_raster(ax: PolarAxes):
+        def plot_raster(ax: PolarAxes) -> None:
             ax.pcolormesh(rad_list, r_list, np.array(resize_img), **kwargs)
 
         self._plot_funcs.append(plot_raster)
@@ -1378,7 +1397,7 @@ class Track:
 
     def genomic_features(
         self,
-        features: SeqFeature | list[SeqFeature],
+        features: SeqFeature | Sequence[SeqFeature],
         *,
         plotstyle: str = "box",
         r_lim: tuple[float, float] | None = None,
@@ -1389,7 +1408,7 @@ class Track:
 
         Parameters
         ----------
-        features : SeqFeature | list[SeqFeature]
+        features : SeqFeature | Sequence[SeqFeature]
             Biopython's SeqFeature or SeqFeature list
         plotstyle : str, optional
             Plot style (`box` or `arrow`)
@@ -1406,9 +1425,8 @@ class Track:
 
         if r_lim is None:
             r_lim = self.r_plot_lim
-        else:
-            if not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
-                raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
+        elif not min(self.r_lim) <= min(r_lim) < max(r_lim) <= max(self.r_lim):
+            raise ValueError(f"{r_lim=} is invalid track range.\n{self}")
 
         for feature in features:
             # Set qualifier tag facecolor if exists
@@ -1463,16 +1481,16 @@ class Track:
 
     def _to_arc_radr(
         self,
-        rad: list[float] | np.ndarray,
-        r: list[float] | np.ndarray,
+        rad: NumericArrayLike,
+        r: NumericArrayLike,
     ) -> tuple[list[float], list[float]]:
         """Convert radian & radius to arc radian & arc radius
 
         Parameters
         ----------
-        rad : list[float] | np.ndarray
+        rad : NumericArrayLike
             Radian list
-        r : list[float] | np.ndarray
+        r : NumericArrayLike
             Radius list
 
         Returns
@@ -1493,7 +1511,7 @@ class Track:
                 step = config.ARC_RADIAN_STEP / 10
                 if rad1 > rad2:
                     step *= -1
-                arc_rad = list(np.arange(rad1, rad2, step)) + [rad2]
+                arc_rad = [*list(np.arange(rad1, rad2, step)), rad2]
                 all_arc_rad.extend(arc_rad)
                 arc_r = np.linspace(r1, r2, len(arc_rad), endpoint=True)
                 all_arc_r.extend(arc_r)
@@ -1524,7 +1542,7 @@ class Track:
 
     def _check_value_min_max(
         self,
-        value: float | list[int] | list[float] | np.ndarray,
+        value: Numeric | NumericArrayLike,
         vmin: float,
         vmax: float,
     ) -> None:
@@ -1532,7 +1550,7 @@ class Track:
 
         Parameters
         ----------
-        value : float | list[int] | list[float] | np.ndarray
+        value : Numeric | NumericArrayLike
             Check value(s)
         vmin : float
             Min value
@@ -1540,17 +1558,16 @@ class Track:
             Max value
         """
         vmin, vmax = vmin - config.EPSILON, vmax + config.EPSILON
-        if isinstance(value, (list, tuple, np.ndarray)):
+        if isinstance(value, (Sequence, np.ndarray)):
             if isinstance(value, np.ndarray):
                 value = list(value.flatten())
             for v in value:
                 if not vmin <= v <= vmax:
                     raise ValueError(f"value={v} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
-        else:
-            if not vmin <= value <= vmax:
-                raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
+        elif not vmin <= value <= vmax:
+            raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
 
-    def __str__(self):
+    def __str__(self) -> str:
         min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)
         min_r_lim, max_r_lim = min(self.r_lim), max(self.r_lim)
         return textwrap.dedent(

@@ -3,13 +3,11 @@ from __future__ import annotations
 import math
 import textwrap
 import warnings
+from collections.abc import Callable, Sequence
 from copy import deepcopy
-from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from matplotlib.patches import Patch
-from matplotlib.projections.polar import PolarAxes
 from PIL import Image, ImageOps
 
 from pycirclize import config, utils
@@ -17,6 +15,12 @@ from pycirclize.patches import ArcLine, ArcRectangle, Line
 from pycirclize.tooltip import gen_gid
 from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from matplotlib.patches import Patch
+    from matplotlib.projections.polar import PolarAxes
 
 
 class Sector:
@@ -28,7 +32,7 @@ class Sector:
         size: float | tuple[float, float],
         rad_lim: tuple[float, float],
         clockwise: bool = True,
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -42,7 +46,7 @@ class Sector:
             Sector coordinate direction (clockwise or anti-clockwise).
         """
         self._name = name
-        if isinstance(size, (tuple, list)):
+        if isinstance(size, Sequence):
             start, end = size[0], size[1]
         else:
             start, end = 0, size
@@ -158,7 +162,10 @@ class Sector:
         if name in [t.name for t in self.tracks]:
             raise ValueError(f"{name=} track is already exists.")
         if not 0 <= min(r_lim) <= max(r_lim) <= 100:
-            warnings.warn(f"{r_lim=} is unexpected plot range (0 <= r <= 100).")
+            warnings.warn(
+                f"{r_lim=} is unexpected plot range (0 <= r <= 100).",
+                stacklevel=2,
+            )
         track = Track(name, r_lim, r_pad_ratio, self)
         self._tracks.append(track)
         return track
@@ -327,7 +334,7 @@ class Sector:
         start = self.start if start is None else start
         end = self.end if end is None else end
         rad_lim = (self.x_to_rad(start), self.x_to_rad(end))
-        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
+        r_lim = r if isinstance(r, Sequence) else (r, r)
         LinePatch = ArcLine if arc else Line
         self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
@@ -489,7 +496,7 @@ class Sector:
     # Private Method
     ############################################################
 
-    def __str__(self):
+    def __str__(self) -> str:
         min_deg_lim, max_deg_lim = min(self.deg_lim), max(self.deg_lim)
         track_names = [t.name for t in self.tracks]
         return textwrap.dedent(

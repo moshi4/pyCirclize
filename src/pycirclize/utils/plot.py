@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from matplotlib.colors import Normalize, to_rgb
-from matplotlib.projections import PolarAxes
-from matplotlib.transforms import Bbox
-from matplotlib.typing import ColorType
+
+if TYPE_CHECKING:
+    from matplotlib.projections import PolarAxes
+    from matplotlib.transforms import Bbox
+    from matplotlib.typing import ColorType
 
 
 def degrees(rad: float) -> float:

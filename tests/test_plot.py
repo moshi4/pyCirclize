@@ -25,7 +25,7 @@ random.seed(0)
 ###########################################################
 
 
-def test_circos_axis_plot(fig_outfile: Path):
+def test_circos_axis_plot(fig_outfile: Path) -> None:
     """Test `circos.axis()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -35,7 +35,7 @@ def test_circos_axis_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_text_plot(fig_outfile: Path):
+def test_circos_text_plot(fig_outfile: Path) -> None:
     """Test `circos.text()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -50,7 +50,7 @@ def test_circos_text_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_line_plot(fig_outfile: Path):
+def test_circos_line_plot(fig_outfile: Path) -> None:
     """Test `circos.line()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -62,7 +62,7 @@ def test_circos_line_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_rect_plot(fig_outfile: Path):
+def test_circos_rect_plot(fig_outfile: Path) -> None:
     """Test `circos.rect()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -75,7 +75,7 @@ def test_circos_rect_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_link_plot(fig_outfile: Path):
+def test_circos_link_plot(fig_outfile: Path) -> None:
     """Test `circos.link()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     name2color = {"A": "red", "B": "blue", "C": "green"}
@@ -97,7 +97,7 @@ def test_circos_link_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_link_line_plot(fig_outfile: Path):
+def test_circos_link_line_plot(fig_outfile: Path) -> None:
     """Test `circos.link_line()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     name2color = {"A": "red", "B": "blue", "C": "green"}
@@ -116,7 +116,7 @@ def test_circos_link_line_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_circos_colorbar_plot(fig_outfile: Path):
+def test_circos_colorbar_plot(fig_outfile: Path) -> None:
     """Test `circos.colorbar()`"""
     circos = Circos(sectors=dict(data=100), start=90)
     circos.axis()
@@ -144,14 +144,14 @@ def test_circos_colorbar_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_radar_chart_plot(fig_outfile: Path, tsv_radar_table_file: Path):
+def test_radar_chart_plot(fig_outfile: Path, tsv_radar_table_file: Path) -> None:
     """Test radar chart plot"""
     circos = Circos.radar_chart(tsv_radar_table_file, vmax=100, marker_size=6)
     circos.savefig(fig_outfile)
     assert fig_outfile.exists()
 
 
-def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
+def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame) -> None:
     """Test chord diagram plot"""
     circos = Circos.chord_diagram(tsv_matrix_file)
     circos.savefig(fig_outfile)
@@ -163,7 +163,7 @@ def test_chord_diagram_plot(fig_outfile: Path, tsv_matrix_file: pd.DataFrame):
     assert fig_outfile.exists()
 
 
-def test_cytoband_plot(fig_outfile: Path, hg38_testdata_dir: Path):
+def test_cytoband_plot(fig_outfile: Path, hg38_testdata_dir: Path) -> None:
     """Test hg38 cytoband plot"""
     # Add tracks for cytoband plot
     chr_bed_file, cytoband_file, _ = load_eukaryote_example_dataset(
@@ -177,7 +177,7 @@ def test_cytoband_plot(fig_outfile: Path, hg38_testdata_dir: Path):
     assert fig_outfile.exists()
 
 
-def test_phylogenetic_tree_plot(fig_outfile: Path):
+def test_phylogenetic_tree_plot(fig_outfile: Path) -> None:
     """Test phylogenetic tree plot"""
     tree_file = load_example_tree_file("alphabet.nwk")
     circos, tv = Circos.initialize_from_tree(tree_file)
@@ -205,7 +205,7 @@ def test_phylogenetic_tree_plot(fig_outfile: Path):
 ###########################################################
 
 
-def test_sector_axis_plot(fig_outfile: Path):
+def test_sector_axis_plot(fig_outfile: Path) -> None:
     """Test `sector.axis()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -220,7 +220,7 @@ def test_sector_axis_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_sector_text_plot(fig_outfile: Path):
+def test_sector_text_plot(fig_outfile: Path) -> None:
     """Test `sector.text()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     name2color = {"A": "red", "B": "blue", "C": "green"}
@@ -235,7 +235,7 @@ def test_sector_text_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_sector_line_plot(fig_outfile: Path):
+def test_sector_line_plot(fig_outfile: Path) -> None:
     """Test `sector_line()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -251,7 +251,7 @@ def test_sector_line_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_sector_rect_plot(fig_outfile: Path):
+def test_sector_rect_plot(fig_outfile: Path) -> None:
     """Test `sector.rect()`"""
     ColorCycler.set_cmap("tab10")
     sectors = {"A": 10, "B": 20, "C": 15}
@@ -271,7 +271,7 @@ def test_sector_rect_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_sector_raster_plot(fig_outfile: Path):
+def test_sector_raster_plot(fig_outfile: Path) -> None:
     """Test `sector.raster()`"""
     sectors = {"A": 10, "B": 15, "C": 12, "D": 20, "E": 15}
     circos = Circos(sectors, space=5)
@@ -295,7 +295,7 @@ def test_sector_raster_plot(fig_outfile: Path):
 ###########################################################
 
 
-def test_track_axis_plot(fig_outfile: Path):
+def test_track_axis_plot(fig_outfile: Path) -> None:
     """Test `track.axis()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -309,7 +309,7 @@ def test_track_axis_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_text_plot(fig_outfile: Path):
+def test_track_text_plot(fig_outfile: Path) -> None:
     """Test `track.text()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -325,7 +325,7 @@ def test_track_text_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_rect_plot(fig_outfile: Path):
+def test_track_rect_plot(fig_outfile: Path) -> None:
     """Test `track.rect()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -350,7 +350,7 @@ def test_track_rect_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_arrow_plot(fig_outfile: Path):
+def test_track_arrow_plot(fig_outfile: Path) -> None:
     """Test `track.arrow()`"""
     ColorCycler.set_cmap("tab10")
     sectors = {"A": 10, "B": 20, "C": 15}
@@ -372,7 +372,7 @@ def test_track_arrow_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_annotate_plot(fig_outfile: Path):
+def test_track_annotate_plot(fig_outfile: Path) -> None:
     """Test `track.annotate()`"""
     gff_file = load_prokaryote_example_file("enterobacteria_phage.gff")
     gff = Gff(gff_file)
@@ -406,7 +406,7 @@ def test_track_annotate_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_xticks_plot(fig_outfile: Path):
+def test_track_xticks_plot(fig_outfile: Path) -> None:
     """Test `track.xticks()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -432,7 +432,7 @@ def test_track_xticks_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_xticks_by_interval_plot(fig_outfile: Path):
+def test_track_xticks_by_interval_plot(fig_outfile: Path) -> None:
     """Test `track.xticks_by_interval()`"""
     sectors = {"A": 10000000, "B": 20000000, "C": 15000000}
     circos = Circos(sectors, space=5)
@@ -457,7 +457,7 @@ def test_track_xticks_by_interval_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_yticks_plot(fig_outfile: Path):
+def test_track_yticks_plot(fig_outfile: Path) -> None:
     """Test `track.yticks()`"""
     sectors = {"A": 10000000, "B": 20000000, "C": 15000000}
     circos = Circos(sectors, space=15)
@@ -487,7 +487,7 @@ def test_track_yticks_plot(fig_outfile: Path):
     fig_outfile.exists()
 
 
-def test_track_grid_plot(fig_outfile: Path):
+def test_track_grid_plot(fig_outfile: Path) -> None:
     """Test `track.grid()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -508,7 +508,7 @@ def test_track_grid_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_line_plot(fig_outfile: Path):
+def test_track_line_plot(fig_outfile: Path) -> None:
     """Test `track.line()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -528,7 +528,7 @@ def test_track_line_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_scatter_plot(fig_outfile: Path):
+def test_track_scatter_plot(fig_outfile: Path) -> None:
     """Test `track.scatter()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -545,7 +545,7 @@ def test_track_scatter_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_bar_plot(fig_outfile: Path):
+def test_track_bar_plot(fig_outfile: Path) -> None:
     """Test `track.bar()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -589,7 +589,7 @@ def test_track_bar_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_stacked_bar_plot(fig_outfile: Path):
+def test_track_stacked_bar_plot(fig_outfile: Path) -> None:
     """Test `track.stacked_bar()`"""
     # Generate matrix data for stacked bar plot
     row_num, col_num = 12, 6
@@ -617,7 +617,7 @@ def test_track_stacked_bar_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_stacked_barh_plot(fig_outfile: Path):
+def test_track_stacked_barh_plot(fig_outfile: Path) -> None:
     """Test `track.stacked_barh()`"""
     # Generate & load matrix data for horizontal stacked bar plot
     row_names = list("ABCDEF")
@@ -635,7 +635,7 @@ def test_track_stacked_barh_plot(fig_outfile: Path):
     # Plot horizontal stacked bar & label & xticks
     track.stacked_barh(sb_table.dataframe, cmap="tab10", width=0.6)
     label_r_list = sb_table.calc_barh_label_r_list(track.r_plot_lim)
-    for label_r, row_name in zip(label_r_list, sb_table.row_names):
+    for label_r, row_name in zip(label_r_list, sb_table.row_names, strict=True):
         track.text(f"{row_name} ", x=0, r=label_r, ha="right")
     track.xticks_by_interval(interval=5)
     track.xticks_by_interval(interval=1, tick_length=1, show_label=False)
@@ -644,7 +644,7 @@ def test_track_stacked_barh_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_fill_between_plot(fig_outfile: Path):
+def test_track_fill_between_plot(fig_outfile: Path) -> None:
     """Test `track.fill_between()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=5)
@@ -668,7 +668,7 @@ def test_track_fill_between_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_heatmap_plot(fig_outfile: Path):
+def test_track_heatmap_plot(fig_outfile: Path) -> None:
     """Test `track.heatmap()`"""
     sectors = {"A": 10, "B": 20, "C": 15}
     circos = Circos(sectors, space=10)
@@ -693,7 +693,7 @@ def test_track_heatmap_plot(fig_outfile: Path):
     assert fig_outfile.exists()
 
 
-def test_track_tree_plot(fig_outfile: Path):
+def test_track_tree_plot(fig_outfile: Path) -> None:
     """Test `track.heatmap()`"""
     # Load newick tree
     tree_text = "((((A:1,B:1)100:1,(C:1,D:1)100:1)100:1,(E:2,F:2)90:1):1,G:6)100;"
@@ -713,7 +713,7 @@ def test_track_tree_plot(fig_outfile: Path):
 def test_track_genomic_features_genbank_plot(
     fig_outfile: Path,
     prokaryote_testdata_dir: Path,
-):
+) -> None:
     """Test `track.genomic_features()` with genbank file"""
     # Load Genbank file
     gbk_file = load_prokaryote_example_file(
@@ -746,7 +746,7 @@ def test_track_genomic_features_genbank_plot(
 def test_track_genomic_features_gff_plot(
     fig_outfile: Path,
     prokaryote_testdata_dir: Path,
-):
+) -> None:
     """Test `track.genomic_features()` with gff file"""
     # Load Genbank file
     gff_file = load_prokaryote_example_file(
@@ -776,7 +776,7 @@ def test_track_genomic_features_gff_plot(
     assert fig_outfile.exists()
 
 
-def test_track_raster_plot(fig_outfile: Path):
+def test_track_raster_plot(fig_outfile: Path) -> None:
     """Test `track.raster()` method"""
     logo_file = load_example_image_file("python_logo.png")
 

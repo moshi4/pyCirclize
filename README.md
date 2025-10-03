@@ -277,7 +277,7 @@ conda install -c conda-forge pycirclize ipympl
 
 > [!WARNING]
 > Interactive tooltip plots require live python kernel.
-> Be aware that tooltips are not always enabled in the notebook after plotting.
+> Be aware that tooltips are not permanently enabled in the notebook after plotting.
 
 ![pyCirclize_tooltip.gif](https://raw.githubusercontent.com/moshi4/pyCirclize/main/docs/images/pyCirclize_tooltip.gif)  
 
