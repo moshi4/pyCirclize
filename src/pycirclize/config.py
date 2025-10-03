@@ -105,21 +105,6 @@ tooltip = _TooltipConfig
 # Setting matplotlib rc(runtime configuration) parameters
 # https://matplotlib.org/stable/tutorials/introductory/customizing.html
 mpl_rc_params = {
-    # Font
-    "font.size": 10,  # Default: 10
-    # Lines
-    "lines.linewidth": 0.5,  # Default: 1.5
-    "lines.color": "black",  # Default: 'C0'
-    "lines.markersize": 3,  # Default: 6
-    # Patch
-    "patch.linewidth": 0,  # Default: 1.0
-    "patch.facecolor": "C0",  # Default: 'C0'
-    "patch.edgecolor": "black",  # Default: 'black'
-    # Legend
-    "legend.loc": "upper left",  # Default: best
-    "legend.frameon": False,  # Default: True
-    "legend.handlelength": 1,  # Default: 2.0
-    "legend.handleheight": 1,  # Default: 0.7
     # Savefig
     "savefig.bbox": "tight",  # Default: None
     "savefig.pad_inches": 0.5,  # Default: 0.1

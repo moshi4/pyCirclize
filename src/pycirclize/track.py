@@ -785,6 +785,10 @@ class Track:
         else:
             plot_rad, plot_r = rad, r
 
+        # Set default line width
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.5)
+
         def plot_line(ax: PolarAxes) -> None:
             ax.plot(plot_rad, plot_r, **kwargs)
 
@@ -828,6 +832,12 @@ class Track:
         self._check_value_min_max(y, vmin, vmax)
         r = [self._y_to_r(v, vmin, vmax) for v in y]
         labels = [str(v) for v in y] if tooltip is None else tooltip
+
+        # Set default marker size and line width
+        if "s" not in kwargs and "sizes" not in kwargs:
+            kwargs.setdefault("s", 3**2)
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
 
         def plot_scatter(ax: PolarAxes) -> None:
             scatter = ax.scatter(rad, r, **kwargs)  # type:ignore
@@ -1126,6 +1136,10 @@ class Track:
             _, plot_r = self._to_arc_radr(rad, r)
         else:
             plot_rad, plot_r, plot_r2 = rad, r, r2
+
+        # Set default line width
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
 
         def plot_fill_between(ax: PolarAxes) -> None:
             ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)  # type: ignore

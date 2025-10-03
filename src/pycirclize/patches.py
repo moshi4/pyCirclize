@@ -110,6 +110,9 @@ class ArcRectangle(PathPatch):
             Patch properties (e.g. `fc="red", ec="blue", lw=2.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
+
         min_rad, min_r = radr
         max_rad, max_r = min_rad + width, min_r + height
         arc_rads = np.arange(min_rad, max_rad, config.ARC_RADIAN_STEP)
@@ -160,6 +163,9 @@ class ArcArrow(PathPatch):
             Patch properties (e.g. `fc="red", ec="blue", lw=1.0, ...`)
             <https://matplotlib.org/stable/api/_as_gen/matplotlib.patches.Patch.html>
         """
+        if "lw" not in kwargs and "linewidth" not in kwargs:
+            kwargs.setdefault("lw", 0.0)
+
         # Set position parameters
         shaft_size = dr * shaft_ratio
         y_shaft_bottom = r + ((dr - shaft_size) / 2)
