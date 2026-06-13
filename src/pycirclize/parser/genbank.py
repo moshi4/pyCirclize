@@ -293,8 +293,8 @@ class Genbank:
                 # Exclude feature which straddle genome start position
                 if self._is_straddle_feature(feature):
                     continue
-                start = int(feature.location.start)  # type: ignore
-                end = int(feature.location.end)  # type: ignore
+                start = int(feature.location.start)
+                end = int(feature.location.end)
                 seqid2features[rec.id].append(
                     SeqFeature(
                         location=SimpleLocation(start, end, strand),

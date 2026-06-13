@@ -840,7 +840,7 @@ class Track:
             kwargs.setdefault("lw", 0.0)
 
         def plot_scatter(ax: PolarAxes) -> None:
-            scatter = ax.scatter(rad, r, **kwargs)  # type:ignore
+            scatter = ax.scatter(rad, r, **kwargs)
             if config.tooltip.enabled:
                 set_collection_tooltip(ax, scatter, labels)
 
@@ -904,7 +904,7 @@ class Track:
 
         def plot_bar(ax: PolarAxes) -> None:
             bar = ax.bar(
-                rad,  # type: ignore
+                rad,
                 r_height,
                 rad_width,
                 r_bottom,
@@ -1142,7 +1142,7 @@ class Track:
             kwargs.setdefault("lw", 0.0)
 
         def plot_fill_between(ax: PolarAxes) -> None:
-            ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)  # type: ignore
+            ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)
 
         self._plot_funcs.append(plot_fill_between)
 
@@ -1235,7 +1235,7 @@ class Track:
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
-        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]  # type: ignore
+        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]
         norm = Normalize(vmin=vmin, vmax=vmax)
         textcolor = text_kws.get("color")
         for row_idx, row in enumerate(data):

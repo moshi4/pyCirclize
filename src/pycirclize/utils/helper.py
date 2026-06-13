@@ -18,7 +18,7 @@ class ColorCycler:
     """Color Cycler Class"""
 
     counter = 0
-    cmap: Colormap = mpl.colormaps["tab10"]  # type: ignore
+    cmap: Colormap = mpl.colormaps["tab10"]
 
     def __new__(cls, n: int | None = None) -> str:
         """Get hexcolor cyclically from cmap by counter or user specified number
@@ -45,7 +45,7 @@ class ColorCycler:
     @classmethod
     def set_cmap(cls, name: str) -> None:
         """Set colormap (Default: `tab10`)"""
-        cls.cmap = mpl.colormaps[name]  # type: ignore
+        cls.cmap = mpl.colormaps[name]
         cls.counter = 0
 
     @classmethod
@@ -65,7 +65,7 @@ class ColorCycler:
         if n is None:
             n = cls.counter
             cls.counter += 1
-        return to_hex(cls.cmap(n % cls.cmap.N), keep_alpha=True)  # type: ignore
+        return to_hex(cls.cmap(n % cls.cmap.N), keep_alpha=True)
 
     @classmethod
     def get_color_list(cls, n: int | None = None) -> list[str]:
@@ -83,13 +83,13 @@ class ColorCycler:
             Hexcolor list
         """
         if n is None:
-            cmap_idx_list = list(range(0, cls.cmap.N))  # type: ignore
+            cmap_idx_list = list(range(0, cls.cmap.N))
         elif n > 0:
-            cmap_idx_list = [int(i) for i in np.linspace(0, cls.cmap.N, n)]  # type: ignore
+            cmap_idx_list = [int(i) for i in np.linspace(0, cls.cmap.N, n)]
         else:
             raise ValueError(f"{n=} is invalid number (Must be 'n > 0').")
 
-        return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]  # type: ignore
+        return [to_hex(cls.cmap(i), keep_alpha=True) for i in cmap_idx_list]
 
 
 def calc_group_spaces(

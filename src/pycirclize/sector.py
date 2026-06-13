@@ -474,7 +474,7 @@ class Sector:
             bounds = (im_x - (size / 2), im_y - (size / 2), size, size)
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
             axin.axis("off")
-            axin.imshow(im, **imshow_kws)  # type: ignore
+            axin.imshow(im, **imshow_kws)
 
             # Plot label
             if label is not None:
