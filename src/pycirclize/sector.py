@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 import textwrap
 import warnings
-from collections.abc import Callable, Sequence
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
@@ -17,6 +16,7 @@ from pycirclize.track import Track
 from pycirclize.utils.plot import get_label_params_by_rad
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from matplotlib.patches import Patch
@@ -46,7 +46,7 @@ class Sector:
             Sector coordinate direction (clockwise or anti-clockwise).
         """
         self._name = name
-        if isinstance(size, Sequence):
+        if isinstance(size, (tuple, list)):
             start, end = size[0], size[1]
         else:
             start, end = 0, size
@@ -248,11 +248,11 @@ class Sector:
 
         # Axis facecolor placed behind other patches (zorder=0.99)
         fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
-        self.rect(self.start, self.end, config.R_LIM, **fc_behind_kwargs)
+        self.rect(self.start, self.end, config.R_LIM, **fc_behind_kwargs)  # type: ignore
 
         # Axis edgecolor placed in front of other patches (zorder=1.01)
         ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
-        self.rect(self.start, self.end, config.R_LIM, **ec_front_kwargs)
+        self.rect(self.start, self.end, config.R_LIM, **ec_front_kwargs)  # type: ignore
 
     def text(
         self,
@@ -334,7 +334,7 @@ class Sector:
         start = self.start if start is None else start
         end = self.end if end is None else end
         rad_lim = (self.x_to_rad(start), self.x_to_rad(end))
-        r_lim = r if isinstance(r, Sequence) else (r, r)
+        r_lim = r if isinstance(r, (tuple, list)) else (r, r)
         LinePatch = ArcLine if arc else Line
         self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
 
@@ -474,7 +474,7 @@ class Sector:
             bounds = (im_x - (size / 2), im_y - (size / 2), size, size)
             axin = ax.inset_axes(bounds, transform=ax.transAxes)
             axin.axis("off")
-            axin.imshow(im, **imshow_kws)  # type: ignore
+            axin.imshow(im, **imshow_kws)
 
             # Plot label
             if label is not None:

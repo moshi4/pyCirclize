@@ -120,7 +120,7 @@ class Circos:
             deg_size = whole_deg_size_without_space * sector_size_ratio
             rad_size = math.radians(deg_size)
             rad_lim = (rad_pos, rad_pos + rad_size)
-            rad_pos += rad_size + math.radians(space_list[idx])
+            rad_pos += rad_size + math.radians(space_list[idx])  # type: ignore
             clockwise = sector2clockwise.get(sector_name, True)
             sector = Sector(sector_name, sector_range, rad_lim, clockwise)
             self._sectors.append(sector)
@@ -713,11 +713,11 @@ class Circos:
 
         # Axis facecolor placed behind other patches (zorder=0.99)
         fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
-        self.rect(**fc_behind_kwargs)
+        self.rect(**fc_behind_kwargs)  # type: ignore
 
         # Axis edgecolor placed in front of other patches (zorder=1.01)
         ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
-        self.rect(**ec_front_kwargs)
+        self.rect(**ec_front_kwargs)  # type: ignore
 
     def text(
         self,
@@ -789,7 +789,7 @@ class Circos:
         rad_lim = (math.radians(min(deg_lim)), math.radians(max(deg_lim)))
         r_lim = r if isinstance(r, Sequence) else (r, r)
         LinePatch = ArcLine if arc else Line
-        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))
+        self._patches.append(LinePatch(rad_lim, r_lim, **kwargs))  # type: ignore
 
     def rect(
         self,
@@ -1022,7 +1022,7 @@ class Circos:
             norm = Normalize(vmin=vmin, vmax=vmax)
             cb = Colorbar(
                 axin,
-                cmap=cmap,  # type: ignore
+                cmap=cmap,
                 norm=norm,
                 orientation=orientation,  # type: ignore
                 **colorbar_kws,
@@ -1092,7 +1092,7 @@ class Circos:
                 patches.append(patch)
             else:
                 ax.add_patch(patch)
-        ax.add_collection(PatchCollection(patches, match_original=True, clip_on=False))  # type: ignore
+        ax.add_collection(PatchCollection(patches, match_original=True, clip_on=False))
 
         # Execute all plot functions
         for plot_func in self._get_all_plot_funcs():
@@ -1136,7 +1136,7 @@ class Circos:
         """
         fig = self.plotfig(dpi=dpi, figsize=figsize)
         fig.savefig(
-            fname=savefile,  # type: ignore
+            fname=savefile,
             dpi=dpi,
             pad_inches=pad_inches,
             bbox_inches="tight",
@@ -1173,7 +1173,7 @@ class Circos:
         """Convert sectors to sector2range"""
         sector2range: dict[str, tuple[float, float]] = {}
         for name, value in sectors.items():
-            if isinstance(value, Sequence):
+            if isinstance(value, (tuple, list)):
                 sector_start, sector_end = value
                 if not sector_start < sector_end:
                     raise ValueError(f"{sector_end=} must be larger than {sector_start=}.")  # fmt: skip  # noqa: E501

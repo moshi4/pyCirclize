@@ -45,7 +45,7 @@ def gen_gid(prefix: str | None = None) -> str:
 def to_feature_tooltip(feature: SeqFeature) -> str:
     """Convert feature to tooltip text"""
     start, end = int(feature.location.start), int(feature.location.end)  # type: ignore
-    strand = "-" if feature.location.strand == -1 else "+"
+    strand = "-" if feature.location.strand == -1 else "+"  # type: ignore
     type = feature.type
     gene = str(feature.qualifiers.get("gene", ["na"])[0])
     product = str(feature.qualifiers.get("product", ["na"])[0])
@@ -160,15 +160,16 @@ def set_patch_tooltip(
 
     # Set hover event handler
     fig = ax.get_figure()
-    fig.canvas.mpl_connect("motion_notify_event", hover)  # type: ignore
-    for key, value in dict(
-        toolbar_visible=False,
-        header_visible=False,
-        footer_visible=False,
-        resizable=True,
-    ).items():
-        if hasattr(fig.canvas, key):
-            setattr(fig.canvas, key, value)
+    if fig is not None:
+        fig.canvas.mpl_connect("motion_notify_event", hover)  # type: ignore
+        for key, value in dict(
+            toolbar_visible=False,
+            header_visible=False,
+            footer_visible=False,
+            resizable=True,
+        ).items():
+            if hasattr(fig.canvas, key):
+                setattr(fig.canvas, key, value)
 
 
 SEG_NUM = 360

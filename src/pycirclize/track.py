@@ -203,11 +203,11 @@ class Track:
 
         # Axis facecolor placed behind other patches (zorder=0.99)
         fc_behind_kwargs = {**kwargs, **config.AXIS_FACE_PARAM}
-        self.rect(self.start, self.end, ignore_pad=True, **fc_behind_kwargs)
+        self.rect(self.start, self.end, ignore_pad=True, **fc_behind_kwargs)  # type: ignore
 
         # Axis edgecolor placed in front of other patches (zorder=1.01)
         ec_front_kwargs = {**kwargs, **config.AXIS_EDGE_PARAM}
-        self.rect(self.start, self.end, ignore_pad=True, **ec_front_kwargs)
+        self.rect(self.start, self.end, ignore_pad=True, **ec_front_kwargs)  # type: ignore
 
     def text(
         self,
@@ -840,7 +840,7 @@ class Track:
             kwargs.setdefault("lw", 0.0)
 
         def plot_scatter(ax: PolarAxes) -> None:
-            scatter = ax.scatter(rad, r, **kwargs)  # type:ignore
+            scatter = ax.scatter(rad, r, **kwargs)
             if config.tooltip.enabled:
                 set_collection_tooltip(ax, scatter, labels)
 
@@ -904,7 +904,7 @@ class Track:
 
         def plot_bar(ax: PolarAxes) -> None:
             bar = ax.bar(
-                rad,  # type: ignore
+                rad,
                 r_height,
                 rad_width,
                 r_bottom,
@@ -1129,7 +1129,7 @@ class Track:
         vmax = max(y_all) if vmax is None else vmax
         self._check_value_min_max(y_all, vmin, vmax)
 
-        r2 = [self._y_to_r(v, vmin, vmax) for v in y2]
+        r2 = [self._y_to_r(v, vmin, vmax) for v in y2]  # type: ignore
         r = [self._y_to_r(v, vmin, vmax) for v in y1]
         if arc:
             plot_rad, plot_r2 = self._to_arc_radr(rad, r2)
@@ -1142,7 +1142,7 @@ class Track:
             kwargs.setdefault("lw", 0.0)
 
         def plot_fill_between(ax: PolarAxes) -> None:
-            ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)  # type: ignore
+            ax.fill_between(plot_rad, plot_r, plot_r2, **kwargs)
 
         self._plot_funcs.append(plot_fill_between)
 
@@ -1235,7 +1235,7 @@ class Track:
             x_range_list.append((min_range, max_range))
 
         # Plot heatmap
-        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]  # type: ignore
+        colormap = cmap if isinstance(cmap, Colormap) else mpl.colormaps[cmap]
         norm = Normalize(vmin=vmin, vmax=vmax)
         textcolor = text_kws.get("color")
         for row_idx, row in enumerate(data):
@@ -1439,12 +1439,12 @@ class Track:
                 kwargs.update(dict(fc=color, facecolor=color))
             # Plot feature
             try:
-                start = int(str(feature.location.parts[0].start))
-                end = int(str(feature.location.parts[-1].end))
+                start = int(str(feature.location.parts[0].start))  # type: ignore
+                end = int(str(feature.location.parts[-1].end))  # type: ignore
             except ValueError:
                 print(f"Failed to parse feature's start-end position.\n{feature}")
                 continue
-            if feature.location.strand == -1:
+            if feature.location.strand == -1:  # type: ignore
                 start, end = end, start
             tooltip = to_feature_tooltip(feature)
             if plotstyle == "box":
@@ -1560,9 +1560,9 @@ class Track:
         vmin, vmax = vmin - config.EPSILON, vmax + config.EPSILON
         if isinstance(value, (Sequence, np.ndarray)):
             if isinstance(value, np.ndarray):
-                value = list(value.flatten())
+                value = list(value.flatten())  # type: ignore
             for v in value:
-                if not vmin <= v <= vmax:
+                if not vmin <= v <= vmax:  # type: ignore
                     raise ValueError(f"value={v} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501
         elif not vmin <= value <= vmax:
             raise ValueError(f"{value=} is not in valid range ({vmin=}, {vmax=})")  # fmt: skip  # noqa: E501

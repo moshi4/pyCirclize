@@ -30,7 +30,7 @@ class TreeViz:
 
     def __init__(
         self,
-        tree_data: str | Path | Tree,  # type: ignore
+        tree_data: str | Path | Tree,
         *,
         format: str = "newick",
         outer: bool = True,
@@ -602,7 +602,7 @@ class TreeViz:
             if node == self.tree.root:
                 parent_node = node
             else:
-                tree_path = [self.tree.root, *self.tree.get_path(node.name)]  # type: ignore
+                tree_path = [self.tree.root, *self.tree.get_path(node.name)]
                 parent_node: Clade = tree_path[-2]
 
             # Get child node xr coordinates
