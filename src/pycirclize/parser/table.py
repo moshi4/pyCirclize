@@ -119,7 +119,7 @@ class StackedBarTable(Table):
         for col_name in self.col_names:
             bottom = [row_name2stack_value[name] for name in self.row_names]
             for row_name in self.row_names:
-                value = float(self.dataframe.at[row_name, col_name])
+                value = pd.to_numeric(self.dataframe.at[row_name, col_name])
                 row_name2stack_value[row_name] += value
             bottoms.append(bottom)
         return bottoms
@@ -206,7 +206,7 @@ class RadarTable(Table):
         row_name2values = {}
         for row_name in self.row_names:
             row_name2values[row_name] = list(self.dataframe.loc[row_name])
-        return row_name2values
+        return row_name2values  # type: ignore
 
     def get_row_tooltip(self, target_row: str) -> list[str]:
         """Get target row tooltip"""

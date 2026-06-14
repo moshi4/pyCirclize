@@ -389,7 +389,7 @@ def test_track_annotate_plot(fig_outfile: Path) -> None:
         features = seqid2features[sector.name]
         for feature in features:
             # Plot CDS feature
-            if feature.location.strand == 1:
+            if feature.location.strand == 1:  # type: ignore
                 track.genomic_features(feature, r_lim=(95, 100), fc="salmon")
             else:
                 track.genomic_features(feature, r_lim=(90, 95), fc="skyblue")

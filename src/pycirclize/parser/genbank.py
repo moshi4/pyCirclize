@@ -361,7 +361,7 @@ class Genbank:
                 # Get feature location
                 start = int(cds_feature.location.start)  # type: ignore
                 end = int(cds_feature.location.end)  # type: ignore
-                strand = -1 if cds_feature.location.strand == -1 else 1
+                strand = -1 if cds_feature.location.strand == -1 else 1  # type: ignore
                 # Set feature id
                 location_id = f"|{seqid}|{start}_{end}_{strand}|"
                 protein_id = cds_feature.qualifiers.get("protein_id", [None])[0]
@@ -440,7 +440,7 @@ class Genbank:
         result : bool
             Check result
         """
-        strand = feature.location.strand
+        strand = feature.location.strand  # type: ignore
         if strand == -1:
             start = int(feature.location.parts[-1].start)  # type: ignore
             end = int(feature.location.parts[0].end)  # type: ignore

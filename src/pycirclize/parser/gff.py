@@ -264,7 +264,7 @@ class Gff:
         # Filter exon features by target strand & range
         filter_exon_features = []
         for feature in exon_features:
-            if target_strand is not None and feature.strand != target_strand:
+            if target_strand is not None and feature.strand != target_strand:  # type: ignore
                 continue
             if target_range is not None:
                 start, end = int(feature.location.start), int(feature.location.end)  # type: ignore

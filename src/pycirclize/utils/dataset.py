@@ -212,7 +212,7 @@ def fetch_genbank_by_accid(
     >>> gbk_fetch_data = fetch_genbank_by_accid("NC_002483")
     >>> gbk = Genbank(gbk_fetch_data)
     """
-    Entrez.email = "" if email is None else email
+    Entrez.email = "" if email is None else email  # type: ignore
     gbk_fetch_data: TextIOWrapper = Entrez.efetch(
         db="nucleotide",
         id=accid,
