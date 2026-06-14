@@ -1,29 +1,29 @@
 [project]
 name = "pyCirclize"
-dynamic = ["version"]
 description = "Circular visualization in Python"
-authors = [{ name = "moshi4" }]
-license = "MIT"
 readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "moshi4" }]
 keywords = [
-    "matplotlib",
-    "visualization",
-    "bioinformatics",
-    "circos",
-    "chord-diagram",
+  "bioinformatics",
+  "chord-diagram",
+  "circos",
+  "matplotlib",
+  "visualization",
 ]
 classifiers = [
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Framework :: Matplotlib",
+  "Framework :: Matplotlib",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-requires-python = ">=3.10"
 dependencies = [
-    "matplotlib>=3.6.3",
-    "biopython>=1.80",
-    "numpy>=1.21",
-    "pandas>=1.3.5",
+  "biopython>=1.80",
+  "matplotlib>=3.6.3",
+  "numpy>=1.21",
+  "pandas>=1.3.5",
 ]
+dynamic = ["version"]
 
 [project.urls]
 homepage = "https://moshi4.github.io/pyCirclize/"
@@ -34,31 +34,39 @@ tooltip = ["ipympl>=0.9.7"]
 
 [dependency-groups]
 dev = [
-    { include-group = "test" },
-    { include-group = "lint" },
-    { include-group = "jupyter" },
-    { include-group = "docs" },
-    { include-group = "genomics" },
+  { include-group = "docs" },
+  { include-group = "genomics" },
+  { include-group = "jupyter" },
+  { include-group = "lint" },
+  { include-group = "test" },
 ]
-test = ["pytest>=8.0.0", "pytest-cov>=4.0.0"]
-lint = ["ruff>=0.4.0", "pre-commit>=3.5.0"]
-jupyter = ["ipykernel>=6.13.0"]
 docs = [
-    "mkdocs>=1.2",
-    "mkdocstrings[python]>=0.19.0",
-    "mkdocs-jupyter>=0.21.0",
-    "mkdocs-material>=8.2",
-    "markdown-callouts>=0.4.0",
-    "black>=22.3.0",
+  "black>=22.3.0",
+  "markdown-callouts>=0.4.0",
+  "mkdocs>=1.2",
+  "mkdocs-jupyter>=0.21.0",
+  "mkdocs-material>=8.2",
+  "mkdocstrings[python]>=0.19.0",
 ]
 genomics = ["pygenomeviz>=1.5.0"]
+jupyter = ["ipykernel>=6.13.0"]
+lint = [
+  "prek>=0.4.0",
+  "ruff>=0.4.0",
+  "ty>=0.0.37",
+]
+test = ["pytest>=8.0.0", "pytest-cov>=4.0.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.hatch.version]
 path = "src/pycirclize/__init__.py"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
 addopts = "--cov=src --tb=long -vv --cov-report=xml --cov-report=term"
+minversion = "6.0"
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -67,43 +75,38 @@ line-length = 88
 # Lint Rules: https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
 select = [
-    "I",   # isort
-    "F",   # pyflakes
-    "E",   # pycodestyle (Error)
-    "W",   # pycodestyle (Warning)
-    "D",   # pydocstyle
-    "UP",  # pyupgrade
-    "PL",  # Pylint
-    "ANN", # flake8-annotations
-    "TC",  # flake8-type-checking
-    "B",   # flake8-bugbear
-    "SIM", # flake8-simplify
-    "ARG", # flake8-unused-arguments
-    "PTH", # flake8-use-pathlib
-    "RUF", # Ruff-specific rules
+  "I",  # isort
+  "F",  # pyflakes
+  "E",  # pycodestyle (Error)
+  "W",  # pycodestyle (Warning)
+  "D",  # pydocstyle
+  "UP",  # pyupgrade
+  "PL",  # Pylint
+  "ANN",  # flake8-annotations
+  "TC",  # flake8-type-checking
+  "B",  # flake8-bugbear
+  "SIM",  # flake8-simplify
+  "ARG",  # flake8-unused-arguments
+  "PTH",  # flake8-use-pathlib
+  "RUF",  # Ruff-specific rules
 ]
 ignore = [
-    "D100",    # Missing docstring in public module
-    "D101",    # Missing docstring in public class
-    "D104",    # Missing docstring in public package
-    "D105",    # Missing docstring in magic method
-    "D205",    # 1 blank line required between summary line and description
-    "D400",    # First line should end with a period
-    "D401",    # First line should be in imperative mood
-    "D403",    # First word of the first line should be properly capitalized
-    "D415",    # First line should end with a period, question mark, or exclamation point
-    "ANN002",  # Missing type annotation for *{name}
-    "ANN003",  # Missing type annotation for **{name}
-    "PTH123",  # open() should be replaced by Path.open()
-    "PLR0913", # Too many arguments in function definition ({c_args} > {max_args})
-    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
-    "PLW2901", # Outer {outer_kind} variable {name} overwritten by inner {inner_kind} target
-    "UP038",   # Deprecated: Use X | Y in {} call instead of (X, Y)
+  "D100",  # Missing docstring in public module
+  "D101",  # Missing docstring in public class
+  "D104",  # Missing docstring in public package
+  "D105",  # Missing docstring in magic method
+  "D205",  # 1 blank line required between summary line and description
+  "D400",  # First line should end with a period
+  "D401",  # First line should be in imperative mood
+  "D403",  # First word of the first line should be properly capitalized
+  "D415",  # First line should end with a period, question mark, or exclamation point
+  "ANN002",  # Missing type annotation for *{name}
+  "ANN003",  # Missing type annotation for **{name}
+  "PTH123",  # open() should be replaced by Path.open()
+  "PLR0913",  # Too many arguments in function definition ({c_args} > {max_args})
+  "PLR2004",  # Magic value used in comparison, consider replacing {value} with a constant variable
+  "PLW2901",  # Outer {outer_kind} variable {name} overwritten by inner {inner_kind} target
 ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
