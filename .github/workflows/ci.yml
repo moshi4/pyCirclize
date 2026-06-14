@@ -34,6 +34,9 @@ jobs:
       - name: Run ruff format check
         run: uv run ruff format src tests
 
+      - name: Run ty type check
+        run: uv run ty check src tests
+
       - name: Run pytest
         run: uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
 
