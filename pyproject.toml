@@ -51,6 +51,7 @@ docs = [
 genomics = ["pygenomeviz>=1.5.0"]
 jupyter = ["ipykernel>=6.13.0"]
 lint = [
+  "pandas-stubs>=2.3.3.260113",
   "prek>=0.4.0",
   "ruff>=0.4.0",
   "ty>=0.0.37",
