@@ -9,15 +9,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  CI:
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
+  static-checks:
+    name: Static Checks
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,12 +34,22 @@ jobs:
       - name: Run ty type check
         run: uv run ty check src tests
 
-      - name: Run pytest
-        run: uv run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+  tests:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Pytest Coverage Comment
-        uses: MishaKav/pytest-coverage-comment@main
-        with:
-          pytest-coverage-path: pytest-coverage.txt
-          junitxml-path: pytest.xml
-        if: ${{ matrix.os=='ubuntu-latest' && matrix.python-version=='3.12' }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install Python ${{ matrix.python-version }} & dependencies
+        run: uv sync --all-extras --all-groups --upgrade --python ${{ matrix.python-version }}
+
+      - name: Run pytest
+        run: uv run pytest
