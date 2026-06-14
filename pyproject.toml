@@ -111,3 +111,6 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ty.src]
+include = ["src", "tests"]
