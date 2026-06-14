@@ -1,0 +1,23 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+# :schema https://www.schemastore.org/prek.json
+
+default_install_hook_types = ["pre-commit", "commit-msg"]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.15.17"
+hooks = [
+  { id = "ruff-check", types_or = ["python", "pyi"], args = ["--fix"] },
+  { id = "ruff-format", types_or = ["python", "pyi"] }
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ty-pre-commit"
+rev = "v0.0.49"
+hooks = [{ id = "ty", types_or = ["python", "pyi"] }]
+
+[[repos]]
+repo = "https://github.com/compilerla/conventional-pre-commit"
+rev = "v4.4.0"
+hooks = [{ id = "conventional-pre-commit", stages = ["commit-msg"] }]
