@@ -283,4 +283,4 @@ conda install -c conda-forge pycirclize ipympl
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=moshi4/pyCirclize&type=Date)](https://star-history.com/#moshi4/pyCirclize&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=moshi4/pyCirclize&type=Date)](https://star-history.dera.page/#moshi4/pyCirclize&Date)
